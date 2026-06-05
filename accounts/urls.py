@@ -1,0 +1,20 @@
+from django.urls import path
+from . import views
+
+app_name = "accounts"
+
+urlpatterns = [
+    path("signup/", views.register, name="student_signup"),
+    path("login/", views.user_login, name="login"),
+    path("logout/", views.user_logout, name="logout"),
+    path("profile/", views.profile_view, name="profile"),  # پروفایل شخصی
+    path(
+        "profile/edit/", views.edit_profile, name="edit_profile"
+    ),  # ویرایش پروفایل (قبل از داینامیک)
+    path(
+        "profile/<str:username>/", views.profile_view, name="profile_detail"
+    ),  # پروفایل دیگران
+    path("password/change/", views.change_password, name="change_password"),
+    path("notifications/", views.notifications_view, name="notifications"),
+    path("users/", views.user_list, name="user_list"),
+]

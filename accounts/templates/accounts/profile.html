@@ -1,0 +1,66 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}پروفایل {{ user_obj.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- سایدبار اطلاعات پایه -->
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <img src="{{ user_obj.profile.get_avatar_url }}" alt="Avatar" class="profile-avatar mb-3">
+                <h5>{{ user_obj.get_full_name|default:user_obj.username }}</h5>
+                <p class="text-muted">@{{ user_obj.username }}</p>
+                <p><i class="fas fa-envelope"></i> {{ user_obj.email }}</p>
+                <p><i class="fas fa-phone"></i> {{ user_obj.phone|default:"ثبت نشده" }}</p>
+                <p><i class="fas fa-id-card"></i> کد ملی: {{ user_obj.national_code }}</p>
+                <p><span class="badge bg-info">{{ user_obj.get_role_display }}</span></p>
+                {% if is_owner %}
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary mt-2">ویرایش پروفایل</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- اطلاعات تخصصی و بیوگرافی -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">بیوگرافی</div>
+            <div class="card-body">
+                {{ user_obj.profile.bio|linebreaks|default:"بیوگرافی ثبت نشده است." }}
+            </div>
+        </div>
+
+        {% if user_obj.is_teacher and user_obj.teacher_profile %}
+            <div class="card mt-3">
+                <div class="card-header">اطلاعات استادی</div>
+                <div class="card-body">
+                    <p><strong>تخصص:</strong> {{ user_obj.teacher_profile.specialty }}</p>
+                    <p><strong>مدرک تحصیلی:</strong> {{ user_obj.teacher_profile.degree|default:"نامشخص" }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if user_obj.is_student and user_obj.student_profile %}
+            <div class="card mt-3">
+                <div class="card-header">اطلاعات تحصیلی</div>
+                <div class="card-body">
+                    <p><strong>شماره دانش‌آموزی:</strong> {{ user_obj.student_profile.student_id }}</p>
+                    <p><strong>سال ورود:</strong> {{ user_obj.student_profile.entry_year }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if user_obj.profile.location or user_obj.profile.website %}
+            <div class="card mt-3">
+                <div class="card-header">ارتباطات</div>
+                <div class="card-body">
+                    {% if user_obj.profile.location %}<p><i class="fas fa-map-marker-alt"></i> {{ user_obj.profile.location }}</p>{% endif %}
+                    {% if user_obj.profile.website %}<p><i class="fas fa-globe"></i> <a href="{{ user_obj.profile.website }}" target="_blank">{{ user_obj.profile.website }}</a></p>{% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

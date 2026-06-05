@@ -1,0 +1,44 @@
+/* static/accounts/css/style.css */
+body {
+    font-family: 'Tahoma', 'Vazir', sans-serif;
+    background-color: #f8f9fc;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    font-weight: bold;
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.cover-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.user-list-card {
+    transition: transform 0.2s;
+}
+.user-list-card:hover {
+    transform: translateY(-5px);
+}

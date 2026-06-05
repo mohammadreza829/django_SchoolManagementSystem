@@ -1,0 +1,37 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}ویرایش پروفایل{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning">ویرایش اطلاعات</div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <h5>اطلاعات کاربری</h5>
+                    {% for field in user_form %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                    <hr>
+                    <h5>اطلاعات پروفایل</h5>
+                    {% for field in profile_form %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">بازگشت</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}اعلان‌ها{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-info text-white">اعلان‌های شما</div>
+    <div class="card-body">
+        {% if notes %}
+            <ul class="list-group">
+                {% for note in notes %}
+                    <li class="list-group-item {% if not note.is_read %}list-group-item-warning{% endif %}">
+                        {{ note.message }}
+                        <small class="text-muted d-block">{{ note.created_at|timesince }} پیش</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">هیچ اعلانی وجود ندارد.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

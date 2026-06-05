@@ -1,0 +1,55 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}لیست کاربران{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-secondary text-white">لیست کاربران</div>
+    <div class="card-body">
+        <form method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="جستجو بر اساس نام، نام کاربری..." value="{{ request.GET.q }}">
+                <button class="btn btn-outline-primary" type="submit">جستجو</button>
+            </div>
+        </form>
+
+        <div class="row">
+            {% for user in page_obj %}
+                <div class="col-md-3 mb-3">
+                    <div class="card user-list-card h-100">
+                        <div class="card-body text-center">
+                            <img src="{{ user.profile.get_avatar_url }}" class="rounded-circle mb-2" width="80" height="80">
+                            <h6>{{ user.get_full_name|default:user.username }}</h6>
+                            <p class="small text-muted">{{ user.get_role_display }}</p>
+                            <a href="{% url 'accounts:profile_detail' user.username %}" class="btn btn-sm btn-primary">مشاهده پروفایل</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted">کاربری یافت نشد.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">قبلی</a></li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">بعدی</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
