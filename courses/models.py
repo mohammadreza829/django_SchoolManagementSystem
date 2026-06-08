@@ -1,5 +1,3 @@
-# courses/models.py
-
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
@@ -170,8 +168,11 @@ class Course(models.Model):
         verbose_name="دسته‌بندی",
     )
     rating_count = models.PositiveIntegerField(default=0, verbose_name="تعداد امتیازها")
-    rating_avg = models.DecimalField(
-        max_digits=3, decimal_places=2, default=0, verbose_name="میانگین امتیاز"
+
+    # اضافه شده برای هماهنگی با views.py
+    is_full = models.BooleanField(default=False, verbose_name="تکمیل ظرفیت")
+    enrollment_deadline = models.DateTimeField(
+        blank=True, null=True, verbose_name="مهلت ثبت‌نام"
     )
 
     # ========== متادیتا ==========
@@ -217,9 +218,6 @@ class Course(models.Model):
         return reverse("courses:course_detail", kwargs={"slug": self.slug})
 
 
-# courses/models.py - بعد از مدل Course اضافه کن
-
-
 class Lesson(models.Model):
     """جلسات آموزشی هر دوره"""
 
@@ -257,6 +255,9 @@ class Lesson(models.Model):
     # آمار
     view_count = models.PositiveIntegerField(default=0, verbose_name="تعداد بازدید")
 
+    # اضافه شده برای هماهنگی با views.py
+    comment_count = models.PositiveIntegerField(default=0, verbose_name="تعداد نظرات")
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -280,9 +281,6 @@ class Lesson(models.Model):
         return self.video_file.url if self.video_file else self.video_url
 
 
-# courses/models.py - بعد از Lesson اضافه کن
-
-
 class LessonProgress(models.Model):
     """پیشرفت دانش‌آموز در هر جلسه"""
 
@@ -296,6 +294,12 @@ class LessonProgress(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True)
     last_watched = models.DateTimeField(auto_now=True)
 
+    # اضافه شده برای هماهنگی با views.py
+    completion_percentage = models.PositiveSmallIntegerField(
+        default=0, verbose_name="درصد تکمیل"
+    )
+    watch_count = models.PositiveIntegerField(default=0, verbose_name="تعداد بازدید")
+
     class Meta:
         verbose_name = "پیشرفت جلسه"
         verbose_name_plural = "پیشرفت جلسات"
@@ -303,12 +307,6 @@ class LessonProgress(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.lesson.title}: {'✓' if self.is_completed else '○'}"
-
-
-# courses/models.py - بعد از LessonProgress اضافه کن
-
-
-# courses/models.py
 
 
 class CourseRating(models.Model):
@@ -322,15 +320,11 @@ class CourseRating(models.Model):
 
     class Meta:
         unique_together = ["course", "user"]
-        verbose_name = "امتیاز "
-        verbose_name_plural = "امتیاز ها"
+        verbose_name = "امتیاز"
+        verbose_name_plural = "امتیازها"
+
     def __str__(self):
         return f"{self.user.username} → {self.course.title}: {self.score}⭐"
-    verbose_name = "امتیاز "
-    verbose_name_plural = "امتیاز ها"
-
-
-# courses/models.py - آخر فایل اضافه کن
 
 
 class LessonAttachment(models.Model):
@@ -351,3 +345,58 @@ class LessonAttachment(models.Model):
 
     def __str__(self):
         return f"{self.lesson.title} - {self.title}"
+
+
+# ========== مدل‌های اضافه شده برای هماهنگی با views.py ==========
+
+
+class LessonLike(models.Model):
+    """لایک‌های دانش‌آموزان برای جلسات"""
+
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="likes")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="lesson_likes"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["lesson", "user"]
+        verbose_name = "لایک جلسه"
+        verbose_name_plural = "لایک‌های جلسات"
+
+    def __str__(self):
+        return f"{self.user.username} liked {self.lesson.title}"
+
+
+class LessonComment(models.Model):
+    """کامنت‌های دانش‌آموزان برای هر جلسه"""
+
+    lesson = models.ForeignKey(
+        Lesson, on_delete=models.CASCADE, related_name="comments", verbose_name="جلسه"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="lesson_comments",
+        verbose_name="کاربر",
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="replies",
+        verbose_name="پاسخ به",
+    )
+    text = models.TextField(verbose_name="متن نظر")
+    is_approved = models.BooleanField(default=True, verbose_name="تایید شده")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ نظر")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخرین ویرایش")
+
+    class Meta:
+        verbose_name = "نظر جلسه"
+        verbose_name_plural = "نظرات جلسات"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.lesson.title}: {self.text[:30]}"

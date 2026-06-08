@@ -3,21 +3,37 @@
 {% block title %}اعلان‌ها{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header bg-info text-white">اعلان‌های شما</div>
-    <div class="card-body">
-        {% if notes %}
-            <ul class="list-group">
-                {% for note in notes %}
-                    <li class="list-group-item {% if not note.is_read %}list-group-item-warning{% endif %}">
-                        {{ note.message }}
-                        <small class="text-muted d-block">{{ note.created_at|timesince }} پیش</small>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-muted">هیچ اعلانی وجود ندارد.</p>
-        {% endif %}
+<div class="max-w-3xl mx-auto space-y-4">
+
+    <div class="bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
+        <h2 class="text-white font-bold text-lg">
+            <i class="fas fa-bell text-primary ml-2"></i>
+            اعلان‌های شما
+        </h2>
     </div>
+
+    <div class="bg-surface border border-white/10 rounded-2xl p-4 shadow-glow-sm space-y-2">
+
+        {% if notes %}
+            {% for note in notes %}
+            <div class="p-3 rounded-xl border border-white/10
+                        {% if not note.is_read %}bg-hovered{% endif %}">
+
+                <p class="text-sm text-text-1">
+                    {{ note.message }}
+                </p>
+
+                <p class="text-xs text-text-2 mt-1">
+                    {{ note.created_at|timesince }} پیش
+                </p>
+
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-text-2 text-sm">هیچ اعلانی وجود ندارد</p>
+        {% endif %}
+
+    </div>
+
 </div>
 {% endblock %}

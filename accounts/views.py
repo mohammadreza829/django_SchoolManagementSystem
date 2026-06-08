@@ -14,6 +14,15 @@ from .forms import (
     CustomPasswordChangeForm,
 )
 
+# accounts/views.py - اضافه کردن این خط در بالای فایل (بعد از importهای دیگه)
+
+# اضافه کردن ایمپورت از courses
+try:
+    from courses.models import Course
+
+    COURSES_AVAILABLE = True
+except ImportError:
+    COURSES_AVAILABLE = False
 # چون مدل کاربر رو عوض کردیم، همیشه از این تابع استفاده می‌کنیم
 User = get_user_model()
 
@@ -78,16 +87,31 @@ def profile_view(request, username=None):
     else:
         user_obj = request.user
 
-    # چک کن که profile وجود داشته باشه
     if not hasattr(user_obj, "profile"):
-        # اگه نداشت، بسازش (فقط برای امنیت)
         Profile.objects.create(user=user_obj)
 
     is_owner = request.user == user_obj
 
+    # ========== اضافه کردن دوره‌ها ==========
+    teaching_courses = []
+    enrolled_courses = []
+
+    if COURSES_AVAILABLE:
+        if user_obj.is_teacher:
+            teaching_courses = Course.objects.filter(
+                teachers=user_obj, status="published"
+            ).order_by("-created_at")[:6]
+
+        if user_obj.is_student:
+            enrolled_courses = user_obj.courses_enrolled.filter(
+                status="published"
+            ).order_by("-created_at")[:6]
+
     context = {
         "user_obj": user_obj,
         "is_owner": is_owner,
+        "teaching_courses": teaching_courses,
+        "enrolled_courses": enrolled_courses,
     }
     return render(request, "accounts/profile.html", context)
 
@@ -150,6 +174,7 @@ def notifications_view(request):
 
 from django.contrib.admin.views.decorators import staff_member_required
 
+
 @staff_member_required
 def user_list(request):
     """لیست اساتید یا کاربران (فقط برای کارمندان سایت)"""
@@ -168,3 +193,41 @@ def user_list(request):
     page_obj = paginator.get_page(page_number)
 
     return render(request, "accounts/user_list.html", {"page_obj": page_obj})
+
+# ==================== ۵. داشبورد ====================
+@login_required
+def dashboard_view(request):
+    user = request.user
+    
+    # مقادیر پیش‌فرض
+    active_courses = []
+    teaching_courses_count = 0
+    enrolled_courses_count = 0
+    total_notifications = user.notifications.filter(is_read=False).count()
+
+    if COURSES_AVAILABLE:
+        if user.is_teacher:
+            # برای مدرس: تعداد دوره‌های منتشر شده خودش
+            teaching_courses_count = Course.objects.filter(
+                teachers=user, status="published"
+            ).count()
+
+        if user.is_student:
+            # برای دانشجو: لیست دوره‌ها برای نمایش در حلقه + تعداد برای آمار
+            active_courses = user.courses_enrolled.filter(status="published")
+            enrolled_courses_count = active_courses.count()
+
+    context = {
+        "active_courses": active_courses,  # این متغیر برای حلقه زدن در قالب لازم است
+        "enrolled_courses_count": enrolled_courses_count,
+        "teaching_courses_count": teaching_courses_count,
+        "total_notifications": total_notifications,
+        # سایر مقادیری که در قالب استفاده کردی (اگر فعلاً نداری صفر بفرست)
+        "completed_courses": [], 
+        "total_hours": 0,
+        "avg_progress": 0,
+        "recent_activities": [],
+        "recent_courses": Course.objects.filter(status="published").order_by('-created_at')[:3]
+    }
+
+    return render(request, "accounts/dashboard.html", context)

@@ -3,31 +3,262 @@
 
 {% block title %}ورود به سامانه{% endblock %}
 
+{% block extra_css %}
+<style>
+    .auth-wrap {
+        min-height: calc(100vh - 64px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+    }
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: #1a1e28;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .auth-header {
+        padding: 32px 32px 24px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(124,58,237,0.05));
+    }
+    .auth-logo {
+        width: 56px; height: 56px;
+        background: linear-gradient(135deg, #6366f1, #7c3aed);
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px; color: #fff;
+        margin: 0 auto 16px;
+        box-shadow: 0 0 24px rgba(99,102,241,0.35);
+    }
+    .auth-title { font-size: 20px; font-weight: 700; color: #f0f2f8; margin-bottom: 4px; }
+    .auth-sub   { font-size: 13px; color: #545c72; }
+    .auth-body  { padding: 28px 32px; }
+    .auth-footer {
+        padding: 18px 32px;
+        text-align: center;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.02);
+        font-size: 13px;
+        color: #545c72;
+    }
+    .auth-footer a { color: #818cf8; font-weight: 600; text-decoration: none; }
+    .auth-footer a:hover { color: #a5b4fc; }
+
+    /* Field */
+    .field-group { margin-bottom: 18px; }
+    .field-label {
+        display: block;
+        font-size: 12px; font-weight: 600;
+        color: #8b92a9;
+        margin-bottom: 7px;
+        letter-spacing: 0.2px;
+    }
+    .field-wrap {
+        position: relative;
+    }
+    .field-icon {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        right: 13px;
+        font-size: 14px; color: #545c72;
+        pointer-events: none;
+    }
+    .field-input {
+        width: 100%;
+        background: #13161d;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 11px;
+        padding: 10px 40px 10px 14px;
+        color: #f0f2f8;
+        font-family: 'Vazirmatn', sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.2s;
+        direction: rtl;
+    }
+    .field-input:hover { border-color: rgba(255,255,255,0.14); }
+    .field-input:focus {
+        border-color: #6366f1;
+        background: #1f2433;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.18);
+    }
+    .field-input::placeholder { color: #2a2f42; }
+
+    /* Toggle password */
+    .pwd-toggle {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        left: 13px;
+        background: none; border: none; padding: 0;
+        font-size: 14px; color: #545c72; cursor: pointer;
+        transition: color 0.15s;
+    }
+    .pwd-toggle:hover { color: #818cf8; }
+
+    /* Submit button */
+    .btn-auth {
+        width: 100%;
+        background: #6366f1;
+        color: #fff;
+        border: none;
+        border-radius: 11px;
+        padding: 12px;
+        font-family: 'Vazirmatn', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        box-shadow: 0 0 0 0 rgba(99,102,241,0.4);
+        margin-top: 8px;
+    }
+    .btn-auth:hover {
+        background: #7c3aed;
+        box-shadow: 0 0 20px rgba(99,102,241,0.35);
+        transform: translateY(-1px);
+    }
+    .btn-auth:active { transform: translateY(0); }
+
+    /* Error */
+    .field-error { font-size: 11px; color: #ef4444; margin-top: 5px; }
+    .alert-error {
+        display: flex; align-items: center; gap: 9px;
+        background: rgba(239,68,68,0.08);
+        border: 1px solid rgba(239,68,68,0.2);
+        border-right: 3px solid #ef4444;
+        border-radius: 10px;
+        padding: 11px 14px;
+        font-size: 13px; color: #fca5a5;
+        margin-bottom: 20px;
+    }
+
+    /* Divider */
+    .auth-divider {
+        display: flex; align-items: center; gap: 12px;
+        margin: 22px 0 18px;
+        color: #2a2f42; font-size: 12px;
+    }
+    .auth-divider::before, .auth-divider::after {
+        content: ''; flex: 1;
+        height: 1px; background: rgba(255,255,255,0.07);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card">
-            <div class="card-header text-center bg-primary text-white">
-                <h4><i class="fas fa-sign-in-alt"></i> ورود به حساب کاربری</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">نام کاربری</label>
-                        <input type="text" name="username" id="id_username" class="form-control" required autofocus>
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_password" class="form-label">رمز عبور</label>
-                        <input type="password" name="password" id="id_password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">ورود</button>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                <a href="{% url 'accounts:student_signup' %}">ثبت‌نام دانش‌آموز جدید</a>
-            </div>
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="auth-logo"><i class="fas fa-graduation-cap"></i></div>
+            <h1 class="auth-title">ورود به حساب کاربری</h1>
+            <p class="auth-sub">به سامانه مدیریت آموزشی خوش آمدید</p>
         </div>
+
+        <!-- Body -->
+        <div class="auth-body">
+
+            {% if form.non_field_errors %}
+            <div class="alert-error">
+                <i class="fas fa-times-circle"></i>
+                <span>{{ form.non_field_errors|join:" " }}</span>
+            </div>
+            {% endif %}
+
+            <form method="post" autocomplete="off">
+                {% csrf_token %}
+
+                <!-- Username -->
+                <div class="field-group">
+                    <label for="id_username" class="field-label">نام کاربری</label>
+                    <div class="field-wrap">
+                        <i class="fas fa-user field-icon"></i>
+                        <input
+                            type="text"
+                            name="username"
+                            id="id_username"
+                            class="field-input"
+                            placeholder="نام کاربری خود را وارد کنید"
+                            required autofocus
+                            value="{{ form.username.value|default:'' }}"
+                        >
+                    </div>
+                    {% if form.username.errors %}
+                    <p class="field-error">{{ form.username.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="field-group">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+                        <label for="id_password" class="field-label" style="margin-bottom:0;">رمز عبور</label>
+                        <a href="#" style="font-size:11px;color:#818cf8;text-decoration:none;">فراموشی رمز؟</a>
+                    </div>
+                    <div class="field-wrap">
+                        <i class="fas fa-lock field-icon"></i>
+                        <input
+                            type="password"
+                            name="password"
+                            id="id_password"
+                            class="field-input"
+                            placeholder="رمز عبور خود را وارد کنید"
+                            required
+                        >
+                        <button type="button" class="pwd-toggle" onclick="togglePwd()" id="pwd-btn" aria-label="نمایش/مخفی رمز">
+                            <i class="fas fa-eye-slash" id="pwd-icon"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                    <p class="field-error">{{ form.password.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn-auth">
+                    <i class="fas fa-sign-in-alt"></i>
+                    ورود به حساب
+                </button>
+            </form>
+
+            <div class="auth-divider">یا ثبت‌نام کنید</div>
+
+            <a
+                href="{% url 'accounts:student_signup' %}"
+                style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:11px;color:#818cf8;font-size:13px;font-weight:600;text-decoration:none;transition:all 0.15s;"
+                onmouseover="this.style.background='rgba(99,102,241,0.15)'"
+                onmouseout="this.style.background='rgba(99,102,241,0.08)'"
+            >
+                <i class="fas fa-user-plus"></i>
+                ثبت‌نام دانش‌آموز جدید
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            حساب ندارید؟
+            <a href="{% url 'accounts:student_signup' %}">همین الان ثبت‌نام کنید</a>
+        </div>
+
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePwd() {
+    const input = document.getElementById('id_password');
+    const icon  = document.getElementById('pwd-icon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    }
+}
+</script>
 {% endblock %}

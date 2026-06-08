@@ -3,53 +3,83 @@
 {% block title %}لیست کاربران{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header bg-secondary text-white">لیست کاربران</div>
-    <div class="card-body">
-        <form method="get" class="mb-4">
-            <div class="input-group">
-                <input type="text" name="q" class="form-control" placeholder="جستجو بر اساس نام، نام کاربری..." value="{{ request.GET.q }}">
-                <button class="btn btn-outline-primary" type="submit">جستجو</button>
-            </div>
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Search -->
+    <div class="bg-surface border border-white/10 rounded-2xl p-4 shadow-glow-sm">
+        <form method="get">
+            <input
+                type="text"
+                name="q"
+                value="{{ request.GET.q }}"
+                placeholder="جستجو بر اساس نام، نام کاربری..."
+                class="w-full bg-elevated border border-white/10 rounded-xl px-4 py-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
         </form>
-
-        <div class="row">
-            {% for user in page_obj %}
-                <div class="col-md-3 mb-3">
-                    <div class="card user-list-card h-100">
-                        <div class="card-body text-center">
-                            <img src="{{ user.profile.get_avatar_url }}" class="rounded-circle mb-2" width="80" height="80">
-                            <h6>{{ user.get_full_name|default:user.username }}</h6>
-                            <p class="small text-muted">{{ user.get_role_display }}</p>
-                            <a href="{% url 'accounts:profile_detail' user.username %}" class="btn btn-sm btn-primary">مشاهده پروفایل</a>
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <p class="text-muted">کاربری یافت نشد.</p>
-            {% endfor %}
-        </div>
-
-        <!-- Pagination -->
-        {% if page_obj.has_other_pages %}
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">قبلی</a></li>
-                    {% endif %}
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                    {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">بعدی</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
     </div>
+
+    <!-- Users Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+        {% for user in page_obj %}
+        <div class="bg-surface border border-white/10 rounded-2xl p-4 text-center shadow-glow-sm hover:shadow-glow transition">
+
+            <img
+                src="{{ user.profile.get_avatar_url }}"
+                class="w-20 h-20 mx-auto rounded-xl object-cover border border-white/10"
+            >
+
+            <h3 class="mt-3 text-sm font-bold text-text-1">
+                {{ user.get_full_name|default:user.username }}
+            </h3>
+
+            <p class="text-xs text-text-2 mt-1">
+                {{ user.get_role_display }}
+            </p>
+
+            <a href="{% url 'accounts:profile_detail' user.username %}"
+               class="mt-3 inline-flex items-center justify-center w-full bg-primary hover:bg-primary-hover text-white text-xs font-bold py-2 rounded-xl transition">
+                مشاهده پروفایل
+            </a>
+
+        </div>
+        {% empty %}
+            <p class="text-text-2">کاربری یافت نشد</p>
+        {% endfor %}
+
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center gap-2 pt-4">
+
+        {% if page_obj.has_previous %}
+        <a class="px-3 py-1 rounded-lg bg-elevated text-text-2 text-xs"
+           href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+            قبلی
+        </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="px-3 py-1 rounded-lg bg-primary text-white text-xs">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a class="px-3 py-1 rounded-lg bg-elevated text-text-2 text-xs"
+                   href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a class="px-3 py-1 rounded-lg bg-elevated text-text-2 text-xs"
+           href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+            بعدی
+        </a>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

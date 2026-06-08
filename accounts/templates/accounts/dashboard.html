@@ -1,0 +1,431 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}داشبورد من{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Progress Bar ── */
+    .progress-bar-track {
+        background: rgba(255,255,255,0.08);
+        border-radius: 99px;
+        height: 5px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #6366f1, #818cf8);
+        transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+    .progress-bar-fill.green  { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .progress-bar-fill.amber  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+    /* ── Course card ── */
+    .course-row {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.07);
+        background: rgba(255,255,255,0.02);
+        transition: all 0.18s;
+        text-decoration: none;
+        color: inherit;
+    }
+    .course-row:hover {
+        background: rgba(99,102,241,0.08);
+        border-color: rgba(99,102,241,0.22);
+        transform: translateX(-2px);
+    }
+    .course-thumb {
+        width: 46px; height: 46px;
+        border-radius: 10px;
+        background: rgba(99,102,241,0.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        color: #818cf8;
+    }
+
+    /* ── Suggested card ── */
+    .suggest-card {
+        display: flex; gap: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.02);
+        transition: all 0.18s;
+        text-decoration: none; color: inherit;
+    }
+    .suggest-card:hover { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.2); }
+    .suggest-thumb {
+        width: 52px; height: 52px;
+        border-radius: 9px;
+        flex-shrink: 0;
+        object-fit: cover;
+        background: rgba(99,102,241,0.1);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; color: #818cf8;
+    }
+
+    /* ── Stat card ── */
+    .stat-card {
+        background: #1a1e28;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        padding: 18px 20px;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
+    .stat-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 2px;
+    }
+    .stat-card.c-purple::before { background: #6366f1; }
+    .stat-card.c-green::before  { background: #22c55e; }
+    .stat-card.c-amber::before  { background: #f59e0b; }
+    .stat-card.c-blue::before   { background: #38bdf8; }
+
+    .stat-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 17px; margin-bottom: 12px;
+    }
+    .stat-icon.purple { background: rgba(99,102,241,0.13); color: #818cf8; }
+    .stat-icon.green  { background: rgba(34,197,94,0.12);  color: #22c55e; }
+    .stat-icon.amber  { background: rgba(245,158,11,0.12); color: #f59e0b; }
+    .stat-icon.blue   { background: rgba(56,189,248,0.12); color: #38bdf8; }
+
+    /* ── Section card ── */
+    .section-card {
+        background: #1a1e28;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+    .section-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .section-title { font-size: 14px; font-weight: 600; color: #f0f2f8; }
+    .section-link  { font-size: 12px; color: #818cf8; transition: color 0.15s; text-decoration: none; }
+    .section-link:hover { color: #a5b4fc; }
+    .section-body { padding: 16px; }
+
+    /* ── Level badge ── */
+    .lv-badge {
+        display: inline-flex; align-items: center;
+        font-size: 10px; font-weight: 600;
+        padding: 3px 9px; border-radius: 99px; border: 1px solid;
+    }
+    .lv-beginner  { background: rgba(34,197,94,0.1);  color: #22c55e; border-color: rgba(34,197,94,0.25); }
+    .lv-mid       { background: rgba(245,158,11,0.1); color: #f59e0b; border-color: rgba(245,158,11,0.25); }
+    .lv-advanced  { background: rgba(239,68,68,0.1);  color: #ef4444; border-color: rgba(239,68,68,0.25); }
+    .lv-default   { background: rgba(99,102,241,0.1); color: #818cf8; border-color: rgba(99,102,241,0.25); }
+
+    /* ── Empty state ── */
+    .empty-state {
+        text-align: center; padding: 32px 16px;
+        color: #545c72;
+    }
+    .empty-state i { font-size: 36px; margin-bottom: 10px; display: block; color: #2a2f42; }
+    .empty-state p { font-size: 13px; margin-bottom: 14px; }
+
+    /* ── Activity item ── */
+    .activity-item {
+        display: flex; gap: 12px; align-items: flex-start;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+        width: 32px; height: 32px;
+        border-radius: 8px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 13px;
+    }
+
+    /* ── Greeting gradient ── */
+    .greeting-glow {
+        background: radial-gradient(ellipse 60% 80% at 90% 50%, rgba(99,102,241,0.08) 0%, transparent 70%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══ Page Header ══ -->
+<div class="greeting-glow flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7 p-5 rounded-2xl border border-white/5" style="background:#1a1e28;">
+    <div>
+        <h1 class="text-xl font-bold tracking-tight" style="color:#f0f2f8;">
+            خوش آمدی، {{ request.user.get_full_name|default:request.user.username }} 👋
+        </h1>
+        <p class="text-sm mt-1" style="color:#8b92a9;">اینجا خلاصه‌ای از پیشرفت آموزشی شما است</p>
+    </div>
+    <a
+        href="{% url 'courses:course_list' %}"
+        class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-glow-sm flex-shrink-0"
+    >
+        <i class="fas fa-plus text-xs"></i>
+        ثبت‌نام در دوره جدید
+    </a>
+</div>
+
+<!-- ══ Stats Row ══ -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <!-- Active courses -->
+    <div class="stat-card c-purple">
+        <div class="stat-icon purple"><i class="fas fa-books"></i></div>
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+            {{ active_courses|length|default:"0" }}
+        </div>
+        <div class="text-xs" style="color:#545c72;">دوره فعال</div>
+        <div class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.1);color:#22c55e;">
+            <i class="fas fa-arrow-up" style="font-size:8px;"></i> در حال یادگیری
+        </div>
+    </div>
+
+    <!-- Completed -->
+    <div class="stat-card c-green">
+        <div class="stat-icon green"><i class="fas fa-certificate"></i></div>
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+            {{ completed_courses|length|default:"0" }}
+        </div>
+        <div class="text-xs" style="color:#545c72;">دوره تکمیل‌شده</div>
+        <div class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.1);color:#22c55e;">
+            <i class="fas fa-check" style="font-size:8px;"></i> گواهینامه دریافت‌شده
+        </div>
+    </div>
+
+    <!-- Learning hours -->
+    <div class="stat-card c-amber">
+        <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+            {{ total_hours|default:"0" }}
+        </div>
+        <div class="text-xs" style="color:#545c72;">ساعت یادگیری</div>
+        <div class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+            <i class="fas fa-fire" style="font-size:8px;"></i> این ماه
+        </div>
+    </div>
+
+    <!-- Avg progress -->
+    <div class="stat-card c-blue">
+        <div class="stat-icon blue"><i class="fas fa-chart-line"></i></div>
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+            {{ avg_progress|default:"0" }}٪
+        </div>
+        <div class="text-xs" style="color:#545c72;">میانگین پیشرفت</div>
+        <div class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(56,189,248,0.1);color:#38bdf8;">
+            <i class="fas fa-star" style="font-size:8px;"></i> عملکرد شما
+        </div>
+    </div>
+
+</div>
+
+<!-- ══ Main Grid ══ -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- ── Left: Active Courses (2/3 width) ── -->
+    <div class="lg:col-span-2 space-y-5">
+
+        <!-- My Courses -->
+        <div class="section-card">
+            <div class="section-head">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style="background:rgba(99,102,241,0.15);color:#818cf8;">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <span class="section-title">دوره‌های من</span>
+                </div>
+                <a href="{% url 'courses:my_courses' %}" class="section-link">
+                    مشاهده همه <i class="fas fa-arrow-left text-[10px] mr-1"></i>
+                </a>
+            </div>
+            <div class="section-body space-y-3">
+                {% if active_courses %}
+                    {% for course in active_courses %}
+                    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="course-row group">
+                        <!-- Thumb -->
+                        <div class="course-thumb">
+                            {% if course.image %}
+                                <img src="{{ course.image.url }}" alt="{{ course.title }}" class="w-full h-full object-cover rounded-[10px]">
+                            {% else %}
+                                <i class="fas fa-book-open"></i>
+                            {% endif %}
+                        </div>
+                        <!-- Info -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <h3 class="font-semibold text-sm truncate" style="color:#f0f2f8;">{{ course.title }}</h3>
+                                <span class="lv-badge lv-default flex-shrink-0">{{ course.get_level_display }}</span>
+                            </div>
+                            <!-- Progress -->
+                            <div class="flex items-center gap-3">
+                                <div class="progress-bar-track flex-1">
+                                    {% with prog=course.get_user_progress|default:0 %}
+                                    <div
+                                        class="progress-bar-fill {% if prog >= 100 %}green{% elif prog >= 50 %}{% else %}{% endif %}"
+                                        style="width: {{ prog }}%"
+                                    ></div>
+                                    {% endwith %}
+                                </div>
+                                <span class="text-[11px] font-semibold flex-shrink-0" style="color:#8b92a9;">
+                                    {{ course.get_user_progress|default:"0" }}٪
+                                </span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-left text-xs flex-shrink-0" style="color:#2a2f42;"></i>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <p>هنوز در هیچ دوره‌ای ثبت‌نام نکرده‌اید.</p>
+                        <a
+                            href="{% url 'courses:course_list' %}"
+                            class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-xs font-bold px-4 py-2 rounded-xl transition"
+                        >
+                            <i class="fas fa-search"></i> مشاهده دوره‌ها
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-card">
+            <div class="section-head">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <span class="section-title">فعالیت اخیر</span>
+                </div>
+            </div>
+            <div class="section-body space-y-0">
+                {% if recent_activities %}
+                    {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-dot" style="background:rgba(99,102,241,0.12);color:#818cf8;">
+                            <i class="fas fa-play text-[11px]"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium truncate" style="color:#c7d2fe;">{{ activity.title }}</p>
+                            <p class="text-xs mt-0.5" style="color:#545c72;">{{ activity.date }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Static placeholder rows -->
+                    {% for course in active_courses|slice:":3" %}
+                    <div class="activity-item">
+                        <div class="activity-dot" style="background:rgba(99,102,241,0.12);color:#818cf8;">
+                            <i class="fas fa-play text-[11px]"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium truncate" style="color:#c7d2fe;">ادامه: {{ course.title }}</p>
+                            <p class="text-xs mt-0.5" style="color:#545c72;">دوره فعال</p>
+                        </div>
+                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0" style="background:rgba(99,102,241,0.1);color:#818cf8;">
+                            {{ course.get_user_progress|default:"0" }}٪
+                        </span>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state" style="padding:24px 16px;">
+                        <i class="fas fa-history"></i>
+                        <p>هنوز فعالیتی ثبت نشده است.</p>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Right Column (1/3 width) ── -->
+    <div class="space-y-5">
+
+        <!-- Suggested Courses -->
+        <div class="section-card">
+            <div class="section-head">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <span class="section-title">پیشنهادی</span>
+                </div>
+                <a href="{% url 'courses:course_list' %}" class="section-link">همه</a>
+            </div>
+            <div class="section-body space-y-3">
+                {% if recent_courses %}
+                    {% for course in recent_courses %}
+                    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="suggest-card">
+                        <div class="suggest-thumb">
+                            {% if course.image %}
+                                <img src="{{ course.image.url }}" alt="{{ course.title }}" class="w-full h-full object-cover rounded-[9px]">
+                            {% else %}
+                                <i class="fas fa-book-open"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-semibold mb-1 leading-snug" style="color:#f0f2f8;">
+                                {{ course.title|truncatechars:36 }}
+                            </h4>
+                            <p class="text-xs mb-2 leading-relaxed" style="color:#545c72;">
+                                {{ course.short_description|truncatechars:55 }}
+                            </p>
+                            <span class="lv-badge lv-default">{{ course.get_level_display }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state" style="padding:20px 12px;">
+                        <i class="fas fa-compass"></i>
+                        <p>دوره پیشنهادی وجود ندارد.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="section-card">
+            <div class="section-head">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style="background:rgba(34,197,94,0.12);color:#22c55e;">
+                        <i class="fas fa-th"></i>
+                    </div>
+                    <span class="section-title">دسترسی سریع</span>
+                </div>
+            </div>
+            <div class="section-body grid grid-cols-2 gap-2">
+                {% with links=quick_links|default:'' %}
+                <a href="{% url 'accounts:profile' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                    <i class="fas fa-user-circle text-xl" style="color:#818cf8;"></i>
+                    <span class="text-xs font-medium">پروفایل</span>
+                </a>
+                <a href="{% url 'accounts:notifications' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                    <i class="fas fa-bell text-xl" style="color:#818cf8;"></i>
+                    <span class="text-xs font-medium">اعلان‌ها</span>
+                </a>
+                <a href="{% url 'courses:search' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                    <i class="fas fa-search text-xl" style="color:#818cf8;"></i>
+                    <span class="text-xs font-medium">جستجو</span>
+                </a>
+                <a href="{% url 'accounts:edit_profile' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                    <i class="fas fa-cog text-xl" style="color:#818cf8;"></i>
+                    <span class="text-xs font-medium">تنظیمات</span>
+                </a>
+                {% endwith %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

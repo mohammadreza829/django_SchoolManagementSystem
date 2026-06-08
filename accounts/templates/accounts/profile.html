@@ -3,64 +3,380 @@
 
 {% block title %}پروفایل {{ user_obj.get_full_name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ── Avatar ── */
+    .avatar-ring {
+        width: 96px; height: 96px;
+        border-radius: 50%;
+        border: 3px solid rgba(99,102,241,0.35);
+        padding: 3px;
+        margin: 0 auto 14px;
+    }
+    .avatar-ring img {
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+    }
+    .avatar-fallback {
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #7c3aed);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 32px; font-weight: 700; color: #fff;
+    }
+
+    /* ── Info row ── */
+    .info-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        font-size: 13.5px; color: #8b92a9;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row i { width: 18px; text-align: center; color: #6366f1; flex-shrink: 0; }
+    .info-row span { color: #f0f2f8; }
+
+    /* ── Section card ── */
+    .pf-card {
+        background: #1a1e28;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+    .pf-head {
+        display: flex; align-items: center; gap: 10px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .pf-head-icon {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; flex-shrink: 0;
+    }
+    .pf-head-title { font-size: 13.5px; font-weight: 600; color: #f0f2f8; }
+    .pf-body { padding: 16px 18px; }
+
+    /* ── Course item ── */
+    .course-chip {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.02);
+        text-decoration: none; color: inherit;
+        transition: all 0.16s;
+        margin-bottom: 8px;
+    }
+    .course-chip:hover {
+        background: rgba(99,102,241,0.08);
+        border-color: rgba(99,102,241,0.22);
+        transform: translateX(-2px);
+    }
+    .course-chip-icon {
+        width: 36px; height: 36px;
+        border-radius: 8px;
+        background: rgba(99,102,241,0.12);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 15px; color: #818cf8; flex-shrink: 0;
+    }
+    .course-chip-title { font-size: 13px; font-weight: 600; color: #f0f2f8; }
+    .course-chip-sub   { font-size: 11px; color: #545c72; margin-top: 1px; }
+
+    /* ── Role badge ── */
+    .role-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 11px; font-weight: 600;
+        padding: 4px 12px; border-radius: 99px; border: 1px solid;
+    }
+    .role-teacher { background: rgba(245,158,11,0.1); color: #f59e0b; border-color: rgba(245,158,11,0.25); }
+    .role-student { background: rgba(99,102,241,0.1); color: #818cf8; border-color: rgba(99,102,241,0.25); }
+    .role-admin   { background: rgba(239,68,68,0.1);  color: #ef4444; border-color: rgba(239,68,68,0.25); }
+
+    /* ── Bio ── */
+    .bio-text { font-size: 13.5px; line-height: 1.8; color: #8b92a9; }
+    .bio-text p { margin-bottom: 8px; }
+    .bio-empty { color: #2a2f42; font-style: italic; font-size: 13px; text-align: center; padding: 16px 0; }
+
+    /* ── Stat chips ── */
+    .stat-chip {
+        text-align: center;
+        padding: 14px 8px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .stat-chip-val  { font-size: 20px; font-weight: 700; color: #f0f2f8; letter-spacing: -0.5px; }
+    .stat-chip-label{ font-size: 10px; color: #545c72; margin-top: 2px; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <!-- سایدبار اطلاعات پایه -->
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <img src="{{ user_obj.profile.get_avatar_url }}" alt="Avatar" class="profile-avatar mb-3">
-                <h5>{{ user_obj.get_full_name|default:user_obj.username }}</h5>
-                <p class="text-muted">@{{ user_obj.username }}</p>
-                <p><i class="fas fa-envelope"></i> {{ user_obj.email }}</p>
-                <p><i class="fas fa-phone"></i> {{ user_obj.phone|default:"ثبت نشده" }}</p>
-                <p><i class="fas fa-id-card"></i> کد ملی: {{ user_obj.national_code }}</p>
-                <p><span class="badge bg-info">{{ user_obj.get_role_display }}</span></p>
-                {% if is_owner %}
-                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary mt-2">ویرایش پروفایل</a>
+
+<!-- ── Page Header ── -->
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-xl font-bold" style="color:#f0f2f8;">پروفایل کاربری</h1>
+        <p class="text-sm mt-1" style="color:#8b92a9;">{{ user_obj.get_full_name|default:user_obj.username }}</p>
+    </div>
+    {% if is_owner %}
+    <a
+        href="{% url 'accounts:edit_profile' %}"
+        class="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border transition"
+        style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.25);color:#818cf8;"
+        onmouseover="this.style.background='rgba(99,102,241,0.18)'"
+        onmouseout="this.style.background='rgba(99,102,241,0.1)'"
+    >
+        <i class="fas fa-pen-to-square"></i> ویرایش پروفایل
+    </a>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- ══ Left column: identity ══ -->
+    <div class="lg:col-span-1">
+
+        <!-- Identity card -->
+        <div class="pf-card text-center" style="padding: 28px 20px;">
+            <!-- Avatar -->
+            <div class="avatar-ring">
+                {% if user_obj.profile.avatar %}
+                    <img src="{{ user_obj.profile.get_avatar_url }}" alt="آواتار {{ user_obj.username }}">
+                {% else %}
+                    <div class="avatar-fallback">
+                        {{ user_obj.get_full_name|slice:":1"|default:user_obj.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <h2 class="text-base font-bold mb-1" style="color:#f0f2f8;">
+                {{ user_obj.get_full_name|default:user_obj.username }}
+            </h2>
+            <p class="text-sm mb-3" style="color:#545c72;">@{{ user_obj.username }}</p>
+
+            <!-- Role badge -->
+            <div class="mb-4">
+                <span class="role-badge {% if user_obj.is_teacher %}role-teacher{% elif user_obj.is_staff %}role-admin{% else %}role-student{% endif %}">
+                    {% if user_obj.is_teacher %}
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    {% elif user_obj.is_staff %}
+                        <i class="fas fa-shield-alt"></i>
+                    {% else %}
+                        <i class="fas fa-user-graduate"></i>
+                    {% endif %}
+                    {{ user_obj.get_role_display }}
+                </span>
+            </div>
+
+            <!-- Quick stats -->
+            {% if user_obj.is_teacher %}
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="stat-chip">
+                    <div class="stat-chip-val">{{ teaching_courses|length|default:"0" }}</div>
+                    <div class="stat-chip-label">دوره تدریس‌شده</div>
+                </div>
+                <div class="stat-chip">
+                    <div class="stat-chip-val">{{ total_students|default:"0" }}</div>
+                    <div class="stat-chip-label">دانشجو</div>
+                </div>
+            </div>
+            {% elif user_obj.is_student %}
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="stat-chip">
+                    <div class="stat-chip-val">{{ enrolled_courses|length|default:"0" }}</div>
+                    <div class="stat-chip-label">دوره ثبت‌نام‌شده</div>
+                </div>
+                <div class="stat-chip">
+                    <div class="stat-chip-val">{{ completed_courses|default:"0" }}</div>
+                    <div class="stat-chip-label">دوره تمام‌شده</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Contact info -->
+            <div style="text-align:right;">
+                <div class="info-row">
+                    <i class="fas fa-envelope"></i>
+                    <span>{{ user_obj.email }}</span>
+                </div>
+                {% if user_obj.phone %}
+                <div class="info-row">
+                    <i class="fas fa-phone"></i>
+                    <span>{{ user_obj.phone }}</span>
+                </div>
+                {% endif %}
+                {% if user_obj.national_code %}
+                <div class="info-row">
+                    <i class="fas fa-id-card"></i>
+                    <span>{{ user_obj.national_code }}</span>
+                </div>
+                {% endif %}
+                {% if user_obj.profile.location %}
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ user_obj.profile.location }}</span>
+                </div>
+                {% endif %}
+                {% if user_obj.profile.website %}
+                <div class="info-row">
+                    <i class="fas fa-globe"></i>
+                    <a href="{{ user_obj.profile.website }}" target="_blank" rel="noopener" style="color:#818cf8;">
+                        {{ user_obj.profile.website|truncatechars:28 }}
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
+
+        <!-- Teacher speciality card -->
+        {% if user_obj.is_teacher and user_obj.teacher_profile %}
+        <div class="pf-card">
+            <div class="pf-head">
+                <div class="pf-head-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                    <i class="fas fa-award"></i>
+                </div>
+                <span class="pf-head-title">اطلاعات استادی</span>
+            </div>
+            <div class="pf-body">
+                <div class="info-row" style="padding:8px 0;">
+                    <i class="fas fa-star"></i>
+                    <span>{{ user_obj.teacher_profile.specialty|default:"نامشخص" }}</span>
+                </div>
+                <div class="info-row" style="padding:8px 0;border-bottom:none;">
+                    <i class="fas fa-university"></i>
+                    <span>{{ user_obj.teacher_profile.degree|default:"نامشخص" }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Student info card -->
+        {% if user_obj.is_student and user_obj.student_profile %}
+        <div class="pf-card">
+            <div class="pf-head">
+                <div class="pf-head-icon" style="background:rgba(56,189,248,0.12);color:#38bdf8;">
+                    <i class="fas fa-id-badge"></i>
+                </div>
+                <span class="pf-head-title">اطلاعات تحصیلی</span>
+            </div>
+            <div class="pf-body">
+                <div class="info-row" style="padding:8px 0;">
+                    <i class="fas fa-hashtag"></i>
+                    <span>{{ user_obj.student_profile.student_id }}</span>
+                </div>
+                <div class="info-row" style="padding:8px 0;border-bottom:none;">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>سال ورود {{ user_obj.student_profile.entry_year }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 
-    <!-- اطلاعات تخصصی و بیوگرافی -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">بیوگرافی</div>
-            <div class="card-body">
-                {{ user_obj.profile.bio|linebreaks|default:"بیوگرافی ثبت نشده است." }}
+    <!-- ══ Right column: content ══ -->
+    <div class="lg:col-span-2">
+
+        <!-- Bio -->
+        <div class="pf-card">
+            <div class="pf-head">
+                <div class="pf-head-icon" style="background:rgba(99,102,241,0.13);color:#818cf8;">
+                    <i class="fas fa-align-right"></i>
+                </div>
+                <span class="pf-head-title">بیوگرافی</span>
+            </div>
+            <div class="pf-body">
+                {% if user_obj.profile.bio %}
+                    <div class="bio-text">{{ user_obj.profile.bio|linebreaks }}</div>
+                {% else %}
+                    <p class="bio-empty">بیوگرافی ثبت نشده است.</p>
+                {% endif %}
             </div>
         </div>
 
-        {% if user_obj.is_teacher and user_obj.teacher_profile %}
-            <div class="card mt-3">
-                <div class="card-header">اطلاعات استادی</div>
-                <div class="card-body">
-                    <p><strong>تخصص:</strong> {{ user_obj.teacher_profile.specialty }}</p>
-                    <p><strong>مدرک تحصیلی:</strong> {{ user_obj.teacher_profile.degree|default:"نامشخص" }}</p>
+        <!-- Teaching courses -->
+        {% if user_obj.is_teacher and teaching_courses %}
+        <div class="pf-card">
+            <div class="pf-head">
+                <div class="pf-head-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                    <i class="fas fa-chalkboard-teacher"></i>
                 </div>
+                <span class="pf-head-title">دوره‌های تدریس‌شده</span>
+                <span class="mr-auto text-xs px-2 py-0.5 rounded-full" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.2);">{{ teaching_courses|length }} دوره</span>
             </div>
+            <div class="pf-body">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-0">
+                    {% for course in teaching_courses %}
+                    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="course-chip">
+                        <div class="course-chip-icon"><i class="fas fa-book-open"></i></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="course-chip-title truncate">{{ course.title }}</div>
+                            <div class="course-chip-sub">{{ course.enroll_count }} دانشجو &nbsp;·&nbsp; {{ course.get_level_display }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% if teaching_courses|length >= 6 %}
+                <div class="text-center mt-3">
+                    <a
+                        href="{% url 'courses:course_list' %}?teacher={{ user_obj.username }}"
+                        class="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl"
+                        style="background:rgba(99,102,241,0.1);color:#818cf8;text-decoration:none;border:1px solid rgba(99,102,241,0.2);"
+                    >
+                        مشاهده همه دوره‌های {{ user_obj.first_name }}
+                        <i class="fas fa-arrow-left text-[10px]"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
         {% endif %}
 
-        {% if user_obj.is_student and user_obj.student_profile %}
-            <div class="card mt-3">
-                <div class="card-header">اطلاعات تحصیلی</div>
-                <div class="card-body">
-                    <p><strong>شماره دانش‌آموزی:</strong> {{ user_obj.student_profile.student_id }}</p>
-                    <p><strong>سال ورود:</strong> {{ user_obj.student_profile.entry_year }}</p>
+        <!-- Enrolled courses (student) -->
+        {% if user_obj.is_student and enrolled_courses %}
+        <div class="pf-card">
+            <div class="pf-head">
+                <div class="pf-head-icon" style="background:rgba(34,197,94,0.12);color:#22c55e;">
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
+                <span class="pf-head-title">دوره‌های ثبت‌نام‌شده</span>
+                <span class="mr-auto text-xs px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2);">{{ enrolled_courses|length }} دوره</span>
             </div>
+            <div class="pf-body">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-0">
+                    {% for course in enrolled_courses %}
+                    <a href="{% url 'courses:course_detail' slug=course.slug %}" class="course-chip">
+                        <div class="course-chip-icon" style="background:rgba(34,197,94,0.1);color:#22c55e;">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="course-chip-title truncate">{{ course.title }}</div>
+                            <div class="course-chip-sub">استاد: {{ course.get_teachers_names }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% if enrolled_courses|length >= 6 %}
+                <div class="text-center mt-3">
+                    <a
+                        href="{% url 'courses:my_courses' %}"
+                        class="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl"
+                        style="background:rgba(34,197,94,0.1);color:#22c55e;text-decoration:none;border:1px solid rgba(34,197,94,0.2);"
+                    >
+                        مشاهده همه دوره‌های من
+                        <i class="fas fa-arrow-left text-[10px]"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
         {% endif %}
 
-        {% if user_obj.profile.location or user_obj.profile.website %}
-            <div class="card mt-3">
-                <div class="card-header">ارتباطات</div>
-                <div class="card-body">
-                    {% if user_obj.profile.location %}<p><i class="fas fa-map-marker-alt"></i> {{ user_obj.profile.location }}</p>{% endif %}
-                    {% if user_obj.profile.website %}<p><i class="fas fa-globe"></i> <a href="{{ user_obj.profile.website }}" target="_blank">{{ user_obj.profile.website }}</a></p>{% endif %}
-                </div>
-            </div>
-        {% endif %}
     </div>
 </div>
+
 {% endblock %}

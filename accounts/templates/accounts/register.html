@@ -3,28 +3,38 @@
 {% block title %}ثبت‌نام دانش‌آموز{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h4><i class="fas fa-user-plus"></i> ثبت‌نام دانش‌آموز جدید</h4>
+<div class="max-w-xl mx-auto">
+
+    <div class="bg-surface border border-white/10 rounded-2xl p-6 shadow-glow-sm">
+
+        <h2 class="text-lg font-bold text-white mb-6">
+            <i class="fas fa-user-plus text-primary ml-2"></i>
+            ثبت‌نام دانش‌آموز جدید
+        </h2>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div>
+                <label class="text-xs text-text-2">{{ field.label }}</label>
+                <div class="mt-1">
+                    {{ field }}
+                </div>
+                {% if field.errors %}
+                    <p class="text-xs text-red-400">{{ field.errors|striptags }}</p>
+                {% endif %}
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.errors %}
-                                <div class="text-danger small">{{ field.errors|striptags }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-success w-100">ثبت‌نام</button>
-                </form>
-            </div>
-        </div>
+            {% endfor %}
+
+            <button type="submit"
+                class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-2.5 rounded-xl transition">
+                ثبت‌نام
+            </button>
+
+        </form>
+
     </div>
+
 </div>
 {% endblock %}
