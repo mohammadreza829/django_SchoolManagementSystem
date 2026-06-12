@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.conf import settings
 from accounts.models import User  # برای ارتباط با مدل User
 
+from 
 
 class Category(models.Model):
     """دسته‌بندی دوره‌ها"""

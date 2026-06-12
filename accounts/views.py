@@ -8,22 +8,20 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.db import models
 from .models import Profile, Notification
 from .forms import (
-    StudentSignUpForm,  # فرمی که برای دانش‌آموز ساختیم
+    StudentSignUpForm,  
     UserUpdateForm,
     ProfileUpdateForm,
     CustomPasswordChangeForm,
 )
 
-# accounts/views.py - اضافه کردن این خط در بالای فایل (بعد از importهای دیگه)
 
-# اضافه کردن ایمپورت از courses
 try:
     from courses.models import Course
 
     COURSES_AVAILABLE = True
 except ImportError:
     COURSES_AVAILABLE = False
-# چون مدل کاربر رو عوض کردیم، همیشه از این تابع استفاده می‌کنیم
+
 User = get_user_model()
 
 
@@ -154,7 +152,6 @@ def change_password(request):
         form = CustomPasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
-            # بعد از تغییر پسورد، سشن کاربر از بین می‌رود، پس دوباره لاگین می‌کنیم
             login(request, user)
             messages.success(request, "رمز عبور شما با موفقیت تغییر کرد.")
             return redirect("accounts:profile")
