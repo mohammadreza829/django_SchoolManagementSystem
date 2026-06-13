@@ -83,7 +83,7 @@
                     <span class="absolute inset-y-0 right-4 flex items-center text-gray-500 pointer-events-none">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" name="q" value=" search_query "
+                    <input type="text" name="q" value="{{ search_query }}"
                            placeholder="جستجوی دوره، مدرس یا موضوع..."
                            class="w-full bg-black/30 backdrop-blur border border-white/10 rounded-xl pr-11 pl-4 py-3 text-sm text-white focus:ring-2 focus:ring-primary/40 focus:border-primary/50 outline-none transition">
                 </div>
@@ -114,9 +114,9 @@
 
                     {% for value, label in level_choices %}
                     <label class="level-pill {% if selected_level == value %}is-active{% endif %}">
-                        <input type="radio" name="level" value=" value " onchange="this.form.submit()" {% if selected_level == value %}checked{% endif %}>
+                        <input type="radio" name="level" value="{{ value }}" onchange="this.form.submit()" {% if selected_level == value %}checked{% endif %}>
                         <i class="fas fa-signal w-4 text-center text-xs"></i>
-                         label 
+                         {{ label }}
                     </label>
                     {% endfor %}
                 </form>
@@ -135,7 +135,7 @@
             <div class="flex items-center justify-between">
                 <h2 class="text-white font-bold text-lg">همه دوره‌ها</h2>
                 <span class="text-text-2 text-xs bg-elevated border border-white/10 px-3 py-1.5 rounded-lg">
-                    <span class="text-white font-bold"> courses.count </span> دوره
+                    <span class="text-white font-bold">{{ courses.count }}</span> دوره
                 </span>
             </div>
 
@@ -147,7 +147,7 @@
                     <!-- IMAGE -->
                     <div class="relative h-44 bg-elevated overflow-hidden">
                         {% if course.thumbnail %}
-                            <img src=" course.thumbnail.url " class="thumb w-full h-full object-cover">
+                            <img src="{{ course.thumbnail.url }}" class="thumb w-full h-full object-cover">
                         {% else %}
                             <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-elevated to-hovered">
                                 <i class="fas fa-photo-film text-text-3 text-3xl"></i>
@@ -157,7 +157,7 @@
 
                         <!-- Level badge -->
                         <span class="absolute top-3 right-3 text-[11px] font-bold bg-black/55 backdrop-blur text-indigo-300 border border-white/10 px-2.5 py-1 rounded-lg">
-                             course.get_level_display 
+                             {{ course.get_level_display }}
                         </span>
 
                         <!-- Price / discount -->
@@ -166,7 +166,7 @@
                                 <span class="text-[11px] font-extrabold bg-emerald-500 text-white px-2.5 py-1 rounded-lg shadow-lg">رایگان</span>
                             {% elif course.discount_percent > 0 %}
                                 <span class="text-[11px] font-extrabold bg-red-500 text-white px-2.5 py-1 rounded-lg shadow-lg">
-                                     course.discount_percent ٪ تخفیف
+                                     {{ course.discount_percent }}٪ تخفیف
                                 </span>
                             {% endif %}
                         </div>
@@ -175,10 +175,10 @@
                     <!-- BODY -->
                     <div class="p-4 flex flex-col flex-1">
                         <h3 class="text-sm font-bold text-white leading-relaxed group-hover:text-indigo-300 transition-colors">
-                             course.title|truncatechars:40 
+                             {{ course.title|truncatechars:40 }}
                         </h3>
                         <p class="text-xs text-text-2 mt-1.5 leading-relaxed flex-1">
-                             course.short_description|truncatewords:12 
+                             {{ course.short_description|truncatewords:12 }}
                         </p>
 
                         <!-- Price line -->
@@ -186,19 +186,19 @@
                             {% if course.is_free %}
                                 <span class="text-emerald-400 font-bold text-sm">رایگان</span>
                             {% else %}
-                                <span class="text-white font-extrabold text-sm"> course.final_price|floatformat:0 </span>
+                                <span class="text-white font-extrabold text-sm">{{ course.final_price|floatformat:0 }}</span>
                                 <span class="text-[10px] text-text-2">تومان</span>
                                 {% if course.discount_percent > 0 %}
-                                    <span class="text-text-3 line-through text-[11px] mr-1"> course.price|floatformat:0 </span>
+                                    <span class="text-text-3 line-through text-[11px] mr-1"> {{ course.price|floatformat:0 }}</span>
                                 {% endif %}
                             {% endif %}
                         </div>
 
                         <!-- Footer stats -->
                         <div class="flex items-center justify-between text-[11px] text-text-2 pt-3 mt-3 border-t border-white/10">
-                            <span class="flex items-center gap-1"><i class="far fa-clock"></i>  course.duration_hours  ساعت</span>
-                            <span class="flex items-center gap-1"><i class="fas fa-photo-film"></i>  course.total_lessons  درس</span>
-                            <span class="flex items-center gap-1"><i class="fas fa-user-graduate"></i>  course.enroll_count </span>
+                            <span class="flex items-center gap-1"><i class="far fa-clock"></i> {{ course.duration_hours }} ساعت</span>
+                            <span class="flex items-center gap-1"><i class="fas fa-photo-film"></i> {{ course.total_lessons }} درس</span>
+                            <span class="flex items-center gap-1"><i class="fas fa-user-graduate"></i> {{ course.enroll_count }}</span>
                         </div>
                     </div>
 

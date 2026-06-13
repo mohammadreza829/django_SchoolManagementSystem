@@ -69,17 +69,22 @@
 
             <form method="get" id="filterForm" class="space-y-2 text-sm">
 
-                {% for val,label in "all:همه,beginner:مقدماتی,intermediate:متوسط,advanced:پیشرفته"|cut:" "|split:"," %}
-                <label class="flex items-center gap-2 text-text-2">
-                    <input type="radio"
-                           name="level"
-                           value="{{ val }}"
-                           onchange="document.getElementById('filterForm').submit()"
-                           class="accent-primary"
-                           {% if selected_level == val or (val == 'all' and not selected_level) %}checked{% endif %}>
-                    {{ label }}
+                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
+                    <input type="radio" name="level" value="" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if not selected_level %}checked{% endif %}>
+                    همه
                 </label>
-                {% endfor %}
+                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
+                    <input type="radio" name="level" value="beginner" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if selected_level == 'beginner' %}checked{% endif %}>
+                    مقدماتی
+                </label>
+                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
+                    <input type="radio" name="level" value="intermediate" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if selected_level == 'intermediate' %}checked{% endif %}>
+                    متوسط
+                </label>
+                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
+                    <input type="radio" name="level" value="advanced" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if selected_level == 'advanced' %}checked{% endif %}>
+                    پیشرفته
+                </label>
 
             </form>
         </div>
@@ -93,10 +98,10 @@
 
                 <select class="bg-elevated border border-white/10 text-sm text-text-1 rounded-lg px-3 py-1"
                         onchange="window.location.href=this.value">
-                    <option value="?sort=newest">جدیدترین</option>
-                    <option value="?sort=popular">محبوب‌ترین</option>
-                    <option value="?sort=cheapest">ارزان‌ترین</option>
-                    <option value="?sort=expensive">گران‌ترین</option>
+                    <option value="?sort=newest" {% if sort == 'newest' %}selected{% endif %}>جدیدترین</option>
+                    <option value="?sort=popular" {% if sort == 'popular' %}selected{% endif %}>محبوب‌ترین</option>
+                    <option value="?sort=cheapest" {% if sort == 'cheapest' %}selected{% endif %}>ارزان‌ترین</option>
+                    <option value="?sort=expensive" {% if sort == 'expensive' %}selected{% endif %}>گران‌ترین</option>
                 </select>
             </div>
 

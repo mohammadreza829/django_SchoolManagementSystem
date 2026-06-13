@@ -10,7 +10,15 @@ from .models import Course, Lesson, LessonProgress, CourseRating
 @receiver(pre_save, sender=Course)
 def course_pre_save(sender, instance, **kwargs):
     if not instance.slug:
-        instance.slug = slugify(instance.title)
+        base_slug = slugify(instance.title) or "course"
+        slug = base_slug
+        counter = 1
+        while (
+            Course.objects.filter(slug=slug).exclude(id=instance.id).exists()
+        ):
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        instance.slug = slug
     if instance.status == "published" and not instance.published_at:
         instance.published_at = timezone.now()
 
@@ -18,7 +26,7 @@ def course_pre_save(sender, instance, **kwargs):
 @receiver(pre_save, sender=Lesson)
 def lesson_pre_save(sender, instance, **kwargs):
     if not instance.slug:
-        base_slug = slugify(instance.title)
+        base_slug = slugify(instance.title) or f"lesson-{instance.order or 1}"
         slug = base_slug
         counter = 1
         while (

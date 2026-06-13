@@ -210,10 +210,10 @@ def dashboard_view(request):
                 teachers=user, status="published"
             ).count()
 
-        if user.is_student:
-            # برای دانشجو: لیست دوره‌ها برای نمایش در حلقه + تعداد برای آمار
-            active_courses = user.courses_enrolled.filter(status="published")
-            enrolled_courses_count = active_courses.count()
+        # دوره‌های ثبت‌نام‌شده‌ی کاربر را برای هر نقشی نشان بده (نه فقط دانشجو)
+        # چون سوپریوزر نقش admin دارد و گرنه چیزی در داشبورد دیده نمی‌شد
+        active_courses = user.courses_enrolled.all().prefetch_related("teachers")
+        enrolled_courses_count = active_courses.count()
 
         recent_courses = Course.objects.filter(status="published").order_by("-created_at")[:3]
 

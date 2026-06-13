@@ -140,7 +140,7 @@
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="lesson-index"> {{ lesson.order }} </span>
                         <div class="min-w-0">
-                            {% if is_enrolled or lesson.is_free_preview %}
+                            {% if lesson.slug and is_enrolled or lesson.slug and lesson.is_free_preview %}
                                 <a href="{% url 'courses:lesson_detail' course.slug lesson.slug %}" class="text-sm text-white hover:text-indigo-300 transition block truncate">
                                      {{ lesson.title }} 
                                 </a>
@@ -201,10 +201,16 @@
                 </div>
 
                 {% if is_enrolled %}
+                {% if course.lessons.first.slug %}
                 <a href="{% url 'courses:lesson_detail' course.slug course.lessons.first.slug %}"
                    class="flex items-center justify-center gap-2 w-full bg-secondary hover:brightness-110 text-white py-3 rounded-xl font-bold transition">
                     <i class="fas fa-play"></i> شروع / ادامه یادگیری
                 </a>
+                {% else %}
+                <span class="flex items-center justify-center gap-2 w-full bg-elevated text-text-2 py-3 rounded-xl font-bold cursor-not-allowed">
+                    <i class="fas fa-clock"></i> محتوای دوره به‌زودی اضافه می‌شود
+                </span>
+                {% endif %}
                 <p class="text-center text-[11px] text-emerald-400 mt-2"><i class="fas fa-circle-check"></i> شما در این دوره ثبت‌نام کرده‌اید</p>
                 {% else %}
                 <form method="post" action="{% url 'courses:enroll_course' course.slug %}">

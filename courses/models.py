@@ -275,7 +275,7 @@ class Lesson(models.Model):
         if not self.slug:
             from django.utils.text import slugify
 
-            self.slug = slugify(self.title)
+            self.slug = slugify(self.title) or f"lesson-{self.order or 1}"
         super().save(*args, **kwargs)
 
     def get_video(self):

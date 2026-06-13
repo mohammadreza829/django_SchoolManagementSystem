@@ -372,9 +372,26 @@ def category_detail(request, slug):
         category=category, status="published"
     ).prefetch_related("teachers")
 
+    # فیلتر بر اساس سطح
+    level = request.GET.get("level")
+    if level:
+        courses = courses.filter(level=level)
+
+    # مرتب‌سازی
+    sort = request.GET.get("sort", "newest")
+    sort_map = {
+        "newest": "-created_at",
+        "popular": "-enroll_count",
+        "cheapest": "price",
+        "expensive": "-price",
+    }
+    courses = courses.order_by(sort_map.get(sort, "-created_at"))
+
     context = {
         "category": category,
         "courses": courses,
+        "selected_level": level,
+        "sort": sort,
     }
     return render(request, "courses/category_detail.html", context)
 
