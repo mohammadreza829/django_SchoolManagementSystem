@@ -1,120 +1,220 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
 {% block title %}دوره‌های آموزشی{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ── Hero mesh background ── */
+    .hero-mesh {
+        position: relative;
+        background:
+            radial-gradient(circle at 15% 20%, rgba(99,102,241,0.28), transparent 45%),
+            radial-gradient(circle at 85% 0%, rgba(34,197,94,0.18), transparent 40%),
+            linear-gradient(135deg, #1a1e28, #13161d);
+        overflow: hidden;
+    }
+    .hero-mesh::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 22px 22px;
+        mask-image: linear-gradient(to bottom, black, transparent);
+        -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+    }
+
+    /* ── Course card ── */
+    .course-card {
+        position: relative;
+        background: var(--surface, #13161d);
+        border: 1px solid var(--border, rgba(255,255,255,0.07));
+        border-radius: 18px;
+        overflow: hidden;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .course-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(99,102,241,0.45);
+        box-shadow: 0 18px 40px -12px rgba(99,102,241,0.35);
+    }
+    .course-card .thumb { transition: transform .5s ease; }
+    .course-card:hover .thumb { transform: scale(1.07); }
+
+    /* ── Level pill filter ── */
+    .level-pill {
+        display: flex; align-items: center; gap: 8px;
+        padding: 9px 12px; border-radius: 11px;
+        border: 1px solid var(--border, rgba(255,255,255,0.07));
+        color: var(--text-2, #8b92a9);
+        font-size: 13px; cursor: pointer;
+        transition: all .15s;
+    }
+    .level-pill:hover { background: var(--hovered, #1f2433); color: #f0f2f8; }
+    .level-pill.is-active {
+        background: rgba(99,102,241,0.14);
+        border-color: rgba(99,102,241,0.4);
+        color: #c7d2fe;
+    }
+    .level-pill input { display: none; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="max-w-6xl mx-auto space-y-7">
 
-    <!-- HEADER -->
-    <div class="text-center">
-        <h1 class="text-2xl font-bold text-white">دوره‌های آموزشی</h1>
-        <p class="text-text-2 text-sm mt-2">
-            پیشرفته‌ترین دوره‌های برنامه‌نویسی و فناوری اطلاعات
-        </p>
+    <!-- ══════════ HERO ══════════ -->
+    <div class="hero-mesh rounded-3xl border border-white/10 px-6 py-10 sm:px-10 sm:py-12">
+        <div class="relative z-10 max-w-2xl">
+            <span class="inline-flex items-center gap-2 text-[11px] font-bold tracking-wide bg-white/5 border border-white/10 text-indigo-300 px-3 py-1 rounded-full mb-4">
+                <i class="fas fa-bolt text-yellow-400"></i>
+                آکادمی آنلاین
+            </span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+                هر مهارتی که می‌خواهی،
+                <span class="bg-gradient-to-l from-indigo-400 to-emerald-400 bg-clip-text text-transparent">همین‌جا یاد بگیر</span>
+            </h1>
+            <p class="text-text-2 text-sm sm:text-base mt-3 leading-relaxed">
+                پیشرفته‌ترین دوره‌های برنامه‌نویسی و فناوری اطلاعات، با مدرسان حرفه‌ای و پروژه‌محور.
+            </p>
+
+            <!-- Search -->
+            <form method="get" class="mt-6 flex gap-2 max-w-lg">
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 right-4 flex items-center text-gray-500 pointer-events-none">
+                        <i class="fas fa-search text-sm"></i>
+                    </span>
+                    <input type="text" name="q" value=" search_query "
+                           placeholder="جستجوی دوره، مدرس یا موضوع..."
+                           class="w-full bg-black/30 backdrop-blur border border-white/10 rounded-xl pr-11 pl-4 py-3 text-sm text-white focus:ring-2 focus:ring-primary/40 focus:border-primary/50 outline-none transition">
+                </div>
+                <button class="bg-primary hover:bg-primary-hover text-white px-6 rounded-xl text-sm font-bold transition shadow-glow-sm whitespace-nowrap">
+                    جستجو
+                </button>
+            </form>
+        </div>
     </div>
 
-    <!-- SEARCH -->
-    <div class="bg-surface border border-white/10 rounded-2xl p-4 shadow-glow-sm">
-        <form method="get" class="flex gap-2">
-            <input type="text"
-                   name="q"
-                   value="{{ search_query }}"
-                   placeholder="جستجوی دوره..."
-                   class="flex-1 bg-elevated border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:ring-2 focus:ring-primary/30 outline-none">
-
-            <button class="bg-primary hover:bg-primary-hover text-white px-4 rounded-xl text-sm font-bold">
-                جستجو
-            </button>
-        </form>
-    </div>
-
+    <!-- ══════════ BODY ══════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
         <!-- FILTER -->
-        <div class="bg-surface border border-white/10 rounded-2xl p-4 shadow-glow-sm h-fit">
+        <aside class="lg:sticky lg:top-20 h-fit space-y-4">
+            <div class="bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
+                <h3 class="text-white font-bold mb-4 flex items-center gap-2 text-sm">
+                    <i class="fas fa-sliders-h text-indigo-400 text-xs"></i>
+                    فیلتر سطح
+                </h3>
 
-            <h3 class="text-white font-bold mb-3">فیلتر سطح</h3>
+                <form method="get" class="space-y-2">
+                    <label class="level-pill {% if not selected_level %}is-active{% endif %}">
+                        <input type="radio" name="level" value="" onchange="this.form.submit()" {% if not selected_level %}checked{% endif %}>
+                        <i class="fas fa-layer-group w-4 text-center text-xs"></i>
+                        همه سطوح
+                    </label>
 
-            <form method="get" class="space-y-2 text-sm">
+                    {% for value, label in level_choices %}
+                    <label class="level-pill {% if selected_level == value %}is-active{% endif %}">
+                        <input type="radio" name="level" value=" value " onchange="this.form.submit()" {% if selected_level == value %}checked{% endif %}>
+                        <i class="fas fa-signal w-4 text-center text-xs"></i>
+                         label 
+                    </label>
+                    {% endfor %}
+                </form>
+            </div>
 
-                <label class="flex items-center gap-2 text-text-2">
-                    <input type="radio" name="level" value=""
-                           onchange="this.form.submit()"
-                           class="accent-primary"
-                           {% if not selected_level %}checked{% endif %}>
-                    همه سطوح
-                </label>
-
-                {% for value, label in level_choices %}
-                <label class="flex items-center gap-2 text-text-2">
-                    <input type="radio" name="level" value="{{ value }}"
-                           onchange="this.form.submit()"
-                           class="accent-primary"
-                           {% if selected_level == value %}checked{% endif %}>
-                    {{ label }}
-                </label>
-                {% endfor %}
-
-            </form>
-        </div>
+            <div class="promo-card">
+                <p class="text-[10px] opacity-75 mb-1">پیشنهاد ویژه</p>
+                <h4 class="font-bold text-sm mb-3">با خرید اشتراک، به همه دوره‌ها دسترسی داشته باش</h4>
+                <button>مشاهده پلن‌ها ✦</button>
+            </div>
+        </aside>
 
         <!-- COURSES -->
         <div class="lg:col-span-3 space-y-4">
 
-            <!-- COUNT -->
-            <div class="flex justify-between items-center">
-                <span class="text-text-2 text-sm">{{ courses.count }} دوره</span>
+            <div class="flex items-center justify-between">
+                <h2 class="text-white font-bold text-lg">همه دوره‌ها</h2>
+                <span class="text-text-2 text-xs bg-elevated border border-white/10 px-3 py-1.5 rounded-lg">
+                    <span class="text-white font-bold"> courses.count </span> دوره
+                </span>
             </div>
 
-            <!-- GRID -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
 
                 {% for course in courses %}
-                <a href="{% url 'courses:course_detail' course.slug %}"
-                   class="bg-surface border border-white/10 rounded-2xl overflow-hidden hover:shadow-glow transition">
+                <a href="{% url 'courses:course_detail' course.slug %}" class="course-card group flex flex-col">
 
                     <!-- IMAGE -->
-                    <div class="h-44 bg-elevated flex items-center justify-center overflow-hidden">
+                    <div class="relative h-44 bg-elevated overflow-hidden">
                         {% if course.thumbnail %}
-                            <img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover">
+                            <img src=" course.thumbnail.url " class="thumb w-full h-full object-cover">
                         {% else %}
-                            <i class="fas fa-video text-text-3 text-3xl"></i>
+                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-elevated to-hovered">
+                                <i class="fas fa-photo-film text-text-3 text-3xl"></i>
+                            </div>
                         {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+                        <!-- Level badge -->
+                        <span class="absolute top-3 right-3 text-[11px] font-bold bg-black/55 backdrop-blur text-indigo-300 border border-white/10 px-2.5 py-1 rounded-lg">
+                             course.get_level_display 
+                        </span>
+
+                        <!-- Price / discount -->
+                        <div class="absolute bottom-3 left-3">
+                            {% if course.is_free %}
+                                <span class="text-[11px] font-extrabold bg-emerald-500 text-white px-2.5 py-1 rounded-lg shadow-lg">رایگان</span>
+                            {% elif course.discount_percent > 0 %}
+                                <span class="text-[11px] font-extrabold bg-red-500 text-white px-2.5 py-1 rounded-lg shadow-lg">
+                                     course.discount_percent ٪ تخفیف
+                                </span>
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <div class="p-4 space-y-2">
+                    <!-- BODY -->
+                    <div class="p-4 flex flex-col flex-1">
+                        <h3 class="text-sm font-bold text-white leading-relaxed group-hover:text-indigo-300 transition-colors">
+                             course.title|truncatechars:40 
+                        </h3>
+                        <p class="text-xs text-text-2 mt-1.5 leading-relaxed flex-1">
+                             course.short_description|truncatewords:12 
+                        </p>
 
-                        <div class="text-xs text-primary">
-                            {{ course.get_level_display }}
+                        <!-- Price line -->
+                        <div class="mt-3">
+                            {% if course.is_free %}
+                                <span class="text-emerald-400 font-bold text-sm">رایگان</span>
+                            {% else %}
+                                <span class="text-white font-extrabold text-sm"> course.final_price|floatformat:0 </span>
+                                <span class="text-[10px] text-text-2">تومان</span>
+                                {% if course.discount_percent > 0 %}
+                                    <span class="text-text-3 line-through text-[11px] mr-1"> course.price|floatformat:0 </span>
+                                {% endif %}
+                            {% endif %}
                         </div>
 
-                        <div class="text-sm font-bold text-white">
-                            {{ course.title|truncatechars:40 }}
+                        <!-- Footer stats -->
+                        <div class="flex items-center justify-between text-[11px] text-text-2 pt-3 mt-3 border-t border-white/10">
+                            <span class="flex items-center gap-1"><i class="far fa-clock"></i>  course.duration_hours  ساعت</span>
+                            <span class="flex items-center gap-1"><i class="fas fa-photo-film"></i>  course.total_lessons  درس</span>
+                            <span class="flex items-center gap-1"><i class="fas fa-user-graduate"></i>  course.enroll_count </span>
                         </div>
-
-                        <div class="text-xs text-text-2">
-                            {{ course.short_description|truncatewords:12 }}
-                        </div>
-
-                        <div class="flex justify-between text-xs text-text-2 pt-2 border-t border-white/10">
-                            <span>⏱ {{ course.duration_hours }}h</span>
-                            <span>🎬 {{ course.total_lessons }}</span>
-                        </div>
-
                     </div>
 
                 </a>
                 {% empty %}
-                <div class="text-center text-text-2 py-10 col-span-full">
-                    دوره‌ای یافت نشد
+                <div class="col-span-full text-center py-16">
+                    <div class="inline-flex p-5 bg-elevated rounded-full mb-4">
+                        <i class="fas fa-magnifying-glass text-3xl text-text-3"></i>
+                    </div>
+                    <h3 class="text-white font-bold">دوره‌ای یافت نشد</h3>
+                    <p class="text-text-2 text-sm mt-1">فیلترها را تغییر بده یا عبارت دیگری جستجو کن.</p>
                 </div>
                 {% endfor %}
 
             </div>
-
         </div>
-
     </div>
-
 </div>
 {% endblock %}

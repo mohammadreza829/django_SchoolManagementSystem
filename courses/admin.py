@@ -3,6 +3,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Course, Category, Lesson, LessonProgress, CourseRating, LessonAttachment
+from Enrollment.models import Enrollment
 
 
 @admin.register(Category)
@@ -19,6 +20,14 @@ class LessonInline(admin.TabularInline):
     ordering = ['order']
 
 
+class EnrollmentInline(admin.TabularInline):
+    model = Enrollment
+    extra = 0
+    fields = ['student', 'status', 'payment_status', 'price_paid', 'progress_percentage', 'enrolled_at']
+    readonly_fields = ['enrolled_at']
+    autocomplete_fields = ['student']
+
+
 class LessonProgressInline(admin.TabularInline):
     model = LessonProgress
     extra = 0
@@ -32,8 +41,8 @@ class CourseAdmin(admin.ModelAdmin):
     list_filter = ['level', 'status']
     search_fields = ['title', 'description']
     prepopulated_fields = {'slug': ('title',)}
-    filter_horizontal = ['teachers', 'students']
-    inlines = [LessonInline]
+    filter_horizontal = ['teachers']
+    inlines = [LessonInline, EnrollmentInline]
     readonly_fields = ['view_count', 'enroll_count', 'rating_avg']
     
     fieldsets = (

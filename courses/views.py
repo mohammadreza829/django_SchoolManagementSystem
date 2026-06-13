@@ -201,10 +201,19 @@ def enroll_course(request, course_slug):
     if course.enrollment_deadline and course.enrollment_deadline < timezone.now():
         return redirect("courses:course_detail", slug=course_slug)
 
-    # ثبت‌نام کاربر
-    course.students.add(request.user)
-    course.enroll_count = course.students.count()
-    course.save(update_fields=["enroll_count"])
+    # ثبت‌نام کاربر از طریق مدل Enrollment
+    from Enrollment.models import Enrollment
+
+    Enrollment.objects.get_or_create(
+        student=request.user,
+        course=course,
+        defaults={
+            "status": "active",
+            "payment_status": "free" if course.is_free else "pending",
+            "price_paid": 0 if course.is_free else course.final_price,
+        },
+    )
+    # enroll_count توسط signal اپ Enrollment خودکار به‌روز می‌شود
 
     return redirect("courses:course_detail", slug=course_slug)
 
@@ -215,7 +224,7 @@ def mark_lesson_complete(request, lesson_id):
     علامت زدن جلسه به عنوان دیده شده (با POST ساده)
     """
     if request.method != "POST":
-        return redirect("home")
+        return redirect("courses:course_list")
 
     lesson = get_object_or_404(Lesson, id=lesson_id)
     course = lesson.course
@@ -284,7 +293,7 @@ def add_comment(request, lesson_id):
     افزودن نظر برای جلسه (با فرم ساده POST)
     """
     if request.method != "POST":
-        return redirect("home")
+        return redirect("courses:course_list")
 
     lesson = get_object_or_404(Lesson, id=lesson_id)
     course = lesson.course

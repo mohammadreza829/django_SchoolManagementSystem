@@ -3,7 +3,6 @@ from django.urls import reverse
 from django.conf import settings
 from accounts.models import User  # برای ارتباط با مدل User
 
-from 
 
 class Category(models.Model):
     """دسته‌بندی دوره‌ها"""
@@ -77,12 +76,14 @@ class Course(models.Model):
     )
 
     # رابطه یک به چند با دانشجوها (کسانی که ثبت‌نام کردند)
+    # رابطه چند به چند با دانشجویان از طریق مدل واسط Enrollment
     students = models.ManyToManyField(
         User,
+        through="Enrollment.Enrollment",
         related_name="courses_enrolled",
         blank=True,
         verbose_name="دانشجویان ثبت‌نام شده",
-        help_text="دانش‌آموزانی که در این دوره ثبت‌نام کرده‌اند",
+        help_text="از طریق مدل Enrollment مدیریت می‌شود",
     )
 
     description = models.TextField(

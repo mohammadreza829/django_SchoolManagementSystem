@@ -31,11 +31,7 @@ def lesson_pre_save(sender, instance, **kwargs):
         instance.slug = slug
 
 
-@receiver(m2m_changed, sender=Course.students.through)
-def update_enroll_count(sender, instance, action, **kwargs):
-    if action in ["post_add", "post_remove"]:
-        instance.enroll_count = instance.students.count()
-        instance.save(update_fields=["enroll_count"])
+# نکته: شمارش enroll_count دیگر در اپ Enrollment (با signal روی مدل Enrollment) انجام می‌شود
 
 
 @receiver(post_save, sender=CourseRating)

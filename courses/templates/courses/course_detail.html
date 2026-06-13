@@ -1,151 +1,239 @@
 {% extends 'accounts/base.html' %}
 {% load course_extras %}
 
-{% block title %}{{ course.title }}{% endblock %}
+{% block title %} {{ course.title }} {% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-hero {
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid var(--border, rgba(255,255,255,0.07));
+        min-height: 280px;
+    }
+    .detail-hero .hero-bg {
+        position: absolute; inset: 0;
+        background-size: cover; background-position: center;
+        filter: blur(2px) brightness(0.4);
+        transform: scale(1.08);
+    }
+    .detail-hero .hero-fallback {
+        position: absolute; inset: 0;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 50%),
+            radial-gradient(circle at 90% 10%, rgba(34,197,94,0.18), transparent 45%),
+            linear-gradient(135deg, #1a1e28, #0d0f14);
+    }
+    .detail-hero .hero-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(13,15,20,0.96), rgba(13,15,20,0.55));
+    }
+    .chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 11px; font-weight: 700;
+        padding: 5px 11px; border-radius: 9px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.06);
+    }
+    .stat-box {
+        background: var(--elevated, #1a1e28);
+        border: 1px solid var(--border, rgba(255,255,255,0.07));
+        border-radius: 14px; padding: 12px;
+        text-align: center;
+    }
+    .stat-box .num { font-size: 16px; font-weight: 800; color: #fff; }
+    .stat-box .lbl { font-size: 10px; color: var(--text-2, #8b92a9); margin-top: 2px; }
+
+    .lesson-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 13px 14px; border-radius: 13px;
+        background: var(--elevated, #1a1e28);
+        border: 1px solid var(--border, rgba(255,255,255,0.07));
+        transition: all .15s;
+    }
+    .lesson-row:hover { border-color: rgba(99,102,241,0.4); background: var(--hovered, #1f2433); }
+    .lesson-index {
+        width: 30px; height: 30px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 9px; font-size: 12px; font-weight: 800;
+        background: rgba(99,102,241,0.14); color: #818cf8;
+    }
+    .buy-card {
+        background: linear-gradient(180deg, #1a1e28, #13161d);
+        border: 1px solid var(--border-hover, rgba(255,255,255,0.12));
+        border-radius: 20px;
+        box-shadow: 0 20px 50px -20px rgba(99,102,241,0.4);
+    }
+    .feature-li { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--text-2,#8b92a9); }
+    .feature-li i { color: #22c55e; width: 16px; text-align: center; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto space-y-6">
 
-    <!-- HEADER -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-text-2">
+        <a href="{% url 'courses:course_list' %}" class="hover:text-primary transition">دوره‌ها</a>
+        <i class="fas fa-angle-left text-[10px] text-text-3"></i>
+        <span class="text-white truncate"> {{ course.title }} </span>
+    </nav>
 
-        <!-- LEFT -->
-        <div class="lg:col-span-2 bg-surface border border-white/10 rounded-2xl p-6 shadow-glow-sm">
+    <!-- ═════ HERO ═════ -->
+    <div class="detail-hero">
+        {% if course.thumbnail %}
+            <div class="hero-bg" style="background-image:url(' {{ course.thumbnail.url }} ')"></div>
+        {% else %}
+            <div class="hero-fallback"></div>
+        {% endif %}
+        <div class="hero-overlay"></div>
 
-            <div class="text-text-2 text-xs mb-2">
-                دوره آموزشی
+        <div class="relative z-10 p-6 sm:p-9 flex flex-col justify-end h-full">
+            <div class="flex flex-wrap gap-2 mb-3">
+                <span class="chip text-indigo-300"><i class="fas fa-signal"></i>  {{ course.get_level_display }} </span>
+                <span class="chip text-emerald-300"><i class="fas fa-circle-check"></i>  {{ course.get_status_display }} </span>
+                {% if course.is_free %}
+                    <span class="chip text-emerald-300"><i class="fas fa-gift"></i>رایگان</span>
+                {% elif course.discount_percent > 0 %}
+                    <span class="chip text-red-300"><i class="fas fa-fire"></i>  {{ course.discount_percent }}٪ تخفیف</span>
+                {% endif %}
             </div>
 
-            <h1 class="text-2xl font-bold text-white">
-                {{ course.title }}
-            </h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white leading-snug"> {{ course.title }} </h1>
+            <p class="text-text-2 text-sm mt-2 max-w-2xl leading-relaxed"> {{ course.short_description }} </p>
 
-            <p class="text-text-2 mt-2">
-                {{ course.short_description }}
-            </p>
-
-            <div class="flex flex-wrap gap-2 mt-4">
-                <span class="px-3 py-1 bg-elevated text-xs rounded-lg text-primary">
-                    {{ course.get_level_display }}
-                </span>
-                <span class="px-3 py-1 bg-elevated text-xs rounded-lg text-green-400">
-                    {{ course.get_status_display }}
-                </span>
-            </div>
-
-            <div class="mt-4 text-text-2 text-sm">
-                مدرسین:
+            <div class="flex items-center gap-2 mt-4 text-sm text-text-2">
+                <i class="fas fa-chalkboard-user text-indigo-400"></i>
+                <span>مدرسین:</span>
                 {% for t in course.teachers.all %}
-                    <span class="text-white">{{ t.get_full_name|default:t.username }}</span>{% if not forloop.last %}, {% endif %}
+                    <span class="text-white font-medium"> {{ t.get_full_name|default:t.username }} </span>{% if not forloop.last %}، {% endif %}
                 {% endfor %}
             </div>
+        </div>
+    </div>
 
+    <!-- Quick stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="stat-box"><div class="num"> {{ course.duration_hours }} </div><div class="lbl">ساعت آموزش</div></div>
+        <div class="stat-box"><div class="num"> {{ course.total_lessons }} </div><div class="lbl">درس</div></div>
+        <div class="stat-box"><div class="num"> {{ course.enroll_count }} </div><div class="lbl">دانشجو</div></div>
+        <div class="stat-box"><div class="num"> {{ course.view_count }} </div><div class="lbl">بازدید</div></div>
+    </div>
+
+    <!-- ═════ BODY ═════ -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+        <!-- LEFT: curriculum -->
+        <div class="lg:col-span-2 bg-surface border border-white/10 rounded-2xl p-5 sm:p-6 shadow-glow-sm">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-white font-bold flex items-center gap-2">
+                    <i class="fas fa-list-ul text-indigo-400 text-sm"></i>
+                    سرفصل‌های دوره
+                </h3>
+                <span class="text-xs text-text-2 bg-elevated border border-white/10 px-3 py-1 rounded-lg"> {{ course.total_lessons }}  درس</span>
+            </div>
+
+            <div class="space-y-2.5">
+                {% for lesson in lessons %}
+                <div class="lesson-row">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="lesson-index"> {{ lesson.order }} </span>
+                        <div class="min-w-0">
+                            {% if is_enrolled or lesson.is_free_preview %}
+                                <a href="{% url 'courses:lesson_detail' course.slug lesson.slug %}" class="text-sm text-white hover:text-indigo-300 transition block truncate">
+                                     {{ lesson.title }} 
+                                </a>
+                            {% else %}
+                                <span class="text-sm text-text-2 flex items-center gap-2 truncate">
+                                    <i class="fas fa-lock text-[10px] text-text-3"></i>  {{ lesson.title }} 
+                                </span>
+                            {% endif %}
+                            {% if lesson.is_free_preview and not is_enrolled %}
+                                <span class="text-[10px] font-bold text-emerald-400">پیش‌نمایش رایگان</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                        {% if lesson_progress|get_item:lesson.id %}
+                            <span class="text-emerald-400 text-xs"><i class="fas fa-circle-check"></i></span>
+                        {% endif %}
+                        <span class="text-[11px] text-text-2 whitespace-nowrap"> {{ lesson.duration }}  دقیقه</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-text-2 text-sm text-center py-6">هنوز درسی برای این دوره ثبت نشده.</p>
+                {% endfor %}
+            </div>
         </div>
 
-        <!-- PRICE CARD -->
-        <div class="bg-surface border border-white/10 rounded-2xl p-6 shadow-glow-sm text-center">
+        <!-- RIGHT: buy + info -->
+        <div class="space-y-4 lg:sticky lg:top-20">
 
-            {% if course.is_free %}
-                <div class="text-green-400 text-xl font-bold">رایگان</div>
-            {% else %}
-                {% if course.discount_percent > 0 %}
-                    <div class="text-text-2 line-through text-sm">
-                        {{ course.price|floatformat:0 }}
-                    </div>
-                    <div class="text-red-400 text-xl font-bold">
-                        {{ course.final_price|floatformat:0 }}
-                    </div>
-                    <div class="text-xs text-warning">
-                        {{ course.discount_percent }}% تخفیف
-                    </div>
-                {% else %}
-                    <div class="text-primary text-xl font-bold">
-                        {{ course.price|floatformat:0 }}
-                    </div>
+            <!-- Buy card -->
+            <div class="buy-card p-5">
+                {% if course.thumbnail %}
+                <div class="rounded-xl overflow-hidden mb-4 h-36">
+                    <img src=" {{ course.thumbnail.url }} " class="w-full h-full object-cover">
+                </div>
                 {% endif %}
-            {% endif %}
 
-            <div class="mt-4">
+                <div class="text-center mb-4">
+                    {% if course.is_free %}
+                        <div class="text-emerald-400 text-2xl font-extrabold">رایگان</div>
+                    {% else %}
+                        {% if course.discount_percent > 0 %}
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-white text-2xl font-extrabold"> {{ course.final_price|floatformat:0 }} </span>
+                                <span class="text-xs text-text-2">تومان</span>
+                            </div>
+                            <div class="flex items-center justify-center gap-2 mt-1">
+                                <span class="text-text-3 line-through text-sm"> {{ course.price|floatformat:0 }} </span>
+                                <span class="text-[11px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded"> {{ course.discount_percent }}٪ تخفیف</span>
+                            </div>
+                        {% else %}
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-white text-2xl font-extrabold"> {{ course.price|floatformat:0 }} </span>
+                                <span class="text-xs text-text-2">تومان</span>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
 
                 {% if is_enrolled %}
                 <a href="{% url 'courses:lesson_detail' course.slug course.lessons.first.slug %}"
-                   class="block bg-secondary text-white py-2 rounded-xl">
-                    شروع یادگیری
+                   class="flex items-center justify-center gap-2 w-full bg-secondary hover:brightness-110 text-white py-3 rounded-xl font-bold transition">
+                    <i class="fas fa-play"></i> شروع / ادامه یادگیری
                 </a>
+                <p class="text-center text-[11px] text-emerald-400 mt-2"><i class="fas fa-circle-check"></i> شما در این دوره ثبت‌نام کرده‌اید</p>
                 {% else %}
                 <form method="post" action="{% url 'courses:enroll_course' course.slug %}">
                     {% csrf_token %}
-                    <button class="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-xl">
-                        ثبت‌نام در دوره
+                    <button class="flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary-hover text-white py-3 rounded-xl font-bold transition shadow-glow-sm">
+                        <i class="fas fa-graduation-cap"></i> ثبت‌نام در دوره
                     </button>
                 </form>
                 {% endif %}
 
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- CONTENT -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- LESSONS -->
-        <div class="lg:col-span-2 bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
-
-            <h3 class="text-white font-bold mb-4">
-                سرفصل‌ها ({{ course.total_lessons }} درس)
-            </h3>
-
-            <div class="space-y-2">
-
-                {% for lesson in lessons %}
-                <div class="p-3 bg-elevated border border-white/10 rounded-xl flex justify-between">
-
-                    <div>
-                        {% if is_enrolled or lesson.is_free_preview %}
-                            <a href="{% url 'courses:lesson_detail' course.slug lesson.slug %}"
-                               class="text-sm text-white hover:text-primary">
-                                {{ lesson.order }}. {{ lesson.title }}
-                            </a>
-                        {% else %}
-                            <span class="text-text-2 text-sm">
-                                {{ lesson.order }}. {{ lesson.title }}
-                            </span>
-                        {% endif %}
-                    </div>
-
-                    <div class="text-xs text-text-2">
-                        {{ lesson.duration }} دقیقه
-                        {% if lesson_progress|get_item:lesson.id %}
-                            <span class="text-green-400 ml-2">✓</span>
-                        {% endif %}
-                    </div>
-
+                <div class="mt-5 pt-4 border-t border-white/10 space-y-2.5">
+                    <div class="feature-li"><i class="fas fa-infinity"></i> دسترسی مادام‌العمر به محتوا</div>
+                    <div class="feature-li"><i class="fas fa-mobile-screen"></i> قابل مشاهده روی موبایل و دسکتاپ</div>
+                    <div class="feature-li"><i class="fas fa-certificate"></i> گواهینامه‌ی پایان دوره</div>
+                    <div class="feature-li"><i class="fas fa-headset"></i> پشتیبانی و پاسخ به سوالات</div>
                 </div>
-                {% endfor %}
-
             </div>
 
-        </div>
-
-        <!-- INFO -->
-        <div class="space-y-4">
-
+            <!-- Info card -->
             <div class="bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
-                <h4 class="text-white font-bold mb-3">اطلاعات</h4>
-
-                <div class="text-text-2 text-sm space-y-2">
-                    <div>⏱ {{ course.duration_hours }} ساعت</div>
-                    <div>🎬 {{ course.total_lessons }} درس</div>
-                    <div>👥 {{ course.enroll_count }} دانشجو</div>
-                    <div>👁 {{ course.view_count }} بازدید</div>
+                <h4 class="text-white font-bold mb-3 text-sm">مشخصات دوره</h4>
+                <div class="text-text-2 text-sm space-y-3">
+                    <div class="flex items-center justify-between"><span><i class="far fa-clock ml-1 text-indigo-400"></i> مدت زمان</span><span class="text-white"> {{ course.duration_hours }}  ساعت</span></div>
+                    <div class="flex items-center justify-between"><span><i class="fas fa-photo-film ml-1 text-indigo-400"></i> تعداد دروس</span><span class="text-white"> {{ course.total_lessons }} </span></div>
+                    <div class="flex items-center justify-between"><span><i class="fas fa-user-graduate ml-1 text-indigo-400"></i> دانشجویان</span><span class="text-white"> {{ course.enroll_count }} </span></div>
+                    <div class="flex items-center justify-between"><span><i class="fas fa-signal ml-1 text-indigo-400"></i> سطح</span><span class="text-white"> {{ course.get_level_display }} </span></div>
                 </div>
             </div>
-
         </div>
-
     </div>
-
 </div>
 {% endblock %}

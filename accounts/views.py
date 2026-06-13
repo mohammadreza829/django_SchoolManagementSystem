@@ -201,6 +201,7 @@ def dashboard_view(request):
     teaching_courses_count = 0
     enrolled_courses_count = 0
     total_notifications = user.notifications.filter(is_read=False).count()
+    recent_courses = []
 
     if COURSES_AVAILABLE:
         if user.is_teacher:
@@ -214,6 +215,8 @@ def dashboard_view(request):
             active_courses = user.courses_enrolled.filter(status="published")
             enrolled_courses_count = active_courses.count()
 
+        recent_courses = Course.objects.filter(status="published").order_by("-created_at")[:3]
+
     context = {
         "active_courses": active_courses,  # این متغیر برای حلقه زدن در قالب لازم است
         "enrolled_courses_count": enrolled_courses_count,
@@ -224,7 +227,7 @@ def dashboard_view(request):
         "total_hours": 0,
         "avg_progress": 0,
         "recent_activities": [],
-        "recent_courses": Course.objects.filter(status="published").order_by('-created_at')[:3]
+        "recent_courses": recent_courses,
     }
 
     return render(request, "accounts/dashboard.html", context)
