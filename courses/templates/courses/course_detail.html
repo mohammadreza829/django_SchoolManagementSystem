@@ -116,7 +116,7 @@
     <!-- Quick stats -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="stat-box"><div class="num"> {{ course.duration_hours }} </div><div class="lbl">ساعت آموزش</div></div>
-        <div class="stat-box"><div class="num"> {{ course.total_lessons }} </div><div class="lbl">درس</div></div>
+        <div class="stat-box"><div class="num"> {{ course.lessons.count }} </div><div class="lbl">درس</div></div>
         <div class="stat-box"><div class="num"> {{ course.enroll_count }} </div><div class="lbl">دانشجو</div></div>
         <div class="stat-box"><div class="num"> {{ course.view_count }} </div><div class="lbl">بازدید</div></div>
     </div>
@@ -131,7 +131,7 @@
                     <i class="fas fa-list-ul text-indigo-400 text-sm"></i>
                     سرفصل‌های دوره
                 </h3>
-                <span class="text-xs text-text-2 bg-elevated border border-white/10 px-3 py-1 rounded-lg"> {{ course.total_lessons }}  درس</span>
+                <span class="text-xs text-text-2 bg-elevated border border-white/10 px-3 py-1 rounded-lg"> {{ course.lessons.count }}  درس</span>
             </div>
 
             <div class="space-y-2.5">
@@ -158,7 +158,7 @@
                         {% if lesson_progress|get_item:lesson.id %}
                             <span class="text-emerald-400 text-xs"><i class="fas fa-circle-check"></i></span>
                         {% endif %}
-                        <span class="text-[11px] text-text-2 whitespace-nowrap"> {{ lesson.duration }}  دقیقه</span>
+                        <span class="text-[11px] text-text-2 whitespace-nowrap"> {{ lesson.duration_minutes }}  دقیقه</span>
                     </div>
                 </div>
                 {% empty %}
@@ -234,7 +234,7 @@
                 <h4 class="text-white font-bold mb-3 text-sm">مشخصات دوره</h4>
                 <div class="text-text-2 text-sm space-y-3">
                     <div class="flex items-center justify-between"><span><i class="far fa-clock ml-1 text-indigo-400"></i> مدت زمان</span><span class="text-white"> {{ course.duration_hours }}  ساعت</span></div>
-                    <div class="flex items-center justify-between"><span><i class="fas fa-photo-film ml-1 text-indigo-400"></i> تعداد دروس</span><span class="text-white"> {{ course.total_lessons }} </span></div>
+                    <div class="flex items-center justify-between"><span><i class="fas fa-photo-film ml-1 text-indigo-400"></i> تعداد دروس</span><span class="text-white"> {{ course.lessons.count }} </span></div>
                     <div class="flex items-center justify-between"><span><i class="fas fa-user-graduate ml-1 text-indigo-400"></i> دانشجویان</span><span class="text-white"> {{ course.enroll_count }} </span></div>
                     <div class="flex items-center justify-between"><span><i class="fas fa-signal ml-1 text-indigo-400"></i> سطح</span><span class="text-white"> {{ course.get_level_display }} </span></div>
                 </div>

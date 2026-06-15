@@ -59,8 +59,12 @@
 
         <!-- VIDEO -->
         <div class="bg-black rounded-2xl overflow-hidden aspect-video">
-            {% if lesson.video_url %}
-                <iframe src="{{ lesson.video_url }}" class="w-full h-full" allowfullscreen></iframe>
+            {% if lesson.video_file %}
+                <video src="{{ lesson.video_file.url }}" class="w-full h-full" controls controlslist="nodownload" preload="metadata" playsinline>
+                    مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند.
+                </video>
+            {% elif lesson.video_url %}
+                <iframe src="{{ lesson.video_url }}" class="w-full h-full" allowfullscreen frameborder="0"></iframe>
             {% else %}
                 <div class="flex items-center justify-center h-full text-text-3">
                     ویدیو موجود نیست

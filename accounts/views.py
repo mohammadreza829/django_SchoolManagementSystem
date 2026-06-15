@@ -194,39 +194,92 @@ def user_list(request):
 # ==================== ۵. داشبورد ====================
 @login_required
 def dashboard_view(request):
+    from django.db.models import Sum
+
     user = request.user
-    
+
     # مقادیر پیش‌فرض
     active_courses = []
     teaching_courses_count = 0
     enrolled_courses_count = 0
     total_notifications = user.notifications.filter(is_read=False).count()
     recent_courses = []
+    completed_courses = []
+    total_hours = 0
+    avg_progress = 0
+    recent_activities = []
 
     if COURSES_AVAILABLE:
+        from courses.models import LessonProgress
+
         if user.is_teacher:
-            # برای مدرس: تعداد دوره‌های منتشر شده خودش
             teaching_courses_count = Course.objects.filter(
                 teachers=user, status="published"
             ).count()
 
-        # دوره‌های ثبت‌نام‌شده‌ی کاربر را برای هر نقشی نشان بده (نه فقط دانشجو)
-        # چون سوپریوزر نقش admin دارد و گرنه چیزی در داشبورد دیده نمی‌شد
-        active_courses = user.courses_enrolled.all().prefetch_related("teachers")
-        enrolled_courses_count = active_courses.count()
+        # دوره‌های ثبت‌نام‌شده‌ی کاربر برای هر نقشی نمایش داده می‌شوند
+        active_courses = list(
+            user.courses_enrolled.all().prefetch_related("teachers", "lessons")
+        )
+        enrolled_courses_count = len(active_courses)
 
-        recent_courses = Course.objects.filter(status="published").order_by("-created_at")[:3]
+        # محاسبه‌ی واقعی پیشرفت هر دوره از روی جلسه‌های تکمیل‌شده
+        progress_sum = 0
+        total_minutes = 0
+        for course in active_courses:
+            total_lessons = course.lessons.count()
+            completed_lessons = LessonProgress.objects.filter(
+                lesson__course=course, user=user, is_completed=True
+            ).count()
+            prog = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
+            course.user_progress = prog
+            course.completed_lessons = completed_lessons
+            course.total_lessons_count = total_lessons
+            progress_sum += prog
+            if total_lessons > 0 and prog >= 100:
+                completed_courses.append(course)
+            watched = (
+                LessonProgress.objects.filter(
+                    lesson__course=course, user=user, is_completed=True
+                ).aggregate(m=Sum("lesson__duration_minutes"))["m"]
+                or 0
+            )
+            total_minutes += watched
+
+        if active_courses:
+            avg_progress = int(progress_sum / len(active_courses))
+
+        total_hours = round(total_minutes / 60, 1)
+        if total_hours == int(total_hours):
+            total_hours = int(total_hours)
+
+        # فعالیت‌های اخیر بر اساس آخرین جلسه‌های دیده‌شده
+        recent_progress = (
+            LessonProgress.objects.filter(user=user)
+            .select_related("lesson", "lesson__course")
+            .order_by("-last_watched")[:5]
+        )
+        for lp in recent_progress:
+            recent_activities.append(
+                {
+                    "title": lp.lesson.course.title + " — " + lp.lesson.title,
+                    "date": "تکمیل شده" if lp.is_completed else "در حال مطالعه",
+                }
+            )
+
+        recent_courses = Course.objects.filter(
+            status="published"
+        ).order_by("-created_at")[:3]
 
     context = {
-        "active_courses": active_courses,  # این متغیر برای حلقه زدن در قالب لازم است
+        "active_courses": active_courses,
         "enrolled_courses_count": enrolled_courses_count,
         "teaching_courses_count": teaching_courses_count,
         "total_notifications": total_notifications,
-        # سایر مقادیری که در قالب استفاده کردی (اگر فعلاً نداری صفر بفرست)
-        "completed_courses": [], 
-        "total_hours": 0,
-        "avg_progress": 0,
-        "recent_activities": [],
+        "completed_courses": completed_courses,
+        "total_hours": total_hours,
+        "avg_progress": avg_progress,
+        "recent_activities": recent_activities,
         "recent_courses": recent_courses,
     }
 
