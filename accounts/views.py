@@ -290,33 +290,11 @@ def dashboard_view(request):
 def home(request):
     """صفحه اصلی سایت با معرفی دوره‌ها و آزمون‌ها"""
     featured_courses = []
-    courses_count = 0
-    quizzes_count = 0
-    students_count = 0
-
     try:
         from courses.models import Course
-        published = Course.objects.filter(status="published")
-        featured_courses = list(published[:6])
-        courses_count = published.count()
+        featured_courses = list(Course.objects.filter(status="published")[:6])
     except Exception:
         pass
 
-    try:
-        from quiz.models import Quiz
-        quizzes_count = Quiz.objects.filter(is_published=True).count()
-    except Exception:
-        pass
-
-    try:
-        students_count = User.objects.filter(role="student").count()
-    except Exception:
-        pass
-
-    context = {
-        "featured_courses": featured_courses,
-        "courses_count": courses_count,
-        "quizzes_count": quizzes_count,
-        "students_count": students_count,
-    }
+    context = {"featured_courses": featured_courses}
     return render(request, "home.html", context)

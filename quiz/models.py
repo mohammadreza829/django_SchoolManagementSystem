@@ -37,7 +37,7 @@ class Topic(models.Model):
     """
 
     name = models.CharField(max_length=120, verbose_name="نام موضوع")
-    slug = models.SlugField(max_length=140, unique=True, blank=True, verbose_name="slug")
+    slug = models.SlugField(max_length=140, unique=True, blank=True, verbose_name="slug", allow_unicode=True)
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -202,7 +202,7 @@ class Quiz(models.Model):
     """
 
     title = models.CharField(max_length=200, verbose_name="عنوان آزمون")
-    slug = models.SlugField(max_length=220, unique=True, blank=True, verbose_name="slug")
+    slug = models.SlugField(max_length=220, unique=True, blank=True, allow_unicode=True, verbose_name="slug")
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
     # اتصال اختیاری به دوره / جلسه (با string reference تا وابستگی حلقوی پیش نیاد)
