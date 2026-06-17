@@ -1,0 +1,22 @@
+{% extends "panel/base.html" %}
+{% block title %}نتایج | پنل{% endblock %}
+{% block heading %}نتایج و نمرات{% endblock %}
+{% block content %}
+<div class="card overflow-x-auto">
+  <table>
+    <thead><tr><th>آزمون</th><th>تعداد شرکت</th><th>میانگین درصد</th><th></th></tr></thead>
+    <tbody>
+      {% for quiz in quizzes %}
+      <tr>
+        <td class="font-semibold">{{ quiz.title }}</td>
+        <td>{{ quiz.attempt_count }}</td>
+        <td>{% if quiz.avg_score %}{{ quiz.avg_score|floatformat:1 }}٪{% else %}<span class="text-gray-600">—</span>{% endif %}</td>
+        <td><a href="{% url 'panel:quiz_results' quiz.pk %}" class="btn btn-ghost py-1 px-3">مشاهده نمرات</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center text-gray-500 py-8">آزمونی یافت نشد.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

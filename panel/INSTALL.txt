@@ -1,0 +1,35 @@
+راهنمای نصب پنل مدیریت (اپ panel)
+=====================================
+
+۱) پوشه‌ی panel را در ریشه‌ی پروژه (کنار accounts، courses، quiz) بگذار.
+
+۲) در EduPlatform/settings.py داخل INSTALLED_APPS اضافه کن:
+
+    INSTALLED_APPS = [
+        ...
+        'accounts',
+        'courses',
+        'Enrollment',
+        'quiz',
+        'panel',          # <-- این خط
+    ]
+
+۳) در EduPlatform/urls.py یک خط به urlpatterns اضافه کن:
+
+    path('panel/', include('panel.urls')),
+
+   (مطمئن شو در بالای فایل include ایمپورت شده: from django.urls import path, include)
+
+۴) (اختیاری ولی توصیه‌شده) در منوی سایت/داشبورد، لینک ورود به پنل را فقط برای استاد/ادمین نشان بده:
+
+    {% if user.is_authenticated and user.role == 'teacher' or user.is_superuser or user.role == 'admin' %}
+      <a href="{% url 'panel:dashboard' %}">پنل مدیریت</a>
+    {% endif %}
+
+۵) نیازی به makemigrations نیست چون این اپ مدل جدیدی ندارد.
+   کافیست سرور را ریستارت کنی و بروی به: /panel/
+
+نکته‌ها:
+- دسترسی فقط برای کاربرانی با role='teacher' یا role='admin' (یا superuser) باز است؛ بقیه خطای 403 می‌گیرند.
+- استاد فقط دوره‌هایی که جزء اساتیدشان است و آزمون‌هایی که خودش ساخته یا به دوره‌اش وصل است را می‌بیند. ادمین همه را می‌بیند.
+- خروجی CSV نمرات با BOM ذخیره می‌شود تا در Excel فارسی درست باز شود.

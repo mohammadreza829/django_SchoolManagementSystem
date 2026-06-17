@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}پنل مدیریت{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: {
+            colors: { primary:'#6366f1','primary-hover':'#7c3aed', secondary:'#22c55e', dark:'#0d0f14', surface:'#13161d', elevated:'#1a1e28', hovered:'#1f2433' },
+            fontFamily: { sans: ['Vazirmatn','Tahoma','sans-serif'] }
+        }}}
+    </script>
+    <style>
+        body{font-family:'Vazirmatn',Tahoma,sans-serif;background:#0d0f14;color:#f0f2f8;}
+        .nav-a{display:flex;align-items:center;gap:.6rem;padding:.6rem .9rem;border-radius:.8rem;font-size:.9rem;color:#cbd2e0;transition:.15s;}
+        .nav-a:hover{background:#1a1e28;color:#fff;}
+        .nav-a.active{background:rgba(99,102,241,.15);color:#a5b4fc;font-weight:700;}
+        .card{background:#13161d;border:1px solid rgba(255,255,255,.08);border-radius:1rem;}
+        .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1rem;border-radius:.8rem;font-weight:700;font-size:.85rem;transition:.15s;cursor:pointer;border:none;}
+        .btn-primary{background:#6366f1;color:#fff;} .btn-primary:hover{background:#7c3aed;}
+        .btn-ghost{background:#1a1e28;color:#e5e7eb;} .btn-ghost:hover{background:#1f2433;}
+        .btn-danger{background:rgba(239,68,68,.15);color:#fca5a5;} .btn-danger:hover{background:rgba(239,68,68,.25);}
+        table{width:100%;border-collapse:collapse;} th,td{padding:.7rem .8rem;text-align:right;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.06);}
+        th{color:#9ca3af;font-weight:600;}
+        select option{background:#1a1e28;}
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen">
+<div class="flex">
+    <aside class="w-60 shrink-0 min-h-screen border-l border-white/10 p-4 hidden md:block" style="background:#0b0d12">
+        <a href="{% url 'panel:dashboard' %}" class="block text-xl font-extrabold text-indigo-400 px-2 mb-6">پنل<span class="text-green-400">مدیریت</span></a>
+        <nav class="space-y-1">
+            <a href="{% url 'panel:dashboard' %}" class="nav-a {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fas fa-gauge-high w-5 text-center"></i> داشبورد</a>
+            <a href="{% url 'panel:course_list' %}" class="nav-a {% if 'course' in request.resolver_match.url_name %}active{% endif %}"><i class="fas fa-book w-5 text-center"></i> دوره‌ها</a>
+            <a href="{% url 'panel:quiz_list' %}" class="nav-a {% if 'quiz' in request.resolver_match.url_name or 'question' in request.resolver_match.url_name %}active{% endif %}"><i class="fas fa-clipboard-question w-5 text-center"></i> آزمون‌ها</a>
+            <a href="{% url 'panel:results' %}" class="nav-a {% if 'result' in request.resolver_match.url_name or request.resolver_match.url_name == 'attempt_detail' %}active{% endif %}"><i class="fas fa-chart-column w-5 text-center"></i> نتایج و نمرات</a>
+        </nav>
+        <div class="mt-8 pt-4 border-t border-white/10">
+            <a href="/" class="nav-a"><i class="fas fa-arrow-right-from-bracket w-5 text-center"></i> بازگشت به سایت</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 min-h-screen">
+        <header class="h-16 border-b border-white/10 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur" style="background:rgba(13,15,20,.8)">
+            <div class="text-lg font-bold">{% block heading %}{% endblock %}</div>
+            <div class="flex items-center gap-3 text-sm text-gray-300">
+                <i class="fas fa-circle-user text-indigo-400 text-lg"></i>
+                {{ request.user.get_full_name|default:request.user.username }}
+            </div>
+        </header>
+
+        {% if messages %}
+        <div class="px-6 pt-4 space-y-2">
+            {% for message in messages %}
+            <div class="card px-4 py-3 text-sm border-r-4 {% if message.tags == 'success' %}border-green-500{% elif message.tags == 'error' %}border-red-500{% else %}border-indigo-500{% endif %}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="p-6">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

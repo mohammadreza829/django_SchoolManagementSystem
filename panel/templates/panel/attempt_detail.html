@@ -1,0 +1,26 @@
+{% extends "panel/base.html" %}
+{% block title %}جزئیات پاسخ | پنل{% endblock %}
+{% block heading %}پاسخ‌های {{ attempt.student.get_full_name|default:attempt.student.username }}{% endblock %}
+{% block content %}
+<a href="{% url 'panel:quiz_results' attempt.quiz.pk %}" class="btn btn-ghost mb-5"><i class="fas fa-arrow-right"></i> بازگشت</a>
+<div class="card p-5 mb-4 flex items-center justify-between">
+  <div><span class="text-gray-400 text-sm">آزمون:</span> <span class="font-bold">{{ attempt.quiz.title }}</span></div>
+  <div class="text-lg font-extrabold {% if attempt.is_passed %}text-green-400{% else %}text-red-400{% endif %}">{{ attempt.percentage }}٪</div>
+</div>
+<div class="space-y-3">
+  {% for ans in answers %}
+  <div class="card p-4">
+    <div class="flex items-start justify-between gap-3">
+      <div class="font-semibold">{{ forloop.counter }}. {{ ans.question.text|truncatechars:120 }}</div>
+      <span class="shrink-0 {% if ans.is_correct %}text-green-400{% else %}text-red-400{% endif %}">{% if ans.is_correct %}<i class="fas fa-check"></i> درست{% else %}<i class="fas fa-xmark"></i> غلط{% endif %} ({{ ans.points_earned }})</span>
+    </div>
+    <div class="text-sm text-gray-400 mt-2">
+      پاسخ دانش‌آموز:
+      {% for ch in ans.selected_choices.all %}<span class="inline-block bg-elevated rounded px-2 py-1 ml-1">{{ ch.text }}</span>{% empty %}{% if ans.answer_text %}<span class="inline-block bg-elevated rounded px-2 py-1">{{ ans.answer_text }}</span>{% else %}<span class="text-gray-600">بدون پاسخ</span>{% endif %}{% endfor %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="card p-6 text-center text-gray-500">پاسخی ثبت نشده.</div>
+  {% endfor %}
+</div>
+{% endblock %}

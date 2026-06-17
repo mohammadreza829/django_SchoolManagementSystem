@@ -1,0 +1,38 @@
+{% extends "panel/base.html" %}
+{% block title %}افزودن سوال | پنل{% endblock %}
+{% block heading %}افزودن سوال به: {{ quiz.title }}{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="card p-6 max-w-3xl space-y-4">
+  {% csrf_token %}
+  {% for field in form %}
+  <div>
+    <label class="block text-sm text-gray-300 mb-1">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<p class="text-xs text-red-400 mt-1">{{ field.errors }}</p>{% endif %}
+  </div>
+  {% endfor %}
+
+  <div class="border-t border-white/10 pt-4">
+    <h3 class="font-bold mb-1">گزینه‌ها</h3>
+    <p class="text-xs text-gray-500 mb-3">برای سوالات «تک‌گزینه‌ای / چندگزینه‌ای / درست-غلط» گزینه‌ها را پر کنید و تیک «پاسخ صحیح» را بزنید. برای سوال عددی/کوتاه نیازی به گزینه نیست.</p>
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}<div class="text-red-400 text-sm mb-2">{{ formset.non_form_errors }}</div>{% endif %}
+    <div class="space-y-3">
+      {% for cform in formset %}
+      <div class="flex items-end gap-2 flex-wrap">
+        {% for hidden in cform.hidden_fields %}{{ hidden }}{% endfor %}
+        <div class="flex-1 min-w-[200px]"><label class="block text-xs text-gray-400 mb-1">متن گزینه</label>{{ cform.text }}</div>
+        <div class="w-20"><label class="block text-xs text-gray-400 mb-1">ترتیب</label>{{ cform.order }}</div>
+        <label class="flex items-center gap-2 text-sm pb-2">{{ cform.is_correct }} صحیح</label>
+        {% if cform.instance.pk %}<label class="flex items-center gap-2 text-sm pb-2 text-red-300">{{ cform.DELETE }} حذف</label>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3 pt-2">
+    <button class="btn btn-primary"><i class="fas fa-floppy-disk"></i> ذخیره سوال</button>
+    <a href="{% url 'panel:quiz_questions' quiz.pk %}" class="btn btn-ghost">انصراف</a>
+  </div>
+</form>
+{% endblock %}

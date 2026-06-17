@@ -1,0 +1,36 @@
+{% extends "panel/base.html" %}
+{% block title %}دوره‌ها | پنل{% endblock %}
+{% block heading %}مدیریت دوره‌ها{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+  <form method="get" class="flex items-center gap-2">
+    <input name="q" value="{{ q }}" placeholder="جستجوی دوره..." class="bg-elevated border border-white/10 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary">
+    <button class="btn btn-ghost"><i class="fas fa-magnifying-glass"></i></button>
+  </form>
+  <a href="{% url 'panel:course_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> دوره جدید</a>
+</div>
+<div class="card overflow-x-auto">
+  <table>
+    <thead><tr><th>عنوان</th><th>سطح</th><th>وضعیت</th><th>قیمت</th><th>عملیات</th></tr></thead>
+    <tbody>
+      {% for c in courses %}
+      <tr>
+        <td class="font-semibold">{{ c.title }}</td>
+        <td class="text-gray-400">{{ c.get_level_display }}</td>
+        <td>{% if c.status == 'published' %}<span class="text-green-400">منتشر شده</span>{% else %}<span class="text-yellow-400">{{ c.get_status_display }}</span>{% endif %}</td>
+        <td class="text-gray-400">{{ c.price }}</td>
+        <td>
+          <div class="flex items-center gap-2">
+            <a href="{% url 'panel:course_edit' c.pk %}" class="btn btn-ghost py-1 px-2" title="ویرایش"><i class="fas fa-pen"></i></a>
+            <form method="post" action="{% url 'panel:course_toggle' c.pk %}">{% csrf_token %}<button class="btn btn-ghost py-1 px-2" title="انتشار/پیش‌نویس">{% if c.status == 'published' %}<i class="fas fa-eye-slash"></i>{% else %}<i class="fas fa-eye"></i>{% endif %}</button></form>
+            <form method="post" action="{% url 'panel:course_delete' c.pk %}" onsubmit="return confirm('این دوره حذف شود؟');">{% csrf_token %}<button class="btn btn-danger py-1 px-2" title="حذف"><i class="fas fa-trash"></i></button></form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-gray-500 py-8">دوره‌ای یافت نشد. <a href="{% url 'panel:course_create' %}" class="text-indigo-400">اولین دوره را بساز</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

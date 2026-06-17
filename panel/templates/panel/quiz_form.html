@@ -1,0 +1,21 @@
+{% extends "panel/base.html" %}
+{% block title %}{% if mode == 'new' %}آزمون جدید{% else %}ویرایش آزمون{% endif %} | پنل{% endblock %}
+{% block heading %}{% if mode == 'new' %}آزمون جدید{% else %}ویرایش آزمون{% endif %}{% endblock %}
+{% block content %}
+<form method="post" class="card p-6 max-w-3xl space-y-4">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="text-red-400 text-sm">{{ form.non_field_errors }}</div>{% endif %}
+  {% for field in form %}
+  <div>
+    <label class="block text-sm text-gray-300 mb-1">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}<p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>{% endif %}
+    {% if field.errors %}<p class="text-xs text-red-400 mt-1">{{ field.errors }}</p>{% endif %}
+  </div>
+  {% endfor %}
+  <div class="flex items-center gap-3 pt-2">
+    <button class="btn btn-primary"><i class="fas fa-floppy-disk"></i> ذخیره</button>
+    <a href="{% url 'panel:quiz_list' %}" class="btn btn-ghost">انصراف</a>
+  </div>
+</form>
+{% endblock %}
