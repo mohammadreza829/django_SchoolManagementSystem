@@ -385,6 +385,17 @@
                     </a>
                 </li>
 
+                <!-- Home / Landing -->
+                <li>
+                    <a
+                        href="{% url 'home' %}"
+                        class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+                    >
+                        <i class="fas fa-house nav-icon"></i>
+                        <span>صفحه اصلی</span>
+                    </a>
+                </li>
+
                 <!-- All Courses -->
                 <li>
                     <a
@@ -404,6 +415,17 @@
                     >
                         <i class="fas fa-bookmark nav-icon"></i>
                         <span>دوره‌های من</span>
+                    </a>
+                </li>
+
+                <!-- Quizzes -->
+                <li>
+                    <a
+                        href="{% url 'quiz:quiz_list' %}"
+                        class="nav-item {% if request.resolver_match.url_name == 'quiz_list' or request.resolver_match.url_name == 'my_progress' %}active{% endif %}"
+                    >
+                        <i class="fas fa-clipboard-question nav-icon"></i>
+                        <span>آزمون‌ها</span>
                     </a>
                 </li>
 

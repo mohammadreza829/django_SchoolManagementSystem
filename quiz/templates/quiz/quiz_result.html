@@ -1,0 +1,84 @@
+{% extends 'accounts/base.html' %}
+{% block title %}نتیجه‌ی {{ quiz.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+    <!-- کارت نتیجه -->
+    <div class="bg-surface border border-white/10 rounded-2xl p-7 text-center mb-6">
+        <div class="text-5xl mb-3">{% if attempt.is_passed %}🎉{% else %}💪{% endif %}</div>
+        <h1 class="text-2xl font-bold mb-1">
+            {% if attempt.is_passed %}آفرین، قبول شدی!{% else %}دفعه‌ی بعد بهتر می‌شه!{% endif %}
+        </h1>
+        <p class="text-4xl font-extrabold mt-3 {% if attempt.is_passed %}text-green-400{% else %}text-red-400{% endif %}">
+            {{ attempt.percentage }}%
+        </p>
+        <p class="text-gray-400 mt-2">{{ attempt.score }} از {{ attempt.max_score }} نمره</p>
+    </div>
+
+    <!-- مرور پاسخ‌ها -->
+    <h3 class="font-bold mb-3">مرور پاسخ‌ها</h3>
+    <div class="space-y-4">
+        {% for ans in answers %}
+        <div class="bg-surface border rounded-2xl p-5 {% if ans.is_correct %}border-green-500/30{% else %}border-red-500/30{% endif %}">
+            <div class="flex items-start gap-3 mb-3">
+                <i class="fas {% if ans.is_correct %}fa-check-circle text-green-400{% else %}fa-times-circle text-red-400{% endif %} mt-1"></i>
+                <div class="katex-content flex-1 text-gray-100">{{ ans.question.text }}</div>
+            </div>
+
+            <div class="pr-7 space-y-2 text-sm">
+                {% if ans.question.is_choice_based %}
+                    {% for c in ans.question.choices.all %}
+                    <div class="flex items-center gap-2 {% if c.is_correct %}text-green-400{% elif c in ans.selected_choices.all %}text-red-400{% else %}text-gray-400{% endif %}">
+                        {% if c.is_correct %}<i class="fas fa-check text-xs"></i>{% elif c in ans.selected_choices.all %}<i class="fas fa-times text-xs"></i>{% else %}<i class="far fa-circle text-xs"></i>{% endif %}
+                        <span class="katex-content">{{ c.text }}</span>
+                        {% if c in ans.selected_choices.all %}<span class="text-xs">(پاسخ شما)</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-300">پاسخ شما: <b>{{ ans.answer_text }}</b></p>
+                    {% if not ans.is_correct %}
+                    <p class="text-green-400">پاسخ صحیح:
+                        {% if ans.question.question_type == 'numeric' %}{{ ans.question.correct_numeric }}{% else %}{{ ans.question.correct_text }}{% endif %}
+                    </p>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {% if quiz.show_solution and ans.question.solution %}
+            <div class="mt-3 pr-7 text-sm bg-elevated rounded-xl p-3">
+                <p class="text-xs text-gray-400 mb-1"><i class="fas fa-lightbulb ml-1"></i>راه‌حل:</p>
+                <div class="katex-content text-gray-200">{{ ans.question.solution }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-6 flex gap-3">
+        <a href="{% url 'quiz:quiz_detail' quiz.slug %}" class="flex-1 text-center bg-elevated hover:bg-hovered py-3 rounded-xl transition">بازگشت به آزمون</a>
+        <a href="{% url 'quiz:quiz_list' %}" class="flex-1 text-center bg-elevated hover:bg-hovered py-3 rounded-xl transition">همه‌ی آزمون‌ها</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.katex-content').forEach(function (el) {
+            renderMathInElement(el, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+    });
+</script>
+{% endblock %}

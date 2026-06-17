@@ -1,0 +1,129 @@
+{% extends 'accounts/base.html' %}
+{% block title %}{{ quiz.title }} — در حال انجام{% endblock %}
+
+{% block extra_css %}
+<!-- KaTeX برای رندر فرمول‌های LaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+    /* تایمر چسبان بالای صفحه */
+    #timerWrap {
+        position: sticky; top: 72px; z-index: 30;
+        display: inline-flex; align-items: center; gap: 8px;
+        background: #1a1e28;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; padding: 8px 16px;
+        font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    #timerWrap.danger { border-color: #ef4444; color: #ef4444; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.6; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">{{ quiz.title }}</h1>
+        {% if quiz.time_limit_minutes %}
+        <div id="timerWrap">
+            <i class="far fa-clock"></i>
+            <span id="timer">--:--</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="post" id="quizForm" action="{% url 'quiz:take_quiz' quiz.slug %}" class="space-y-5">
+        {% csrf_token %}
+
+        {% for q in questions %}
+        <div class="bg-surface border border-white/10 rounded-2xl p-5">
+            <div class="flex items-start gap-3 mb-4">
+                <span class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-primary/15 text-indigo-300 text-sm font-bold">{{ forloop.counter }}</span>
+                <div class="flex-1">
+                    <div class="katex-content text-gray-100">{{ q.text }}</div>
+                    {% if q.image %}<img src="{{ q.image.url }}" class="mt-3 rounded-xl max-h-60">{% endif %}
+                    <span class="text-xs text-gray-500">({{ q.points }} نمره)</span>
+                </div>
+            </div>
+
+            <div class="space-y-2 pr-10">
+                {% if q.question_type == 'single' or q.question_type == 'truefalse' %}
+                    {% for c in q.choices.all %}
+                    <label class="flex items-center gap-3 bg-elevated hover:bg-hovered rounded-xl p-3 cursor-pointer transition">
+                        <input type="radio" name="question_{{ q.id }}" value="{{ c.id }}" class="accent-indigo-500">
+                        <span class="katex-content text-sm">{{ c.text }}</span>
+                    </label>
+                    {% endfor %}
+
+                {% elif q.question_type == 'multiple' %}
+                    {% for c in q.choices.all %}
+                    <label class="flex items-center gap-3 bg-elevated hover:bg-hovered rounded-xl p-3 cursor-pointer transition">
+                        <input type="checkbox" name="question_{{ q.id }}" value="{{ c.id }}" class="accent-indigo-500">
+                        <span class="katex-content text-sm">{{ c.text }}</span>
+                    </label>
+                    {% endfor %}
+
+                {% elif q.question_type == 'numeric' %}
+                    <input type="number" step="any" name="question_{{ q.id }}"
+                           class="search-input" placeholder="پاسخ عددی...">
+
+                {% else %}
+                    <input type="text" name="question_{{ q.id }}"
+                           class="search-input" placeholder="پاسخ شما...">
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit"
+                class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl transition shadow-glow-sm">
+            ثبت و مشاهده نتیجه
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ---- رندر فرمول‌های LaTeX ----
+        document.querySelectorAll('.katex-content').forEach(function (el) {
+            renderMathInElement(el, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // ---- تایمر شمارش معکوس ----
+        // مدت زمان رو از مدل می‌گیریم (دقیقه). صفر یعنی بدون محدودیت.
+        var limitMinutes = {{ quiz.time_limit_minutes|default:0 }};
+        if (limitMinutes > 0) {
+            var remaining = limitMinutes * 60;
+            var timerEl = document.getElementById('timer');
+            var wrapEl = document.getElementById('timerWrap');
+            var form = document.getElementById('quizForm');
+
+            function render() {
+                var m = Math.floor(remaining / 60);
+                var s = remaining % 60;
+                timerEl.textContent =
+                    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                if (remaining <= 60) { wrapEl.classList.add('danger'); }
+            }
+            render();
+
+            var iv = setInterval(function () {
+                remaining--;
+                render();
+                if (remaining <= 0) {
+                    clearInterval(iv);
+                    form.submit();  // زمان تموم شد → ارسال خودکار
+                }
+            }, 1000);
+        }
+    });
+</script>
+{% endblock %}

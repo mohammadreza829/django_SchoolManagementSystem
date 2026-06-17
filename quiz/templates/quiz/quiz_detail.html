@@ -1,0 +1,60 @@
+{% extends 'accounts/base.html' %}
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-surface border border-white/10 rounded-2xl p-7">
+        <h1 class="text-2xl font-bold mb-3">{{ quiz.title }}</h1>
+        <p class="text-gray-300 mb-6">{{ quiz.description }}</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div class="bg-elevated rounded-xl p-3 text-center">
+                <p class="text-xs text-gray-400">تعداد سوال</p>
+                <p class="text-lg font-bold">{{ quiz.question_count }}</p>
+            </div>
+            <div class="bg-elevated rounded-xl p-3 text-center">
+                <p class="text-xs text-gray-400">نمره کل</p>
+                <p class="text-lg font-bold">{{ quiz.total_points }}</p>
+            </div>
+            <div class="bg-elevated rounded-xl p-3 text-center">
+                <p class="text-xs text-gray-400">حد نصاب</p>
+                <p class="text-lg font-bold">{{ quiz.pass_mark }}%</p>
+            </div>
+            <div class="bg-elevated rounded-xl p-3 text-center">
+                <p class="text-xs text-gray-400">زمان</p>
+                <p class="text-lg font-bold">{% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }}'{% else %}آزاد{% endif %}</p>
+            </div>
+        </div>
+
+        {% if user.is_authenticated %}
+            {% if attempts_left is not None and attempts_left <= 0 %}
+                <p class="text-red-400 bg-red-500/10 rounded-xl p-3 text-sm">به حداکثر دفعات مجاز رسیده‌اید.</p>
+            {% else %}
+                <a href="{% url 'quiz:take_quiz' quiz.slug %}"
+                   class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold px-6 py-3 rounded-xl transition shadow-glow-sm">
+                    <i class="fas fa-play"></i> شروع آزمون
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'accounts:login' %}" class="text-primary">برای شروع وارد شوید</a>
+        {% endif %}
+
+        {% if user_attempts %}
+        <div class="mt-8">
+            <h3 class="font-bold mb-3">تلاش‌های قبلی شما</h3>
+            <div class="space-y-2">
+                {% for a in user_attempts %}
+                <a href="{% url 'quiz:quiz_result' a.id %}"
+                   class="flex items-center justify-between bg-elevated rounded-xl p-3 hover:bg-hovered transition">
+                    <span class="text-sm text-gray-300">{{ a.started_at|date:"Y/m/d H:i" }}</span>
+                    <span class="text-sm font-bold {% if a.is_passed %}text-green-400{% else %}text-red-400{% endif %}">
+                        {{ a.percentage }}% — {% if a.is_passed %}قبول{% else %}مردود{% endif %}
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

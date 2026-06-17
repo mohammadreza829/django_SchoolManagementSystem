@@ -1,0 +1,42 @@
+{% extends 'accounts/base.html' %}
+{% block title %}آزمون‌ها{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-clipboard-question text-2xl text-primary"></i>
+            <h1 class="text-2xl font-bold">آزمون‌ها</h1>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'quiz:my_progress' %}"
+           class="inline-flex items-center gap-2 bg-elevated hover:bg-hovered text-sm font-semibold px-4 py-2 rounded-xl transition">
+            <i class="fas fa-chart-line text-indigo-400"></i> پیشرفت من
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for quiz in quizzes %}
+        <a href="{% url 'quiz:quiz_detail' quiz.slug %}"
+           class="block bg-surface border border-white/10 rounded-2xl p-5 hover:border-primary/50 hover:shadow-glow-sm transition">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold px-2 py-1 rounded-lg bg-primary/15 text-indigo-300">
+                    {{ quiz.question_count }} سوال
+                </span>
+                {% if quiz.time_limit_minutes %}
+                <span class="text-xs text-gray-400"><i class="far fa-clock ml-1"></i>{{ quiz.time_limit_minutes }} دقیقه</span>
+                {% endif %}
+            </div>
+            <h3 class="font-bold text-lg mb-1">{{ quiz.title }}</h3>
+            <p class="text-sm text-gray-400 line-clamp-2">{{ quiz.description }}</p>
+            {% if quiz.course %}
+            <p class="text-xs text-gray-500 mt-3"><i class="fas fa-graduation-cap ml-1"></i>{{ quiz.course.title }}</p>
+            {% endif %}
+        </a>
+        {% empty %}
+        <p class="text-gray-400 col-span-full text-center py-12">هنوز آزمونی منتشر نشده است.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

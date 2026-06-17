@@ -1,0 +1,91 @@
+{% extends 'accounts/base.html' %}
+{% block title %}پیشرفت من{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <i class="fas fa-chart-line text-2xl text-primary"></i>
+        <h1 class="text-2xl font-bold">پیشرفت من در آزمون‌ها</h1>
+    </div>
+
+    <!-- کارت‌های آمار -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-surface border border-white/10 rounded-2xl p-4 text-center">
+            <p class="text-xs text-gray-400">تعداد آزمون</p>
+            <p class="text-2xl font-extrabold">{{ stats.total }}</p>
+        </div>
+        <div class="bg-surface border border-white/10 rounded-2xl p-4 text-center">
+            <p class="text-xs text-gray-400">قبولی</p>
+            <p class="text-2xl font-extrabold text-green-400">{{ stats.passed }}</p>
+        </div>
+        <div class="bg-surface border border-white/10 rounded-2xl p-4 text-center">
+            <p class="text-xs text-gray-400">میانگین درصد</p>
+            <p class="text-2xl font-extrabold text-indigo-400">{{ stats.avg }}%</p>
+        </div>
+    </div>
+
+    <!-- نمودار -->
+    <div class="bg-surface border border-white/10 rounded-2xl p-5 mb-6">
+        {% if progress_data %}
+        <canvas id="progressChart" height="110"></canvas>
+        {% else %}
+        <p class="text-center text-gray-400 py-8">هنوز در هیچ آزمونی شرکت نکرده‌ای.
+            <a href="{% url 'quiz:quiz_list' %}" class="text-primary">شروع کن</a></p>
+        {% endif %}
+    </div>
+
+    <!-- لیست تلاش‌ها -->
+    {% if attempts %}
+    <div class="space-y-2">
+        {% for a in attempts %}
+        <a href="{% url 'quiz:quiz_result' a.id %}"
+           class="flex items-center justify-between bg-elevated rounded-xl p-3 hover:bg-hovered transition">
+            <span class="text-sm text-gray-200">{{ a.quiz.title }}</span>
+            <span class="text-sm font-bold {% if a.is_passed %}text-green-400{% else %}text-red-400{% endif %}">
+                {{ a.percentage }}%
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- دیتای نمودار را با json_script به فرمت JSON امن تبدیل می‌کنیم -->
+{{ progress_data|json_script:"progress-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var raw = document.getElementById('progress-data');
+        if (!raw) return;
+        var data = JSON.parse(raw.textContent);
+        if (!data.length) return;
+
+        var ctx = document.getElementById('progressChart');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(function (d) { return d.label; }),
+                datasets: [{
+                    label: 'درصد نمره',
+                    data: data.map(function (d) { return d.value; }),
+                    backgroundColor: data.map(function (d) {
+                        return d.passed ? 'rgba(34,197,94,0.7)' : 'rgba(239,68,68,0.7)';
+                    }),
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { color: '#8b92a9' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                    x: { ticks: { color: '#8b92a9' }, grid: { display: false } }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
