@@ -341,6 +341,10 @@
                                 <li><a href="{% url 'accounts:edit_profile' %}"><i class="fas fa-sliders-h ml-2 text-indigo-400"></i>ویرایش حساب کاربری</a></li>
                                 <li><a href="{% url 'accounts:notifications' %}"><i class="fas fa-bell ml-2 text-indigo-400"></i>اعلان‌ها</a></li>
                                 <li><a href="{% url 'accounts:change_password' %}"><i class="fas fa-lock ml-2 text-indigo-400"></i>تغییر رمز</a></li>
+                                {% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
+                                <li><hr class="border-white/10 my-1 mx-3"></li>
+                                <li><a href="{% url 'panel:dashboard' %}"><i class="fas fa-gauge-high ml-2 text-indigo-400"></i>پنل مدیریت</a></li>
+                                {% endif %}
                                 <li><hr class="border-white/10 my-1 mx-3"></li>
                                 <li><a href="{% url 'accounts:logout' %}" class="logout"><i class="fas fa-sign-out-alt ml-2"></i>خروج</a></li>
                             </ul>
@@ -488,6 +492,13 @@
                         <i class="fas fa-cog nav-icon"></i><span>تنظیمات</span>
                     </a>
                 </li>
+                {% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
+                <li>
+                    <a href="{% url 'panel:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-gauge-high nav-icon"></i><span>پنل مدیریت</span>
+                    </a>
+                </li>
+                {% endif %}
                 {% if user.is_staff %}
                 <li class="pt-3 pb-1">
                     <span class="block px-3 text-[10px] font-semibold uppercase tracking-widest" style="color:var(--text-3)">مدیریت</span>
