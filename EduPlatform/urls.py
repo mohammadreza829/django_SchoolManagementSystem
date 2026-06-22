@@ -15,4 +15,5 @@ urlpatterns = [
     path('courses/', include('courses.urls')),  # این خط باید باشد
     path('quiz/', include('quiz.urls')),  # این خط باید باشد
     path('panel/', include('panel.urls')),
+    path('chat/', include('chat.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

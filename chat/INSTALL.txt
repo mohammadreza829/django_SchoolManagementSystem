@@ -1,0 +1,30 @@
+نصب اپ چت‌روم دوره (chat)
+================================
+
+۱) در EduPlatform/settings.py به INSTALLED_APPS اضافه کن:
+       'chat',
+
+۲) در EduPlatform/urls.py داخل urlpatterns اضافه کن:
+       path('chat/', include('chat.urls')),
+   (اگر include ایمپورت نشده: from django.urls import path, include)
+
+۳) مایگریشن:
+       python manage.py makemigrations chat
+       python manage.py migrate
+   (یک مایگریشن آماده در chat/migrations/0001_initial.py هم هست)
+
+۴) لینک ورود به چت‌روم را در صفحه‌ی جزئیات دوره بگذار
+   (تمپلیت course_detail)، فقط برای کسانی که دسترسی دارند:
+
+   {% if is_enrolled or user.is_staff %}
+     <a href="{% url 'chat:room' course.id %}" class="...">
+       <i class="fa-solid fa-comments"></i> چت‌روم دوره
+     </a>
+   {% endif %}
+
+دسترسی:
+   - استاد دوره و ادمین → می‌توانند پیام عادی یا «اعلان» بفرستند
+   - دانش‌آموز ثبت‌نام‌شده‌ی فعال → می‌تواند پیام بفرستد
+   - بقیه → به صفحه‌ی دوره ریدایرکت می‌شوند
+
+پیام‌ها هر ۴ ثانیه خودکار به‌روز می‌شوند (polling).

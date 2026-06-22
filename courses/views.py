@@ -2,7 +2,9 @@
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.contrib import messages
+from django.db import transaction
+from django.db.models import Q, F, Avg
 from django.utils import timezone
 from .models import (
     Course,
@@ -15,6 +17,24 @@ from .models import (
     CourseRating,
 )
 from accounts.models import User
+from Enrollment.models import Enrollment
+
+
+def _has_course_access(user, course):
+    """آیا کاربر به محتوای دوره دسترسی دارد؟
+
+    ثبت‌نام فعال با پرداخت‌شده/رایگان، یا استاد/ادمین.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff or getattr(user, "is_teacher", False):
+        return True
+    return Enrollment.objects.filter(
+        student=user,
+        course=course,
+        status="active",
+        payment_status__in=["free", "paid"],
+    ).exists()
 
 
 def course_list(request):
@@ -67,9 +87,10 @@ def course_detail(request, slug):
     """
     course = get_object_or_404(Course, slug=slug, status="published")
 
-    # افزایش تعداد بازدید
-    course.view_count += 1
+    # افزایش تعداد بازدید (با F برای جلوگیری از race condition)
+    course.view_count = F("view_count") + 1
     course.save(update_fields=["view_count"])
+    course.refresh_from_db(fields=["view_count"])
 
     # گرفتن همه جلسات دوره به ترتیب
     lessons = course.lessons.all().order_by("order")
@@ -79,7 +100,7 @@ def course_detail(request, slug):
     lesson_progress = {}
 
     if request.user.is_authenticated:
-        is_enrolled = course.students.filter(id=request.user.id).exists()
+        is_enrolled = _has_course_access(request.user, course)
 
         # اگر ثبت‌نام کرده، پیشرفت هر جلسه را بگیر
         if is_enrolled:
@@ -124,15 +145,8 @@ def lesson_detail(request, course_slug, lesson_slug):
 
     if lesson.is_free_preview:
         can_access = True
-    elif request.user.is_authenticated:
-        if (
-            request.user.is_teacher
-            or request.user.is_superuser
-            or request.user.is_staff
-        ):
-            can_access = True
-        elif course.students.filter(id=request.user.id).exists():
-            can_access = True
+    elif _has_course_access(request.user, course):
+        can_access = True
 
     if not can_access:
         return redirect("courses:course_detail", slug=course_slug)
@@ -158,9 +172,10 @@ def lesson_detail(request, course_slug, lesson_slug):
             progress.watch_count = 1
             progress.save()
 
-    # افزایش تعداد بازدید جلسه
-    lesson.view_count += 1
+    # افزایش تعداد بازدید جلسه (با F برای جلوگیری از race condition)
+    lesson.view_count = F("view_count") + 1
     lesson.save(update_fields=["view_count"])
+    lesson.refresh_from_db(fields=["view_count"])
 
     # ضمیمه‌های جلسه
     attachments = lesson.attachments.all()
@@ -189,31 +204,50 @@ def enroll_course(request, course_slug):
     """
     course = get_object_or_404(Course, slug=course_slug)
 
+    # عملیات تغییردهنده فقط با POST (جلوگیری از CSRF/ثبت‌نام ناخواسته)
+    if request.method != "POST":
+        return redirect("courses:course_detail", slug=course_slug)
+
     # بررسی اینکه دوره منتشر شده باشد
     if course.status != "published":
+        messages.error(request, "این دوره در دسترس نیست.")
         return redirect("courses:course_detail", slug=course_slug)
 
-    # بررسی ظرفیت دوره (فیلد is_full اضافه شده به مدل)
-    if course.is_full:
-        return redirect("courses:course_detail", slug=course_slug)
-
-    # بررسی مهلت ثبت‌نام (فیلد enrollment_deadline اضافه شده به مدل)
+    # بررسی مهلت ثبت‌نام
     if course.enrollment_deadline and course.enrollment_deadline < timezone.now():
+        messages.error(request, "مهلت ثبت‌نام این دوره به پایان رسیده است.")
         return redirect("courses:course_detail", slug=course_slug)
 
-    # ثبت‌نام کاربر از طریق مدل Enrollment
-    from Enrollment.models import Enrollment
+    # اگر قبلاً ثبت‌نام کرده، دوباره ثبت‌نام نکن
+    if Enrollment.objects.filter(student=request.user, course=course).exists():
+        messages.info(request, "شما قبلاً در این دوره ثبت‌نام کرده‌اید.")
+        return redirect("courses:course_detail", slug=course_slug)
 
-    Enrollment.objects.get_or_create(
-        student=request.user,
-        course=course,
-        defaults={
-            "status": "active",
-            "payment_status": "free" if course.is_free else "pending",
-            "price_paid": 0 if course.is_free else course.final_price,
-        },
-    )
-    # enroll_count توسط signal اپ Enrollment خودکار به‌روز می‌شود
+    # کنترل ظرفیت به‌صورت اتمیک تا دو نفر همزمان از ظرفیت رد نشوند
+    with transaction.atomic():
+        locked = Course.objects.select_for_update().get(id=course.id)
+        if locked.capacity:
+            current = locked.enrollments.exclude(status="cancelled").count()
+            if current >= locked.capacity:
+                messages.error(request, "ظرفیت این دوره تکمیل شده است.")
+                return redirect("courses:course_detail", slug=course_slug)
+
+        Enrollment.objects.create(
+            student=request.user,
+            course=locked,
+            status="active",
+            payment_status="free" if locked.is_free else "pending",
+            price_paid=0 if locked.is_free else locked.final_price,
+        )
+    # enroll_count و is_full توسط signal اپ Enrollment خودکار به‌روز می‌شود
+
+    if course.is_free:
+        messages.success(request, "با موفقیت در دوره ثبت‌نام شدید ✅")
+    else:
+        messages.success(
+            request,
+            "ثبت‌نام شما ثبت شد. برای دسترسی به محتوا، پرداخت را تکمیل کنید.",
+        )
 
     return redirect("courses:course_detail", slug=course_slug)
 
@@ -230,7 +264,7 @@ def mark_lesson_complete(request, lesson_id):
     course = lesson.course
 
     # بررسی دسترسی
-    if not course.students.filter(id=request.user.id).exists():
+    if not _has_course_access(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
 
     # گرفتن یا ساخت پیشرفت
@@ -281,6 +315,11 @@ def add_rating(request, course_slug):
                         user=request.user,
                         defaults={"score": score, "comment": comment},
                     )
+                    # به‌روزرسانی میانگین و تعداد امتیازها
+                    agg = course.ratings.aggregate(avg=Avg("score"))
+                    course.rating_avg = round(agg["avg"] or 0, 2)
+                    course.rating_count = course.ratings.count()
+                    course.save(update_fields=["rating_avg", "rating_count"])
             except ValueError:
                 pass
 
@@ -299,10 +338,7 @@ def add_comment(request, lesson_id):
     course = lesson.course
 
     # بررسی دسترسی
-    if (
-        not course.students.filter(id=request.user.id).exists()
-        and not lesson.is_free_preview
-    ):
+    if not lesson.is_free_preview and not _has_course_access(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
 
     comment_text = request.POST.get("comment", "").strip()
@@ -341,16 +377,14 @@ def download_attachment(request, attachment_id):
 
     if attachment.is_free:
         can_download = True
-    elif course.students.filter(id=request.user.id).exists():
-        can_download = True
-    elif request.user.is_teacher or request.user.is_superuser:
+    elif _has_course_access(request.user, course):
         can_download = True
 
     if not can_download:
         return redirect("courses:course_detail", slug=course.slug)
 
-    # افزایش آمار دانلود
-    attachment.download_count += 1
+    # افزایش آمار دانلود (با F برای جلوگیری از race condition)
+    attachment.download_count = F("download_count") + 1
     attachment.save(update_fields=["download_count"])
 
     # ارسال فایل

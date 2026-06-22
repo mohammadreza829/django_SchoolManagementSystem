@@ -4,9 +4,11 @@ from .models import Enrollment
 
 
 def _update_enroll_count(course):
-    """تعداد ثبت‌نام‌های هر دوره را به‌روز می‌کند."""
-    course.enroll_count = course.enrollments.count()
-    course.save(update_fields=["enroll_count"])
+    """تعداد ثبت‌نام‌های فعال هر دوره را به‌روز می‌کند و پرچم ظرفیت را تنظیم می‌کند."""
+    active = course.enrollments.exclude(status="cancelled").count()
+    course.enroll_count = active
+    course.is_full = bool(course.capacity) and active >= course.capacity
+    course.save(update_fields=["enroll_count", "is_full"])
 
 
 @receiver(post_save, sender=Enrollment)

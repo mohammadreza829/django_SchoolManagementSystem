@@ -173,6 +173,11 @@ class Course(models.Model):
 
     # اضافه شده برای هماهنگی با views.py
     is_full = models.BooleanField(default=False, verbose_name="تکمیل ظرفیت")
+    capacity = models.PositiveIntegerField(
+        default=0,
+        verbose_name="ظرفیت دوره",
+        help_text="حداکثر تعداد دانشجو؛ صفر یعنی نامحدود",
+    )
     enrollment_deadline = models.DateTimeField(
         blank=True, null=True, verbose_name="مهلت ثبت‌نام"
     )
@@ -215,6 +220,26 @@ class Course(models.Model):
     def is_free(self):
         """آیا دوره رایگان است؟"""
         return self.final_price == 0
+
+    @property
+    def active_enroll_count(self):
+        """تعداد ثبت‌نام‌های فعال (لغوشده‌ها حساب نمی‌شوند)."""
+        return self.enrollments.exclude(status="cancelled").count()
+
+    @property
+    def seats_left(self):
+        """تعداد صندلی‌های باقی‌مانده؛ None یعنی نامحدود."""
+        if not self.capacity:
+            return None
+        return max(self.capacity - self.active_enroll_count, 0)
+
+    def update_is_full(self):
+        """به‌روزرسانی پرچم is_full بر اساس ظرفیت."""
+        full = bool(self.capacity) and self.active_enroll_count >= self.capacity
+        if full != self.is_full:
+            self.is_full = full
+            self.save(update_fields=["is_full"])
+        return full
 
     def get_absolute_url(self):
         return reverse("courses:course_detail", kwargs={"slug": self.slug})

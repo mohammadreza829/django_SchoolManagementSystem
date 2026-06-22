@@ -55,6 +55,13 @@ def take_quiz(request, slug):
     """
     quiz = get_object_or_404(Quiz, slug=slug, is_published=True)
 
+    questions = quiz.get_questions()
+
+    # آزمون بدون سوال نباید قابل شروع باشد
+    if not questions:
+        messages.error(request, "این آزمون هنوز سوالی ندارد.")
+        return redirect("quiz:quiz_detail", slug=quiz.slug)
+
     # کنترل تعداد دفعات مجاز
     if quiz.max_attempts > 0:
         done = QuizAttempt.objects.filter(
@@ -64,12 +71,21 @@ def take_quiz(request, slug):
             messages.error(request, "شما به حداکثر دفعات مجاز برای این آزمون رسیده‌اید.")
             return redirect("quiz:quiz_detail", slug=quiz.slug)
 
-    questions = quiz.get_questions()
-
     # ---------- ثبت پاسخ‌ها ----------
     if request.method == "POST":
-        # از transaction استفاده می‌کنیم تا اگر وسط کار خطا خورد، چیزی نیمه‌کاره ثبت نشه
+        # کل عملیات اتمیک + قفل ردیف آزمون تا دو ارسال همزمان از سقف دفعات رد نشوند
         with transaction.atomic():
+            locked_quiz = Quiz.objects.select_for_update().get(id=quiz.id)
+            if locked_quiz.max_attempts > 0:
+                done = QuizAttempt.objects.filter(
+                    quiz=quiz, student=request.user, status=QuizAttempt.COMPLETED
+                ).count()
+                if done >= locked_quiz.max_attempts:
+                    messages.error(
+                        request, "شما به حداکثر دفعات مجاز برای این آزمون رسیده‌اید."
+                    )
+                    return redirect("quiz:quiz_detail", slug=quiz.slug)
+
             attempt = QuizAttempt.objects.create(
                 quiz=quiz, student=request.user, max_score=quiz.total_points
             )

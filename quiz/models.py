@@ -37,7 +37,9 @@ class Topic(models.Model):
     """
 
     name = models.CharField(max_length=120, verbose_name="نام موضوع")
-    slug = models.SlugField(max_length=140, unique=True, blank=True, verbose_name="slug", allow_unicode=True)
+    slug = models.SlugField(
+        max_length=140, unique=True, blank=True, allow_unicode=True, verbose_name="slug"
+    )
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -202,7 +204,9 @@ class Quiz(models.Model):
     """
 
     title = models.CharField(max_length=200, verbose_name="عنوان آزمون")
-    slug = models.SlugField(max_length=220, unique=True, blank=True, allow_unicode=True, verbose_name="slug")
+    slug = models.SlugField(
+        max_length=220, unique=True, blank=True, allow_unicode=True, verbose_name="slug"
+    )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
     # اتصال اختیاری به دوره / جلسه (با string reference تا وابستگی حلقوی پیش نیاد)
@@ -335,7 +339,7 @@ class QuizAttempt(models.Model):
     )
 
     quiz = models.ForeignKey(
-        Quiz, on_delete=models.CASCADE, related_name="attempts", verbose_name="آزمون"
+        Quiz, on_delete=models.CASCADE, related_name="attempts", verbose_name="��زمون"
     )
     student = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="quiz_attempts", verbose_name="دانش‌آموز"
@@ -373,7 +377,7 @@ class QuizAttempt(models.Model):
         self.percentage = (
             round(self.score / self.max_score * 100, 2) if self.max_score else 0
         )
-        self.is_passed = self.percentage >= self.quiz.pass_mark
+        self.is_passed = self.max_score > 0 and self.percentage >= self.quiz.pass_mark
         self.status = self.COMPLETED
         self.completed_at = timezone.now()
         self.save()

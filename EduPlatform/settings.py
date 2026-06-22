@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'courses',
     'Enrollment',
     'quiz',
-    'panel'
+    'panel',
+    'chat',
     
 ]
 
