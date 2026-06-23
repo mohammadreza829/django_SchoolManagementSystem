@@ -105,9 +105,6 @@ body::before {
   66% { transform: translate(-40px, 50px) scale(0.96); }
 }
 
-  66% { transform: translate(-30px, 40px) scale(0.97); }
-}
-
 /* ====== Navbar ====== */
 .nav {
   background: transparent;
@@ -1030,3 +1027,200 @@ header form > div:focus-within {
 
 /* ---- Footer: leave white but accent links ---- */
 footer a:hover, .site-footer a:hover { color: #6d28d9; }
+
+
+/* =========================================================
+   THEME v4 — VIVID POLISH (لایه‌ی نهایی)
+   هدف: رنگ‌های پر‌رنگ‌تر و خواناتر + جلوه‌ی پریمیوم
+   ========================================================= */
+:root {
+  --v4-blue:    #2563eb;
+  --v4-violet:  #7c3aed;
+  --v4-emerald: #059669;
+  --v4-grad: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #059669 100%);
+  --v4-ink:     #0b1220;
+  --v4-muted:   #44506a;
+}
+
+/* ---- Page backdrop: tinted, not flat white ---- */
+html, body { background: #eaeefb !important; color: var(--v4-ink) !important; }
+.mesh-bg {
+  background:
+    radial-gradient(ellipse 70% 55% at 10% -8%, rgba(37,99,235,0.20), transparent 60%),
+    radial-gradient(ellipse 60% 55% at 92% 4%, rgba(124,58,237,0.18), transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 108%, rgba(5,150,105,0.16), transparent 65%),
+    linear-gradient(180deg, #eaeefb 0%, #f3f0fb 45%, #e9f4ef 100%) !important;
+}
+.mesh-blob   { opacity: 0.42 !important; filter: blur(85px) !important; }
+.mesh-blob-3 { opacity: 0.32 !important; }
+body::before {
+  background-image: radial-gradient(circle at 1px 1px, rgba(37,99,235,0.10) 1px, transparent 0) !important;
+}
+
+/* ---- Text contrast (was washed out) ---- */
+.text-slate-100, .text-white { color: var(--v4-ink) !important; }
+.text-slate-200 { color: #16213a !important; }
+.text-slate-300 { color: #2a3550 !important; }
+.text-slate-400 { color: #475569 !important; }
+.text-slate-500 { color: #64748b !important; }
+
+/* ---- Glass cards: cleaner & with depth ---- */
+.glass {
+  background: rgba(255,255,255,0.94) !important;
+  border: 1px solid rgba(37,99,235,0.12) !important;
+  box-shadow: 0 12px 34px -18px rgba(37,99,235,0.28), 0 2px 6px -3px rgba(15,23,42,0.06) !important;
+}
+.glass-strong {
+  background: rgba(255,255,255,0.98) !important;
+  border: 1px solid rgba(124,58,237,0.16) !important;
+  box-shadow: 0 18px 44px -16px rgba(124,58,237,0.22) !important;
+}
+
+/* ---- Navbar scrolled state (base.html toggles .is-scrolled) ---- */
+.site-nav.is-scrolled {
+  background: rgba(255,255,255,0.92) !important;
+  box-shadow: 0 8px 28px -12px rgba(37,99,235,0.22) !important;
+  border-bottom: 1px solid rgba(124,58,237,0.12) !important;
+}
+
+/* ---- Section eyebrow / headings: bolder color ---- */
+.section-eyebrow {
+  color: #5b21b6 !important;
+  background: linear-gradient(135deg, rgba(37,99,235,0.16), rgba(124,58,237,0.16), rgba(5,150,105,0.16)) !important;
+  border: 1px solid rgba(124,58,237,0.30) !important;
+}
+.section-title { color: var(--v4-ink); }
+.section-subtitle { color: var(--v4-muted) !important; }
+
+/* ---- Badges: stronger fills, no pale look ---- */
+.badge-violet { background: rgba(124,58,237,0.16) !important; color: #5b21b6 !important; border: 1px solid rgba(124,58,237,0.40) !important; }
+.badge-gold   { background: rgba(217,119,6,0.16) !important; color: #92400e !important; border: 1px solid rgba(217,119,6,0.40) !important; }
+.badge-green  { background: rgba(5,150,105,0.16) !important; color: #047857 !important; border: 1px solid rgba(5,150,105,0.40) !important; }
+.badge-rose   { background: rgba(225,29,72,0.16) !important; color: #be123c !important; border: 1px solid rgba(225,29,72,0.40) !important; }
+.badge-blue   { background: rgba(37,99,235,0.16) !important; color: #1d4ed8 !important; border: 1px solid rgba(37,99,235,0.40) !important; }
+.badge-slate  { background: rgba(71,85,105,0.12) !important; color: #334155 !important; border: 1px solid rgba(71,85,105,0.28) !important; }
+
+/* ---- Primary button: more punch ---- */
+.btn-primary {
+  background: var(--v4-grad) !important;
+  box-shadow: 0 10px 26px -8px rgba(37,99,235,0.50), 0 6px 18px -6px rgba(124,58,237,0.40) !important;
+}
+.btn-primary:hover { filter: brightness(1.07) saturate(1.12); box-shadow: 0 16px 34px -10px rgba(37,99,235,0.60), 0 10px 26px -8px rgba(5,150,105,0.45) !important; }
+
+/* ---- Stat value: gradient number ---- */
+.stat-card .stat-value {
+  background: var(--v4-grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.stat-card .stat-label { color: var(--v4-muted) !important; font-weight: 600; }
+
+/* ---- Progress bar: vivid tri-color ---- */
+.progress { background: rgba(37,99,235,0.10) !important; }
+.progress > .bar { background: linear-gradient(90deg, #2563eb, #7c3aed, #059669) !important; }
+
+/* ---- Inputs: clearer focus ---- */
+.input:focus, input.input:focus, textarea.input:focus, select:focus {
+  border-color: rgba(124,58,237,0.45) !important;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.14) !important;
+  outline: none;
+}
+
+/* =========================================================
+   Notification bell badge (unread counter)
+   نشان عددی اعلان‌های خوانده‌نشده روی زنگوله
+   ========================================================= */
+.icon-btn.relative { overflow: visible; }
+.notif-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(135deg, #fb7185 0%, #f43f5e 50%, #e11d48 100%);
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 12px -2px rgba(244,63,94,0.65);
+  font-variant-numeric: tabular-nums;
+  animation: notifPop .32s cubic-bezier(.2,.9,.3,1.4);
+  z-index: 2;
+}
+@keyframes notifPop {
+  0%   { transform: scale(0); opacity: 0; }
+  70%  { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+
+/* =========================================================
+   THEME v4.1 — توکن‌های صفحات آزمون / داشبورد
+   این کلاس‌ها در Tailwind config تعریف نشده بودند یا خاکستریِ روشن بودند و محو دیده می‌شدند.
+   ========================================================= */
+
+/* ---- رفع متن‌های خاکستریِ کم‌رنگ (text-gray-*) ---- */
+.text-gray-100, .text-gray-200, .text-gray-300 { color: #0b1220 !important; }
+.text-gray-400 { color: #475569 !important; }
+.text-gray-500 { color: #64748b !important; }
+.text-gray-600 { color: #475569 !important; }
+.text-indigo-200, .text-indigo-300, .text-indigo-400 { color: #6d28d9 !important; }
+.text-primary { color: #7c3aed !important; }
+
+/* ---- پس‌زمینه‌ی کارت‌ها و بلوک‌های سؤال (bg-surface) ---- */
+.bg-surface {
+  background: rgba(255,255,255,0.94) !important;
+  box-shadow: 0 12px 34px -18px rgba(37,99,235,0.28), 0 2px 6px -3px rgba(15,23,42,0.06);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+}
+
+/* ---- گزینه‌های پاسخ (bg-elevated) + هاور ---- */
+.bg-elevated {
+  background: rgba(37,99,235,0.06) !important;
+  border: 1px solid rgba(15,23,42,0.08);
+}
+.hover\:bg-hovered:hover,
+.bg-hovered { background: rgba(124,58,237,0.12) !important; }
+.hover\:bg-hovered:hover { border-color: rgba(124,58,237,0.30); }
+
+/* ---- دکمه / عنصر اصلی (bg-primary) ---- */
+.bg-primary {
+  background: var(--v4-grad) !important;
+  color: #fff !important;
+}
+.bg-primary\/15, .bg-primary\/10, .bg-primary\/20 {
+  background: rgba(124,58,237,0.15) !important;
+}
+.hover\:bg-primary-hover:hover, .bg-primary-hover {
+  filter: brightness(1.07) saturate(1.12);
+}
+.shadow-glow-sm { box-shadow: 0 8px 22px -8px rgba(124,58,237,0.45) !important; }
+
+/* ---- ورودی‌های پاسخ (search-input) ---- */
+.search-input {
+  width: 100%;
+  background: rgba(15,23,42,0.03) !important;
+  border: 1px solid rgba(15,23,42,0.12) !important;
+  color: #0f172a !important;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.search-input::placeholder { color: #94a3b8 !important; }
+.search-input:focus {
+  border-color: rgba(124,58,237,0.45) !important;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.14) !important;
+  background: #ffffff !important;
+  outline: none;
+}
+
+/* ---- تایمر آزمون: خواناتر ---- */
+#timerWrap { color: #0b1220; box-shadow: 0 6px 18px -10px rgba(15,23,42,0.25); }

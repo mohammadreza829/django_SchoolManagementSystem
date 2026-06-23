@@ -164,8 +164,11 @@ def change_password(request):
 # ==================== ۴. مدیریت اعلان‌ها و لیست کاربران ====================
 @login_required
 def notifications_view(request):
-    notes = request.user.notifications.all()
-    notes.filter(is_read=False).update(is_read=True)
+    qs = request.user.notifications.all()
+    # وضعیت خوانده/نخوانده را برای نمایش همین صفحه نگه می‌داریم (snapshot)
+    notes = list(qs)
+    # سپس همه‌ی اعلان‌های نخوانده را خوانده‌شده علامت می‌زنیم تا شمارنده‌ی زنگوله صفر شود
+    qs.filter(is_read=False).update(is_read=True)
     return render(request, "accounts/notifications.html", {"notifications": notes})
 
 
@@ -217,7 +220,7 @@ def dashboard_view(request):
                 teachers=user, status="published"
             ).count()
 
-        # دوره‌های ثبت‌نام‌شده‌ی کاربر برای هر نقشی نمایش داده می‌شوند
+        # دوره‌های ثبت‌نام‌شده‌ی کاربر برای هر نقشی نمایش داده می‌شو��د
         active_courses = list(
             user.courses_enrolled.all().prefetch_related("teachers", "lessons")
         )
