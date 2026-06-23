@@ -2,34 +2,126 @@
 View های اپ کوییز (سبک function-based — هماهنگ با بقیه‌ی پروژه).
 
 جریان کار:
-  quiz_list   → لیست آزمون‌های منتشرشده
-  quiz_detail → معرفی آزمون + دکمه شروع
+  quiz_list   → لیست آزمون‌هایی که کاربر اجازه‌ی دیدنشون رو داره
+  quiz_detail → معرفی آزمون + دکمه شروع (فقط برای ثبت‌نام‌شده‌ها)
   take_quiz   → GET: نمایش سوالات / POST: ثبت پاسخ‌ها و تصحیح خودکار
   quiz_result → نمایش نتیجه + پاسخ صحیح و راه‌حل
   my_progress → نمودار پیشرفت دانش‌آموز در آزمون‌ها
+
+قانون دسترسی آزمون‌ها:
+  • آزمون‌هایی که به دوره‌ای وصلند → فقط دانش‌آموزان ثبت‌نام‌شده
+  • استادان دوره و ادمین/کارمندان بدون محدودیت
+  • آزمون بدون دوره (عمومی) → برای همه قابل دیدن
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
 
 from .models import Quiz, QuizAttempt, AttemptAnswer, Choice, Question
 
+try:
+    from Enrollment.models import Enrollment
+    ENROLLMENT_AVAILABLE = True
+except ImportError:
+    ENROLLMENT_AVAILABLE = False
+
+
+# ============================================================
+# توابع کمکی برای کنترل دسترسی
+# ============================================================
+
+def _is_privileged(user):
+    """ادمین، کارمند یا استاد؟"""
+    if not user.is_authenticated:
+        return False
+    return user.is_superuser or user.is_staff or getattr(user, "is_teacher", False)
+
+
+def _is_enrolled(user, course):
+    """آیا کاربر در این دوره ثبت‌نام فعال داره؟"""
+    if not user.is_authenticated or course is None:
+        return False
+    if not ENROLLMENT_AVAILABLE:
+        return False
+    return Enrollment.objects.filter(
+        student=user,
+        course=course,
+        status="active",
+        payment_status__in=["free", "paid"],
+    ).exists()
+
+
+def _can_access_quiz(user, quiz):
+    """آیا کاربر اجازه‌ی دیدن / شرکت در این آزمون رو داره؟"""
+    if _is_privileged(user):
+        return True
+    # آزمون عمومی (بدون دوره) — در دسترس همه
+    if quiz.course is None:
+        return True
+    # استاد خود دوره
+    if user.is_authenticated and quiz.course.teachers.filter(id=user.id).exists():
+        return True
+    return _is_enrolled(user, quiz.course)
+
+
+# ============================================================
+# لیست آزمون‌ها
+# ============================================================
 
 def quiz_list(request):
-    """لیست همه‌ی آزمون‌های منتشرشده."""
-    quizzes = (
+    """لیست آزمون‌هایی که کاربر اجازه‌ی دیدنشون رو داره."""
+    base_qs = (
         Quiz.objects.filter(is_published=True)
         .select_related("course")
         .order_by("-created_at")
     )
+
+    user = request.user
+
+    if _is_privileged(user):
+        # ادمین‌ها/استادان، همه رو می‌بینن
+        quizzes = base_qs
+    elif user.is_authenticated and ENROLLMENT_AVAILABLE:
+        # دوره‌هایی که کاربر ثبت‌نام فعال داره
+        enrolled_course_ids = Enrollment.objects.filter(
+            student=user,
+            status="active",
+            payment_status__in=["free", "paid"],
+        ).values_list("course_id", flat=True)
+
+        quizzes = base_qs.filter(
+            Q(course__isnull=True) | Q(course_id__in=enrolled_course_ids)
+        )
+    else:
+        # کاربر مهمان، فقط آزمون‌های عمومی (بدون دوره) رو می‌بینه
+        quizzes = base_qs.filter(course__isnull=True)
+
     return render(request, "quiz/quiz_list.html", {"quizzes": quizzes})
 
+
+# ============================================================
+# جزئیات آزمون
+# ============================================================
 
 def quiz_detail(request, slug):
     """صفحه‌ی معرفی آزمون + سوابق تلاش‌های کاربر."""
     quiz = get_object_or_404(Quiz, slug=slug, is_published=True)
+
+    # کنترل دسترسی: فقط ثبت‌نام‌شده‌های دوره + استاد دوره + ادمین
+    if not _can_access_quiz(request.user, quiz):
+        if not request.user.is_authenticated:
+            messages.warning(request, "برای دیدن این آزمون باید وارد حساب کاربریت بشی.")
+            return redirect("accounts:login")
+        messages.error(
+            request,
+            "این آزمون فقط برای دانش‌آموزان ثبت‌نام‌شده در دوره‌ی مربوطه قابل دیدن است.",
+        )
+        if quiz.course:
+            return redirect("courses:course_detail", slug=quiz.course.slug)
+        return redirect("quiz:quiz_list")
 
     user_attempts = []
     attempts_left = None
@@ -48,12 +140,24 @@ def quiz_detail(request, slug):
     return render(request, "quiz/quiz_detail.html", context)
 
 
+# ============================================================
+# شرکت در آزمون
+# ============================================================
+
 @login_required
 def take_quiz(request, slug):
-    """
-    قلب اپ: نمایش سوالات و تصحیح خودکار.
-    """
+    """قلب اپ: نمایش سوالات و تصحیح خودکار."""
     quiz = get_object_or_404(Quiz, slug=slug, is_published=True)
+
+    # کنترل دسترسی: فقط ثبت‌نام‌شده‌های دوره مجاز به شرکت در آزمون هستند
+    if not _can_access_quiz(request.user, quiz):
+        messages.error(
+            request,
+            "برای شرکت در این آزمون باید در دوره‌ی مربوطه ثبت‌نام کرده باشید.",
+        )
+        if quiz.course:
+            return redirect("courses:course_detail", slug=quiz.course.slug)
+        return redirect("quiz:quiz_list")
 
     questions = quiz.get_questions()
 
@@ -73,7 +177,6 @@ def take_quiz(request, slug):
 
     # ---------- ثبت پاسخ‌ها ----------
     if request.method == "POST":
-        # کل عملیات اتمیک + قفل ردیف آزمون تا دو ارسال همزمان از سقف دفعات رد نشوند
         with transaction.atomic():
             locked_quiz = Quiz.objects.select_for_update().get(id=quiz.id)
             if locked_quiz.max_attempts > 0:
@@ -112,10 +215,8 @@ def take_quiz(request, slug):
                     ans.answer_text = request.POST.get(field_name, "").strip()
                     ans.save(update_fields=["answer_text"])
 
-                # تصحیح خودکار همین پاسخ
                 ans.grade()
 
-            # جمع نمره کل و تعیین قبولی
             attempt.calculate_score()
 
         messages.success(request, "آزمون با موفقیت ثبت شد ✅")
@@ -126,6 +227,10 @@ def take_quiz(request, slug):
     return render(request, "quiz/quiz_take.html", context)
 
 
+# ============================================================
+# نتیجه و پیشرفت
+# ============================================================
+
 @login_required
 def quiz_result(request, attempt_id):
     """نمایش نتیجه‌ی یک تلاش (فقط صاحب تلاش یا ادمین)."""
@@ -133,7 +238,6 @@ def quiz_result(request, attempt_id):
         QuizAttempt.objects.select_related("quiz"), id=attempt_id
     )
 
-    # کنترل دسترسی: فقط خود دانش‌آموز یا ادمین
     if attempt.student != request.user and not request.user.is_staff:
         messages.error(request, "شما اجازه‌ی دیدن این نتیجه را ندارید.")
         return redirect("quiz:quiz_list")
@@ -152,11 +256,7 @@ def quiz_result(request, attempt_id):
 
 @login_required
 def my_progress(request):
-    """
-    نمودار پیشرفت دانش‌آموز در آزمون‌ها.
-    دیتای نمودار به صورت لیست پایتون پاس داده می‌شه و در تمپلیت با
-    تگ json_script (روش امن جنگو) به JSON تبدیل می‌شه تا Chart.js بخوندش.
-    """
+    """نمودار پیشرفت دانش‌آموز در آزمون‌ها."""
     completed = (
         QuizAttempt.objects.filter(
             student=request.user, status=QuizAttempt.COMPLETED

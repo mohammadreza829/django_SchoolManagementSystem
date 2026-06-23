@@ -1,0 +1,47 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}لیست آزمون‌ها{% endblock %}
+{% block heading %}نتایج و نمرات{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+    <div class="card p-5">
+        <h3 class="font-bold text-sm text-dark mb-4">آمار کلی</h3>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div><p class="text-2xl font-black text-primary"> stats.count </p><p class="text-xs text-muted">تعداد تلاش</p></div>
+            <div><p class="text-2xl font-black text-success"> stats.passed </p><p class="text-xs text-muted">قبول</p></div>
+            <div><p class="text-2xl font-black text-danger"> stats.failed </p><p class="text-xs text-muted">مردود</p></div>
+            <div><p class="text-2xl font-black text-accent"> stats.avg|floatformat:1  ٪</p><p class="text-xs text-muted">میانگین</p></div>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden">
+        <table>
+            <thead>
+                <tr><th>دانشجو</th><th>نام کاربری</th><th>نمره</th><th>درصد</th><th>نتیجه</th><th>تاریخ</th></tr>
+            </thead>
+            <tbody>
+                {% for a in attempts %}
+                <tr>
+                    <td class="font-semibold"> a.student.get_full_name|default:a.student.username </td>
+                    <td> a.student.username </td>
+                    <td> a.score  /  a.max_score </td>
+                    <td class="font-bold"> a.percentage ٪</td>
+                    <td>
+                        {% if a.is_passed %}
+                        <span class="text-xs font-bold text-success bg-success/10 px-2 py-1 rounded-lg">قبول</span>
+                        {% else %}
+                        <span class="text-xs font-bold text-danger bg-danger/10 px-2 py-1 rounded-lg">مردود</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-xs text-muted"> a.completed_at|date:"Y/m/d H:i" </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-gray-400 py-8">تلاشی ثبت نشده</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

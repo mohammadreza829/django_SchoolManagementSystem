@@ -1,220 +1,90 @@
-{% extends 'accounts/base.html' %}
-{% load static %}
-
-{% block title %}دوره‌های آموزشی{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* ── Hero mesh background ── */
-    .hero-mesh {
-        position: relative;
-        background:
-            radial-gradient(circle at 15% 20%, rgba(99,102,241,0.28), transparent 45%),
-            radial-gradient(circle at 85% 0%, rgba(34,197,94,0.18), transparent 40%),
-            linear-gradient(135deg, #6366f1, #7c3aed);
-        overflow: hidden;
-    }
-    .hero-mesh::after {
-        content: '';
-        position: absolute; inset: 0;
-        background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
-        background-size: 22px 22px;
-        mask-image: linear-gradient(to bottom, black, transparent);
-        -webkit-mask-image: linear-gradient(to bottom, black, transparent);
-    }
-
-    /* ── Course card ── */
-    .course-card {
-        position: relative;
-        background: var(--surface, #13161d);
-        border: 1px solid var(--border, rgba(255,255,255,0.07));
-        border-radius: 18px;
-        overflow: hidden;
-        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-    }
-    .course-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(99,102,241,0.45);
-        box-shadow: 0 18px 40px -12px rgba(99,102,241,0.35);
-    }
-    .course-card .thumb { transition: transform .5s ease; }
-    .course-card:hover .thumb { transform: scale(1.07); }
-
-    /* ── Level pill filter ── */
-    .level-pill {
-        display: flex; align-items: center; gap: 8px;
-        padding: 9px 12px; border-radius: 11px;
-        border: 1px solid var(--border, rgba(255,255,255,0.07));
-        color: var(--text-2, #8b92a9);
-        font-size: 13px; cursor: pointer;
-        transition: all .15s;
-    }
-    .level-pill:hover { background: var(--hovered, #eef1f7); color: #14192a; }
-    .level-pill.is-active {
-        background: rgba(99,102,241,0.14);
-        border-color: rgba(99,102,241,0.4);
-        color: #c7d2fe;
-    }
-    .level-pill input { display: none; }
-</style>
-{% endblock %}
-
+{% extends 'base.html' %}
+{% block title %}دوره‌ها | مکتب‌پلاس{% endblock %}
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-7">
-
-    <!-- ══════════ HERO ══════════ -->
-    <div class="hero-mesh rounded-3xl border border-white/10 px-6 py-10 sm:px-10 sm:py-12">
-        <div class="relative z-10 max-w-2xl">
-            <span class="inline-flex items-center gap-2 text-[11px] font-bold tracking-wide bg-white/5 border border-white/10 text-indigo-300 px-3 py-1 rounded-full mb-4">
-                <i class="fas fa-bolt text-yellow-400"></i>
-                آکادمی آنلاین
-            </span>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-                هر مهارتی که می‌خواهی،
-                <span class="bg-gradient-to-l from-indigo-400 to-emerald-400 bg-clip-text text-transparent">همین‌جا یاد بگیر</span>
-            </h1>
-            <p class="text-text-2 text-sm sm:text-base mt-3 leading-relaxed">
-                پیشرفته‌ترین دوره‌های برنامه‌نویسی و فناوری اطلاعات، با مدرسان حرفه‌ای و پروژه‌محور.
-            </p>
-
-            <!-- Search -->
-            <form method="get" class="mt-6 flex gap-2 max-w-lg">
-                <div class="relative flex-1">
-                    <span class="absolute inset-y-0 right-4 flex items-center text-gray-500 pointer-events-none">
-                        <i class="fas fa-search text-sm"></i>
-                    </span>
-                    <input type="text" name="q" value="{{ search_query }}"
-                           placeholder="جستجوی دوره، مدرس یا موضوع..."
-                           class="w-full bg-black/30 backdrop-blur border border-white/10 rounded-xl pr-11 pl-4 py-3 text-sm text-white focus:ring-2 focus:ring-primary/40 focus:border-primary/50 outline-none transition">
-                </div>
-                <button class="bg-primary hover:bg-primary-hover text-white px-6 rounded-xl text-sm font-bold transition shadow-glow-sm whitespace-nowrap">
-                    جستجو
-                </button>
-            </form>
+<section class="py-10"><div class="container-x">
+  <div data-reveal class="mb-8">
+    <div class="section-eyebrow mb-3"><i data-lucide="library" class="w-3.5 h-3.5"></i> کتابخانه</div>
+    <h1 class="section-title">دوره‌های <span class="grad-text">مکتب‌پلاس</span></h1>
+    <p class="section-subtitle mt-3">دوره‌ی مورد علاقه‌ت رو پیدا کن و سفرت رو شروع کن.</p>
+  </div>
+  <div class="grid lg:grid-cols-[280px_1fr] gap-6">
+    <aside class="lg:sticky lg:top-24 self-start"><div class="glass rounded-2xl p-5 space-y-5" data-reveal>
+      <form method="get" action="{% url 'courses:search' %}">
+        <label class="label">جستجو</label>
+        <div class="input-group"><i data-lucide="search" class="input-icon w-4 h-4"></i><input name="q" placeholder="نام دوره…" class="input"></div>
+      </form>
+      <div>
+        <h3 class="font-bold mb-3 flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4 text-violet-300"></i> دسته‌ها</h3>
+        <div class="space-y-1 max-h-72 overflow-y-auto">
+          <a href="{% url 'courses:course_list' %}" class="menu-item text-sm">همه</a>
+          {% for cat in all_categories %}{% if not cat.parent %}
+            <a href="{% url 'courses:category_detail' cat.slug %}" class="menu-item text-sm">
+              <span class="flex-1">{{ cat.name }}</span>
+              <span class="badge badge-slate text-[10px]">{{ cat.courses.count }}</span>
+            </a>
+          {% endif %}{% endfor %}
         </div>
-    </div>
-
-    <!-- ══════════ BODY ══════════ -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-        <!-- FILTER -->
-        <aside class="lg:sticky lg:top-20 h-fit space-y-4">
-            <div class="bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
-                <h3 class="text-white font-bold mb-4 flex items-center gap-2 text-sm">
-                    <i class="fas fa-sliders-h text-indigo-400 text-xs"></i>
-                    فیلتر سطح
-                </h3>
-
-                <form method="get" class="space-y-2">
-                    <label class="level-pill {% if not selected_level %}is-active{% endif %}">
-                        <input type="radio" name="level" value="" onchange="this.form.submit()" {% if not selected_level %}checked{% endif %}>
-                        <i class="fas fa-layer-group w-4 text-center text-xs"></i>
-                        همه سطوح
-                    </label>
-
-                    {% for value, label in level_choices %}
-                    <label class="level-pill {% if selected_level == value %}is-active{% endif %}">
-                        <input type="radio" name="level" value="{{ value }}" onchange="this.form.submit()" {% if selected_level == value %}checked{% endif %}>
-                        <i class="fas fa-signal w-4 text-center text-xs"></i>
-                         {{ label }}
-                    </label>
-                    {% endfor %}
-                </form>
-            </div>
-
-            <div class="promo-card">
-                <p class="text-[10px] opacity-75 mb-1">پیشنهاد ویژه</p>
-                <h4 class="font-bold text-sm mb-3">با خرید اشتراک، به همه دوره‌ها دسترسی داشته باش</h4>
-                <button>مشاهده پلن‌ها ✦</button>
-            </div>
-        </aside>
-
-        <!-- COURSES -->
-        <div class="lg:col-span-3 space-y-4">
-
-            <div class="flex items-center justify-between">
-                <h2 class="text-white font-bold text-lg">همه دوره‌ها</h2>
-                <span class="text-text-2 text-xs bg-elevated border border-white/10 px-3 py-1.5 rounded-lg">
-                    <span class="text-white font-bold">{{ courses.count }}</span> دوره
-                </span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-
-                {% for course in courses %}
-                <a href="{% url 'courses:course_detail' course.slug %}" class="course-card group flex flex-col">
-
-                    <!-- IMAGE -->
-                    <div class="relative h-44 bg-elevated overflow-hidden">
-                        {% if course.thumbnail %}
-                            <img src="{{ course.thumbnail.url }}" class="thumb w-full h-full object-cover">
-                        {% else %}
-                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-elevated to-hovered">
-                                <i class="fas fa-photo-film text-text-3 text-3xl"></i>
-                            </div>
-                        {% endif %}
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-
-                        <!-- Level badge -->
-                        <span class="absolute top-3 right-3 text-[11px] font-bold bg-black/55 backdrop-blur text-indigo-300 border border-white/10 px-2.5 py-1 rounded-lg">
-                             {{ course.get_level_display }}
-                        </span>
-
-                        <!-- Price / discount -->
-                        <div class="absolute bottom-3 left-3">
-                            {% if course.is_free %}
-                                <span class="text-[11px] font-extrabold bg-emerald-500 text-white px-2.5 py-1 rounded-lg shadow-lg">رایگان</span>
-                            {% elif course.discount_percent > 0 %}
-                                <span class="text-[11px] font-extrabold bg-red-500 text-white px-2.5 py-1 rounded-lg shadow-lg">
-                                     {{ course.discount_percent }}٪ تخفیف
-                                </span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- BODY -->
-                    <div class="p-4 flex flex-col flex-1">
-                        <h3 class="text-sm font-bold text-white leading-relaxed group-hover:text-indigo-300 transition-colors">
-                             {{ course.title|truncatechars:40 }}
-                        </h3>
-                        <p class="text-xs text-text-2 mt-1.5 leading-relaxed flex-1">
-                             {{ course.short_description|truncatewords:12 }}
-                        </p>
-
-                        <!-- Price line -->
-                        <div class="mt-3">
-                            {% if course.is_free %}
-                                <span class="text-emerald-400 font-bold text-sm">رایگان</span>
-                            {% else %}
-                                <span class="text-white font-extrabold text-sm">{{ course.final_price|floatformat:0 }}</span>
-                                <span class="text-[10px] text-text-2">تومان</span>
-                                {% if course.discount_percent > 0 %}
-                                    <span class="text-text-3 line-through text-[11px] mr-1"> {{ course.price|floatformat:0 }}</span>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-
-                        <!-- Footer stats -->
-                        <div class="flex items-center justify-between text-[11px] text-text-2 pt-3 mt-3 border-t border-white/10">
-                            <span class="flex items-center gap-1"><i class="far fa-clock"></i> {{ course.duration_hours }} ساعت</span>
-                            <span class="flex items-center gap-1"><i class="fas fa-photo-film"></i> {{ course.lessons.count }} درس</span>
-                            <span class="flex items-center gap-1"><i class="fas fa-user-graduate"></i> {{ course.enroll_count }}</span>
-                        </div>
-                    </div>
-
-                </a>
-                {% empty %}
-                <div class="col-span-full text-center py-16">
-                    <div class="inline-flex p-5 bg-elevated rounded-full mb-4">
-                        <i class="fas fa-magnifying-glass text-3xl text-text-3"></i>
-                    </div>
-                    <h3 class="text-white font-bold">دوره‌ای یافت نشد</h3>
-                    <p class="text-text-2 text-sm mt-1">فیلترها را تغییر بده یا عبارت دیگری جستجو کن.</p>
-                </div>
-                {% endfor %}
-
-            </div>
+      </div>
+      <div>
+        <h3 class="font-bold mb-3 flex items-center gap-2"><i data-lucide="signal" class="w-4 h-4 text-emerald-300"></i> سطح</h3>
+        <div class="flex flex-wrap gap-2">
+          <a href="?level=beginner" class="badge badge-slate hover:bg-violet-500/20">مبتدی</a>
+          <a href="?level=intermediate" class="badge badge-slate hover:bg-violet-500/20">متوسط</a>
+          <a href="?level=advanced" class="badge badge-slate hover:bg-violet-500/20">پیشرفته</a>
         </div>
+      </div>
+      <div>
+        <h3 class="font-bold mb-3 flex items-center gap-2"><i data-lucide="tag" class="w-4 h-4 text-amber-300"></i> قیمت</h3>
+        <div class="flex flex-col gap-2">
+          <a href="?price=free" class="flex items-center gap-2 text-sm text-slate-300 hover:text-white p-2 rounded-lg hover:bg-white/5"><i data-lucide="gift" class="w-4 h-4 text-emerald-400"></i> فقط رایگان</a>
+          <a href="?discount=1" class="flex items-center gap-2 text-sm text-slate-300 hover:text-white p-2 rounded-lg hover:bg-white/5"><i data-lucide="badge-percent" class="w-4 h-4 text-rose-400"></i> دارای تخفیف</a>
+        </div>
+      </div>
+    </div></aside>
+    <div>
+      <div class="glass rounded-2xl p-4 mb-5 flex flex-wrap items-center justify-between gap-3" data-reveal>
+        <div class="text-sm text-slate-400"><b class="text-white">{{ courses|length }}</b> دوره یافت شد</div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400">مرتب‌سازی:</span>
+          <select class="select !py-2 !text-sm !w-auto" onchange="window.location.href='?sort='+this.value">
+            <option value="-published_at">جدیدترین</option>
+            <option value="-rating_avg">بالاترین امتیاز</option>
+            <option value="-enroll_count">پرفروش</option>
+            <option value="price">ارزان‌ترین</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5" data-stagger>{% for course in courses %}
+        <a data-item href="{{ course.get_absolute_url }}" class="course-card group">
+          <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}
+            <div class="absolute top-3 right-3 flex gap-2">{% if course.is_free %}<span class="badge badge-green">رایگان</span>{% elif course.discount_percent %}<span class="badge badge-rose">{{ course.discount_percent }}٪ تخفیف</span>{% endif %}</div>
+          </div>
+          <div class="card-body">
+            {% if course.category %}<span class="badge badge-slate w-fit">{{ course.category.name }}</span>{% endif %}
+            <h3 class="card-title group-hover:text-violet-300 transition">{{ course.title }}</h3>
+            <p class="text-sm text-slate-400 line-clamp-2 leading-7">{{ course.short_description }}</p>
+            <div class="card-meta mt-auto">
+              <span><i data-lucide="clock" class="w-3.5 h-3.5"></i> {{ course.duration_hours }} س</span>
+              <span><i data-lucide="video" class="w-3.5 h-3.5"></i> {{ course.total_lessons }} جلسه</span>
+              {% if course.rating_avg %}<span class="text-gold-400">★ {{ course.rating_avg|floatformat:1 }}</span>{% endif %}
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="text-xs text-slate-400 truncate"><i data-lucide="user" class="w-3 h-3 inline"></i> {{ course.get_teachers_names }}</span>
+            <div class="price-tag">{% if course.is_free %}<span class="price-free">رایگان</span>{% else %}{% if course.discount_percent %}<span class="price-original">{{ course.price|floatformat:0 }}</span>{% endif %}<span class="price-current">{{ course.final_price|floatformat:0 }}</span>{% endif %}</div>
+          </div>
+        </a>
+        {% empty %}<div class="col-span-full glass rounded-2xl p-14 text-center">
+          <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-white/5 grid place-items-center"><i data-lucide="book-open" class="w-10 h-10 text-slate-500"></i></div>
+          <h3 class="font-bold mb-2">دوره‌ای پیدا نشد</h3>
+          <p class="text-slate-400 text-sm">فیلترها رو تغییر بده و دوباره امتحان کن.</p>
+        </div>{% endfor %}</div>
+      {% if is_paginated %}<div class="flex justify-center gap-2 mt-8">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-ghost btn-sm"><i data-lucide="chevron-right" class="w-4 h-4"></i></a>{% endif %}
+        <span class="btn btn-ghost btn-sm pointer-events-none">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-ghost btn-sm"><i data-lucide="chevron-left" class="w-4 h-4"></i></a>{% endif %}
+      </div>{% endif %}
     </div>
-</div>
+  </div>
+</div></section>
 {% endblock %}

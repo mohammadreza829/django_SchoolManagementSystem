@@ -1,0 +1,147 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}داشبورد استاد{% endblock %}
+
+{% block heading %}داشبورد استاد{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- KPI cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(109,40,217,0.06);color:#6d28d9"><i class="fas fa-book"></i></div>
+                <a href="{% url 'panel:course_list' %}" class="text-xs text-primary hover:underline">جزئیات ←</a>
+            </div>
+            <p class="text-2xl font-black text-dark"> chatcmpl-tool-16eeb953ecb240ecb88665f506839e9a </p>
+            <p class="text-xs text-muted mt-1">دوره‌ها</p>
+        </div>
+        <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(6,182,212,0.06);color:#0891b2"><i class="fas fa-clipboard-question"></i></div>
+                <a href="{% url 'panel:quiz_list' %}" class="text-xs text-primary hover:underline">جزئیات ←</a>
+            </div>
+            <p class="text-2xl font-black text-dark"> chatcmpl-tool-b42b85df582f4a9880ad127f28ca85d9 </p>
+            <p class="text-xs text-muted mt-1">آزمون‌ها</p>
+        </div>
+        <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(16,185,129,0.06);color:#059669"><i class="fas fa-file-circle-check"></i></div>
+                <a href="{% url 'panel:results' %}" class="text-xs text-primary hover:underline">جزئیات ←</a>
+            </div>
+            <p class="text-2xl font-black text-dark">127</p>
+            <p class="text-xs text-muted mt-1">تلاش‌های ثبت‌شده</p>
+        </div>
+        <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(245,158,11,0.06);color:#d97706"><i class="fas fa-users"></i></div>
+            </div>
+            <p class="text-2xl font-black text-dark">128</p>
+            <p class="text-xs text-muted mt-1">دانشجویان شرکت‌کننده</p>
+        </div>
+    </div>
+
+    <!-- Chart row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card p-5">
+            <h3 class="font-bold text-sm text-dark mb-4">روند شرکت در آزمون (۱۴ روز اخیر)</h3>
+            <canvas id="dailyChart" height="200"></canvas>
+        </div>
+        <div class="card p-5">
+            <h3 class="font-bold text-sm text-dark mb-4">میانگین نمره آزمون‌ها</h3>
+            <canvas id="quizChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent attempts + pass/fail -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="card p-5 lg:col-span-2">
+            <h3 class="font-bold text-sm text-dark mb-4">آخرین تلاش‌ها</h3>
+            <div class="overflow-x-auto">
+                <table>
+                    <thead>
+                        <tr><th>دانشجو</th><th>آزمون</th><th>درصد</th><th>نتیجه</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for a in recent %}
+                        <tr>
+                            <td class="font-medium">129</td>
+                            <td>130</td>
+                            <td>131٪</td>
+                            <td>
+                                {% if a.is_passed %}
+                                <span class="text-xs font-bold text-success bg-success/10 px-2 py-1 rounded-lg">قبول</span>
+                                {% else %}
+                                <span class="text-xs font-bold text-danger bg-danger/10 px-2 py-1 rounded-lg">مردود</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted text-sm py-4">تلاشی ثبت نشده</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card p-5">
+            <h3 class="font-bold text-sm text-dark mb-4">قبول/مردود</h3>
+            <canvas id="passFailChart" height="180"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+    const dailyCtx = document.getElementById('dailyChart');
+    if (dailyCtx) {
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels:  daily_labels|safe ,
+                datasets: [{
+                    label: 'تلاش‌ها',
+                    data:  daily_values|safe ,
+                    borderColor: '#6d28d9', backgroundColor: 'rgba(109,40,217,0.08)',
+                    fill: true, tension: 0.3,
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    const quizCtx = document.getElementById('quizChart');
+    if (quizCtx) {
+        new Chart(quizCtx, {
+            type: 'bar',
+            data: {
+                labels:  quiz_labels|safe ,
+                datasets: [{
+                    label: 'میانگین درصد',
+                    data:  quiz_avg|safe ,
+                    backgroundColor: '#06b6d4', borderRadius: 8,
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+    }
+
+    const pfCtx = document.getElementById('passFailChart');
+    if (pfCtx) {
+        const pf = JSON.parse(' pass_fail|safe ');
+        new Chart(pfCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['قبول', 'مردود'],
+                datasets: [{
+                    data: pf,
+                    backgroundColor: ['#10b981', '#ef4444'],
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+</script>
+{% endblock %}

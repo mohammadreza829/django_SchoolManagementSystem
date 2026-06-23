@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}پیشرفت من{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-5 py-8">
+    <h1 class="text-2xl md:text-3xl font-black text-dark mb-2">پیشرفت من</h1>
+    <p class="text-sm text-muted mb-6">آمار و نمودار پیشرفتت در آزمون‌ها</p>
+
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white border border-border rounded-2xl p-5 text-center">
+            <p class="text-3xl font-black text-primary"> stats.total </p>
+            <p class="text-xs text-muted mt-1">آزمون داده‌شده</p>
+        </div>
+        <div class="bg-white border border-border rounded-2xl p-5 text-center">
+            <p class="text-3xl font-black text-success"> stats.passed </p>
+            <p class="text-xs text-muted mt-1">قبول</p>
+        </div>
+        <div class="bg-white border border-border rounded-2xl p-5 text-center">
+            <p class="text-3xl font-black text-accent"> stats.avg  ٪</p>
+            <p class="text-xs text-muted mt-1">میانگین</p>
+        </div>
+    </div>
+
+    <div class="bg-white border border-border rounded-2xl p-5 mb-6">
+        <h3 class="font-bold text-sm text-dark mb-4">نمودار پیشرفت</h3>
+        <canvas id="progressChart" height="200"></canvas>
+    </div>
+
+    <div class="bg-white border border-border rounded-2xl p-5">
+        <h3 class="font-bold text-sm text-dark mb-4">تلاش‌های اخیر</h3>
+        <div class="space-y-2">
+            {% for a in attempts %}
+            <a href="{% url 'quiz:quiz_result' a.id %}" class="flex items-center justify-between p-3 bg-elevated rounded-xl hover:bg-border transition">
+                <div>
+                    <p class="text-sm font-semibold text-dark"> a.quiz.title </p>
+                    <p class="text-xs text-muted"> a.started_at|date:"Y/m/d" </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-bold text-primary"> a.percentage  ٪</span>
+                    {% if a.is_passed %}<span class="text-xs text-success font-bold">قبول</span>{% else %}<span class="text-xs text-danger font-bold">مردود</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-center text-sm text-gray-400 py-8">هنوز آزمونی نداده‌ای</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+(function() {
+    const data = 144;
+    const ctx = document.getElementById('progressChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.label),
+                datasets: [{
+                    label: 'درصد',
+                    data: data.map(d => d.value),
+                    backgroundColor: data.map(d => d.passed ? '#10b981' : '#ef4444'),
+                    borderRadius: 8,
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+    }
+})();
+</script>
+{% endblock %}

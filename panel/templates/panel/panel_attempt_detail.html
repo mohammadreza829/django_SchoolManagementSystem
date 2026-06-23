@@ -1,0 +1,46 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}جزئیات تلاش{% endblock %}
+{% block heading %}تلاش: a.student  →  a.quiz.title {% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+    <div class="card p-5">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div><p class="text-xs text-muted">دانشجو</p><p class="font-bold text-dark"> a.student.get_full_name|default:a.student.username </p></div>
+            <div><p class="text-xs text-muted">نمره</p><p class="font-bold text-dark"> a.score  /  a.max_score </p></div>
+            <div><p class="text-xs text-muted">درصد</p><p class="font-bold text-primary text-lg"> a.percentage  ٪</p></div>
+            <div><p class="text-xs text-muted">نتیجه</p>
+                {% if a.is_passed %}
+                <span class="text-xs font-bold text-success bg-success/10 px-3 py-1 rounded-lg">قبول</span>
+                {% else %}
+                <span class="text-xs font-bold text-danger bg-danger/10 px-3 py-1 rounded-lg">مردود</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-5">
+        <h3 class="font-bold text-sm text-dark mb-4">پاسخ‌ها</h3>
+        <div class="space-y-3">
+            {% for ans in answers %}
+            <div class="p-4 rounded-xl border {% if ans.is_correct %}border-success/30 bg-success/5{% else %}border-danger/30 bg-danger/5{% endif %}">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold {% if ans.is_correct %}bg-success/10 text-success{% else %}bg-danger/10 text-danger{% endif %}"> forloop.counter </span>
+                    <span class="text-sm font-medium text-dark flex-1"> ans.question.text|truncatechars:100 </span>
+                    {% if ans.is_correct %}
+                    <i class="fas fa-check text-success text-sm"></i>
+                    {% else %}
+                    <i class="fas fa-times text-danger text-sm"></i>
+                    {% endif %}
+                </div>
+                <div class="text-xs text-muted mr-9">
+                    <p>نمره: ans.points_earned  /  ans.question.points </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

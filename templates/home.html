@@ -1,196 +1,214 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدرسه آنلاین | یادگیری تعاملی</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: { extend: {
-                colors: { primary:'#6366f1','primary-hover':'#5457e5', secondary:'#16a34a', ink:'#14192a' },
-                fontFamily: { sans: ['Vazirmatn','Tahoma','sans-serif'] }
-            }}
-        }
-    </script>
-    <style>
-        *,*::before,*::after{box-sizing:border-box;}
-        html{scroll-behavior:smooth;}
-        body { font-family:'Vazirmatn',Tahoma,sans-serif; background:#ffffff; color:#14192a; }
-        ::-webkit-scrollbar{width:9px;height:9px;}
-        ::-webkit-scrollbar-thumb{background:#d3d8e3;border-radius:99px;}
-        .grad-text { background:linear-gradient(135deg,#6366f1,#16a34a); -webkit-background-clip:text; background-clip:text; color:transparent; }
-        .hero-bg { background:
-            radial-gradient(circle at 85% 8%, rgba(99,102,241,0.10), transparent 42%),
-            radial-gradient(circle at 12% 90%, rgba(22,163,74,0.08), transparent 45%),
-            #ffffff; }
-        .nav-link { padding:8px 14px; border-radius:10px; font-size:14px; font-weight:600; color:#41495b; transition:all .15s; }
-        .nav-link:hover { background:#f1f3f8; color:#14192a; }
-        .cat-chip { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:99px; background:#fff; border:1px solid #e6e9f0; font-size:13px; font-weight:600; color:#41495b; transition:all .15s; }
-        .cat-chip:hover { border-color:#6366f1; color:#6366f1; box-shadow:0 6px 18px rgba(99,102,241,0.12); transform:translateY(-2px); }
-        .course-card { background:#fff; border:1px solid #e9ecf3; border-radius:18px; overflow:hidden; transition:all .2s; }
-        .course-card:hover { border-color:#c7ccfb; box-shadow:0 16px 40px rgba(20,25,42,0.10); transform:translateY(-4px); }
-        .feat-card { background:#fff; border:1px solid #e9ecf3; border-radius:18px; padding:26px; transition:all .2s; }
-        .feat-card:hover { box-shadow:0 16px 40px rgba(20,25,42,0.08); transform:translateY(-3px); }
-        .btn-primary { background:#6366f1; color:#fff; font-weight:700; transition:all .15s; }
-        .btn-primary:hover { background:#5457e5; box-shadow:0 12px 28px rgba(99,102,241,0.32); }
-        .btn-ghost { background:#fff; color:#14192a; border:1px solid #e6e9f0; font-weight:700; transition:all .15s; }
-        .btn-ghost:hover { border-color:#c7ccfb; background:#f7f8fc; }
-    </style>
-</head>
-<body>
 
-    <!-- ════ Navbar ════ -->
-    <nav class="sticky top-0 z-50 bg-white/85 backdrop-blur border-b" style="border-color:#eceef4">
-        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-            <a href="{% url 'home' %}" class="text-2xl font-black tracking-tight" style="color:#6366f1">مدرسه<span style="color:#16a34a">آنلاین</span></a>
+{% block title %}مکتب‌پلاس · یاد بگیر، بساز، بدرخش{% endblock %}
 
-            <div class="hidden md:flex items-center gap-1">
-                <a href="{% url 'courses:course_list' %}" class="nav-link">همه دوره‌ها</a>
-                <a href="{% url 'quiz:quiz_list' %}" class="nav-link">آزمون‌ها</a>
-                {% if user.is_authenticated %}
-                <a href="{% url 'courses:my_courses' %}" class="nav-link">دوره‌های من</a>
-                {% endif %}
-            </div>
-
-            <div class="flex items-center gap-2">
-                {% if user.is_authenticated %}
-                <a href="{% url 'accounts:dashboard' %}" class="btn-primary px-5 py-2 rounded-xl text-sm">داشبورد من</a>
-                {% else %}
-                <a href="{% url 'accounts:login' %}" class="nav-link hidden sm:inline-block">ورود</a>
-                <a href="{% url 'accounts:student_signup' %}" class="btn-primary px-5 py-2 rounded-xl text-sm">ثبت‌نام رایگان</a>
-                {% endif %}
-            </div>
+{% block content %}
+{# ============ HERO ============ #}
+<section class="relative pt-12 lg:pt-20 pb-20 overflow-hidden">
+  <div class="hero-grid-bg absolute inset-0 pointer-events-none"></div>
+  <div class="container-x relative">
+    <div class="grid lg:grid-cols-12 gap-12 items-center">
+      <div class="lg:col-span-7">
+        <div data-reveal class="section-eyebrow mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse"></span>
+          پلتفرم یادگیری نسل جدید
         </div>
-    </nav>
+        <h1 data-reveal class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] mb-6">
+          یاد بگیر، بساز،<br>
+          <span class="grad-text">به جایی برس که باید.</span>
+        </h1>
+        <p data-reveal class="text-lg text-slate-300 leading-9 max-w-xl mb-8">
+          دوره‌های ویدیویی حرفه‌ای، آزمون‌های هوشمند و گواهینامه‌ی رسمی —
+          همه در یک پلتفرم که برای یادگیرنده‌های جدی طراحی شده.
+        </p>
 
-    <!-- ════ Hero ════ -->
-    <header class="hero-bg pt-20 pb-16 px-5">
-        <div class="max-w-3xl mx-auto text-center">
-            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-6" style="background:#eef0fe;color:#5457e5">
-                <i class="fas fa-bolt"></i> پلتفرم یادگیری تعاملی
-            </span>
-            <h1 class="text-4xl md:text-5xl font-black leading-[1.25] mb-5">
-                هر مهارتی که می‌خواهی،<br>با <span class="grad-text">آموزش و آزمون</span> یاد بگیر
-            </h1>
-            <p class="text-lg mb-8" style="color:#5a6477">
-                دوره‌های ویدیویی، آزمون‌های خودکار با پشتیبانی فرمول ریاضی، و کارنامه‌ی لحظه‌ای پیشرفت — همه در یک‌جا.
-            </p>
+        <form data-reveal action="{% url 'courses:search' %}" method="get" class="max-w-xl mb-7">
+          <div class="flex items-center bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl p-2 transition">
+            <i data-lucide="search" class="w-5 h-5 text-slate-400 mr-3 ml-2"></i>
+            <input type="text" name="q" placeholder="دوره‌ای که می‌خوای رو پیدا کن…" class="flex-1 bg-transparent outline-none py-2 px-1 text-sm placeholder:text-slate-500">
+            <button class="btn btn-primary !py-2 !px-5">جستجو</button>
+          </div>
+        </form>
 
-            <!-- Search box (maktabkhooneh-style) -->
-            <form action="{% url 'courses:search' %}" method="get" class="max-w-xl mx-auto">
-                <div class="flex items-center bg-white rounded-2xl p-1.5 shadow-lg" style="box-shadow:0 16px 44px rgba(20,25,42,0.10);border:1px solid #e6e9f0">
-                    <span class="px-3 text-lg" style="color:#9aa1b2"><i class="fas fa-search"></i></span>
-                    <input type="text" name="q" placeholder="دنبال چه دوره‌ای می‌گردی؟"
-                        class="flex-1 bg-transparent outline-none text-sm py-2.5" style="color:#14192a">
-                    <button type="submit" class="btn-primary px-6 py-2.5 rounded-xl text-sm">جستجو</button>
-                </div>
-            </form>
-
-            <!-- Quick category chips -->
-            <div class="flex flex-wrap items-center justify-center gap-2.5 mt-7">
-                {% for category in all_categories %}
-                    {% if category.is_active and not category.parent %}
-                    <a href="{% url 'courses:category_detail' category.slug %}" class="cat-chip">
-                        <i class="fas fa-tag text-xs" style="color:#6366f1"></i> {{ category.name }}
-                    </a>
-                    {% endif %}
-                {% empty %}
-                    <a href="{% url 'courses:course_list' %}" class="cat-chip"><i class="fas fa-layer-group text-xs" style="color:#6366f1"></i> مرور همه دسته‌ها</a>
-                {% endfor %}
-            </div>
+        <div data-reveal class="flex flex-wrap gap-3 mb-8">
+          <a href="{% url 'courses:course_list' %}" class="btn btn-gold"><i data-lucide="sparkles" class="w-4 h-4"></i> شروع کن</a>
+          <a href="#categories" class="btn btn-ghost"><i data-lucide="compass" class="w-4 h-4"></i> دسته‌بندی‌ها</a>
         </div>
-    </header>
 
-    <!-- ════ Featured courses ════ -->
-    {% if featured_courses %}
-    <section class="max-w-6xl mx-auto px-5 py-14">
-        <div class="flex items-end justify-between mb-7">
+        <div data-reveal class="flex items-center gap-6 text-xs text-slate-400">
+          <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> پشتیبانی ۲۴/۷</div>
+          <div class="flex items-center gap-2"><i data-lucide="award" class="w-4 h-4 text-gold-400"></i> گواهینامه‌ی رسمی</div>
+          <div class="flex items-center gap-2"><i data-lucide="infinity" class="w-4 h-4 text-violet-300"></i> دسترسی مادام‌العمر</div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 relative h-[520px] hidden lg:block">
+        <div class="orb w-72 h-72 bg-violet-500/40 -top-10 -right-10"></div>
+        <div class="orb w-64 h-64 bg-fuchsia-500/40 bottom-10 -left-10"></div>
+
+        <div data-reveal class="glass-strong absolute top-8 left-4 right-4 p-5 rounded-2xl shadow-glow">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 grid place-items-center"><i data-lucide="book-open-text" class="w-6 h-6"></i></span>
             <div>
-                <h2 class="text-2xl md:text-3xl font-black">دوره‌های منتخب</h2>
-                <p class="text-sm mt-1" style="color:#5a6477">محبوب‌ترین دوره‌ها برای شروع یادگیری</p>
+              <div class="text-xs text-slate-400">دوره‌ی فعال</div>
+              <div class="font-bold">React پیشرفته</div>
             </div>
-            <a href="{% url 'courses:course_list' %}" class="text-sm font-bold hover:underline" style="color:#6366f1">همه دوره‌ها ←</a>
+            <span class="badge badge-violet mr-auto">جلسه ۱۲</span>
+          </div>
+          <div class="progress progress-shimmer mt-2"><span class="bar" style="width:65%"></span></div>
+          <div class="flex justify-between text-xs mt-2 text-slate-400"><span>پیشرفت</span><b class="text-white">۶۵٪</b></div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for course in featured_courses %}
-            <a href="{% url 'courses:course_detail' course.slug %}" class="course-card block">
-                <div class="h-36 flex items-center justify-center text-4xl text-white" style="background:linear-gradient(135deg,#6366f1,#7c3aed)">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-base mb-1.5 line-clamp-1">{{ course.title }}</h3>
-                    <p class="text-sm line-clamp-2 mb-4" style="color:#5a6477">{{ course.short_description }}</p>
-                    <div class="flex items-center justify-between pt-3 border-t" style="border-color:#eef0f5">
-                        <span class="text-xs font-semibold" style="color:#6366f1">مشاهده دوره</span>
-                        <i class="fas fa-arrow-left text-xs" style="color:#9aa1b2"></i>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
 
-    <!-- ════ Features / Why us ════ -->
-    <section class="max-w-6xl mx-auto px-5 py-14">
-        <div class="text-center mb-10">
-            <h2 class="text-2xl md:text-3xl font-black mb-2">چرا مدرسه آنلاین؟</h2>
-            <p class="text-sm" style="color:#5a6477">یک تجربه‌ی یادگیری کامل، از آموزش تا سنجش</p>
+        <div data-reveal class="glass-strong absolute top-44 -left-2 p-5 rounded-2xl shadow-glow w-64">
+          <div class="flex items-center gap-2 mb-2"><i data-lucide="trophy" class="w-5 h-5 text-gold-400"></i><span class="font-bold text-sm">گواهینامه‌ی جدید</span></div>
+          <div class="text-xs text-slate-400 mb-3">دیتاساینس با Python</div>
+          <div class="flex -space-x-2 space-x-reverse">
+            <span class="avatar w-7 h-7 text-[10px]">م</span>
+            <span class="avatar w-7 h-7 text-[10px]">س</span>
+            <span class="avatar w-7 h-7 text-[10px]">ن</span>
+            <span class="avatar w-7 h-7 text-[10px] !bg-white/10">+۸</span>
+          </div>
         </div>
-        <div class="grid md:grid-cols-3 gap-6">
-            <div class="feat-card">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4" style="background:#eef0fe;color:#6366f1"><i class="fas fa-graduation-cap"></i></div>
-                <h3 class="font-bold text-lg mb-2">دوره‌های ساختارمند</h3>
-                <p class="text-sm" style="color:#5a6477">جلسات ویدیویی و متنی با مسیر یادگیری مشخص و گام‌به‌گام.</p>
-            </div>
-            <div class="feat-card">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4" style="background:#e7f7ee;color:#16a34a"><i class="fas fa-clipboard-question"></i></div>
-                <h3 class="font-bold text-lg mb-2">آزمون تعاملی</h3>
-                <p class="text-sm" style="color:#5a6477">سوالات چندگزینه‌ای با تصحیح خودکار و پشتیبانی فرمول ریاضی.</p>
-            </div>
-            <div class="feat-card">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4" style="background:#eef0fe;color:#6366f1"><i class="fas fa-chart-line"></i></div>
-                <h3 class="font-bold text-lg mb-2">پیگیری پیشرفت</h3>
-                <p class="text-sm" style="color:#5a6477">نمودار پیشرفت و کارنامه‌ی لحظه‌ای از عملکرد تو در دوره‌ها و آزمون‌ها.</p>
-            </div>
-        </div>
-    </section>
 
-    <!-- ════ CTA band ════ -->
-    <section class="max-w-5xl mx-auto px-5 pb-20">
-        <div class="rounded-3xl p-10 md:p-12 text-center text-white" style="background:linear-gradient(135deg,#6366f1,#7c3aed)">
-            <h2 class="text-2xl md:text-3xl font-black mb-3">امروز یادگیری‌ات را شروع کن</h2>
-            <p class="mb-7" style="color:rgba(255,255,255,0.85)">ثبت‌نام رایگان است؛ در چند ثانیه وارد شو و اولین آزمونت را بده.</p>
-            <div class="flex flex-wrap items-center justify-center gap-3">
-                {% if user.is_authenticated %}
-                <a href="{% url 'quiz:quiz_list' %}" class="inline-block px-8 py-3 rounded-xl bg-white font-bold hover:bg-white/90 transition" style="color:#5457e5">شروع آزمون</a>
-                <a href="{% url 'courses:course_list' %}" class="inline-block px-8 py-3 rounded-xl font-bold transition" style="background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.3)">مرور دوره‌ها</a>
-                {% else %}
-                <a href="{% url 'accounts:student_signup' %}" class="inline-block px-8 py-3 rounded-xl bg-white font-bold hover:bg-white/90 transition" style="color:#5457e5">ثبت‌نام رایگان</a>
-                <a href="{% url 'courses:course_list' %}" class="inline-block px-8 py-3 rounded-xl font-bold transition" style="background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.3)">مرور دوره‌ها</a>
-                {% endif %}
-            </div>
+        <div data-reveal class="glass-strong absolute bottom-12 right-6 p-5 rounded-2xl shadow-glow w-72">
+          <div class="flex items-center justify-between mb-2"><span class="text-xs text-slate-400">میانگین امتیاز</span><span class="stars text-base">★★★★★</span></div>
+          <div class="text-3xl font-extrabold grad-text">۴.۹</div>
+          <div class="text-xs text-slate-400">از بین ۱۲٬۴۰۰ نظر کاربران</div>
         </div>
-    </section>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- ════ Footer ════ -->
-    <footer class="border-t" style="border-color:#eceef4;background:#fafbfd">
-        <div class="max-w-6xl mx-auto px-5 py-10">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <a href="{% url 'home' %}" class="text-xl font-black" style="color:#6366f1">مدرسه<span style="color:#16a34a">آنلاین</span></a>
-                <div class="flex items-center gap-5 text-sm" style="color:#5a6477">
-                    <a href="{% url 'courses:course_list' %}" class="hover:text-ink">دوره‌ها</a>
-                    <a href="{% url 'quiz:quiz_list' %}" class="hover:text-ink">آزمون‌ها</a>
-                    <a href="{% url 'accounts:login' %}" class="hover:text-ink">ورود</a>
-                </div>
-            </div>
-            <div class="text-center text-xs mt-7" style="color:#9aa1b2">ساخته‌شده با ❤️ — مدرسه آنلاین © ۱۴۰۴</div>
+{# ============ STATS ============ #}
+<section class="py-14">
+  <div class="container-x grid grid-cols-2 lg:grid-cols-4 gap-4" data-stagger>
+    <div data-item class="stat-card">
+      <i data-lucide="users" class="w-6 h-6 text-violet-300 mb-3"></i>
+      <div class="text-3xl font-extrabold fa-num" data-counter="42500" data-suffix="+">0</div>
+      <div class="text-sm text-slate-400 mt-1">یادگیرنده</div>
+    </div>
+    <div data-item class="stat-card">
+      <i data-lucide="book-open" class="w-6 h-6 text-fuchsia-300 mb-3"></i>
+      <div class="text-3xl font-extrabold fa-num" data-counter="320" data-suffix="+">0</div>
+      <div class="text-sm text-slate-400 mt-1">دوره</div>
+    </div>
+    <div data-item class="stat-card">
+      <i data-lucide="user-check" class="w-6 h-6 text-emerald-300 mb-3"></i>
+      <div class="text-3xl font-extrabold fa-num" data-counter="120" data-suffix="+">0</div>
+      <div class="text-sm text-slate-400 mt-1">مدرس</div>
+    </div>
+    <div data-item class="stat-card">
+      <i data-lucide="award" class="w-6 h-6 text-gold-400 mb-3"></i>
+      <div class="text-3xl font-extrabold fa-num" data-counter="4.9" data-decimals="1">0</div>
+      <div class="text-sm text-slate-400 mt-1">میانگین امتیاز</div>
+    </div>
+  </div>
+</section>
+
+{# ============ CATEGORIES ============ #}
+<section id="categories" class="py-14">
+  <div class="container-x">
+    <div data-reveal class="text-center max-w-2xl mx-auto mb-12">
+      <div class="section-eyebrow mb-3 mx-auto inline-flex"><i data-lucide="layers" class="w-3.5 h-3.5"></i> دسته‌بندی‌ها</div>
+      <h2 class="section-title">از <span class="grad-text">هر مسیری</span> که دوست داری شروع کن</h2>
+      <p class="section-subtitle mt-3">از برنامه‌نویسی تا طراحی، از کسب‌وکار تا هنر — جای خودت رو پیدا کن.</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-stagger>
+      {% for cat in all_categories|slice:':8' %}
+      <a data-item href="{% url 'courses:category_detail' cat.slug %}" class="glass rounded-2xl p-5 group hover:bg-white/8 transition lift">
+        <span class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 border border-violet-500/30 grid place-items-center mb-4 group-hover:scale-110 transition">
+          <i data-lucide="{{ cat.icon|default:'folder' }}" class="w-6 h-6 text-violet-200"></i>
+        </span>
+        <h3 class="font-bold mb-1">{{ cat.name }}</h3>
+        <p class="text-xs text-slate-400">{{ cat.courses.count }} دوره</p>
+      </a>
+      {% empty %}
+      <div class="col-span-full text-center text-slate-400 glass rounded-2xl p-10">به زودی دسته‌بندی‌های بیشتری اضافه می‌شه.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ============ FEATURED COURSES ============ #}
+<section class="py-14">
+  <div class="container-x">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-10" data-reveal>
+      <div>
+        <div class="section-eyebrow mb-3"><i data-lucide="flame" class="w-3.5 h-3.5"></i> داغ‌ترین‌ها</div>
+        <h2 class="section-title">دوره‌های <span class="grad-text">منتخب</span></h2>
+      </div>
+      <a href="{% url 'courses:course_list' %}" class="btn btn-ghost btn-sm">همه‌ی دوره‌ها <i data-lucide="arrow-left" class="w-4 h-4"></i></a>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
+      {% for course in featured_courses|default:''|slice:':6' %}
+      <a data-item href="{{ course.get_absolute_url }}" class="course-card group">
+        <div class="card-thumb">
+          {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}
+          <div class="absolute top-3 right-3 flex gap-2">
+            {% if course.is_free %}<span class="badge badge-green">رایگان</span>
+            {% elif course.discount_percent %}<span class="badge badge-rose">{{ course.discount_percent }}٪ تخفیف</span>{% endif %}
+          </div>
         </div>
-    </footer>
+        <div class="card-body">
+          {% if course.category %}<span class="badge badge-slate w-fit">{{ course.category.name }}</span>{% endif %}
+          <h3 class="card-title group-hover:text-violet-300 transition">{{ course.title }}</h3>
+          <p class="text-sm text-slate-400 line-clamp-2 leading-7">{{ course.short_description }}</p>
+          <div class="card-meta mt-auto">
+            <span><i data-lucide="clock" class="w-3.5 h-3.5"></i> {{ course.duration_hours }} س</span>
+            <span><i data-lucide="video" class="w-3.5 h-3.5"></i> {{ course.total_lessons }} جلسه</span>
+            {% if course.rating_avg %}<span class="text-gold-400">★ {{ course.rating_avg|floatformat:1 }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="text-xs text-slate-400 truncate"><i data-lucide="user" class="w-3 h-3 inline"></i> {{ course.get_teachers_names }}</span>
+          <div class="price-tag">
+            {% if course.is_free %}<span class="price-free">رایگان</span>
+            {% else %}{% if course.discount_percent %}<span class="price-original">{{ course.price|floatformat:0 }}</span>{% endif %}
+              <span class="price-current">{{ course.final_price|floatformat:0 }}</span>{% endif %}
+          </div>
+        </div>
+      </a>
+      {% empty %}
+      <div class="col-span-full glass rounded-2xl p-12 text-center text-slate-400">به‌زودی دوره‌های منتخب اینجا نمایش داده می‌شن.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
 
-</body>
-</html>
+{# ============ FEATURES ============ #}
+<section class="py-14">
+  <div class="container-x">
+    <div data-reveal class="text-center max-w-2xl mx-auto mb-12">
+      <div class="section-eyebrow mb-3 mx-auto inline-flex"><i data-lucide="diamond" class="w-3.5 h-3.5"></i> چرا مکتب‌پلاس؟</div>
+      <h2 class="section-title">یادگیری در <span class="grad-text">بالاترین کیفیت</span></h2>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
+      {% for f in '123456' %}
+      {% endfor %}
+      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-violet-500/15 grid place-items-center mb-4"><i data-lucide="play-circle" class="w-6 h-6 text-violet-300"></i></span><h3 class="font-bold mb-2">ویدیوی HD</h3><p class="text-sm text-slate-400 leading-7">پخش بدون لگ، کیفیت بالا، با امکان دانلود برای آفلاین.</p></div>
+      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-fuchsia-500/15 grid place-items-center mb-4"><i data-lucide="clipboard-check" class="w-6 h-6 text-fuchsia-300"></i></span><h3 class="font-bold mb-2">آزمون‌های هوشمند</h3><p class="text-sm text-slate-400 leading-7">سنجش یادگیری با کوییز و آزمون پایان دوره.</p></div>
+      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-emerald-500/15 grid place-items-center mb-4"><i data-lucide="award" class="w-6 h-6 text-emerald-300"></i></span><h3 class="font-bold mb-2">گواهینامه</h3><p class="text-sm text-slate-400 leading-7">بعد از تکمیل، گواهی رسمی با QR قابل اعتبارسنجی دریافت کن.</p></div>
+      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-gold-400/15 grid place-items-center mb-4"><i data-lucide="users" class="w-6 h-6 text-gold-400"></i></span><h3 class="font-bold mb-2">جامعه‌ی فعال</h3><p class="text-sm text-slate-400 leading-7">با هم‌دوره‌ای‌هات سوال بپرس، بحث کن و رشد کن.</p></div>
+      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-rose-500/15 grid place-items-center mb-4"><i data-lucide="headphones" class="w-6 h-6 text-rose-300"></i></span><h3 class="font-bold mb-2">پشتیبانی ۲۴/۷</h3><p class="text-sm text-slate-400 leading-7">هرجا گیر کردی، تیم پشتیبانی همیشه در دسترسه.</p></div>
+      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-sky-500/15 grid place-items-center mb-4"><i data-lucide="infinity" class="w-6 h-6 text-sky-300"></i></span><h3 class="font-bold mb-2">دسترسی مادام‌العمر</h3><p class="text-sm text-slate-400 leading-7">یک‌بار خرید، هر زمان که خواستی برگرد و دوباره ببین.</p></div>
+    </div>
+  </div>
+</section>
+
+{# ============ CTA ============ #}
+<section class="py-16">
+  <div class="container-x">
+    <div data-reveal class="relative overflow-hidden rounded-3xl p-12 text-center" style="background: linear-gradient(135deg, rgba(139,92,246,.35), rgba(217,70,239,.35)); border: 1px solid rgba(255,255,255,.1);">
+      <div class="orb w-72 h-72 bg-gold-400/40 -top-20 -right-20"></div>
+      <div class="orb w-72 h-72 bg-violet-500/40 -bottom-20 -left-20"></div>
+      <div class="relative">
+        <h2 class="text-3xl lg:text-5xl font-extrabold mb-5">آماده‌ای <span class="grad-text">سفر یادگیری</span> رو شروع کنی؟</h2>
+        <p class="text-slate-200 mb-7 max-w-xl mx-auto">هزاران یادگیرنده‌ی دیگه به ما اعتماد کردن. نوبت توئه که قدم بعدی رو برداری.</p>
+        <a href="{% url 'accounts:student_signup' %}" class="btn btn-gold btn-lg"><i data-lucide="rocket" class="w-5 h-5"></i> همین حالا شروع کن</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

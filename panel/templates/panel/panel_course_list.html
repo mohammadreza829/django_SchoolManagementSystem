@@ -1,0 +1,51 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}لیست دوره‌ها{% endblock %}
+{% block heading %}دوره‌ها{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+    <div class="flex items-center justify-between">
+        <form method="get" class="relative">
+            <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-search text-xs"></i></span>
+            <input type="text" name="q" value="132" placeholder="جستجوی دوره..." class="w-64 bg-elevated border border-border rounded-xl py-2 pr-9 pl-3 text-sm outline-none focus:border-primary">
+        </form>
+        <a href="{% url 'panel:course_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> دوره جدید</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        <table>
+            <thead>
+                <tr><th>عنوان</th><th>سطح</th><th>قیمت</th><th>وضعیت</th><th>دانشجویان</th><th>عملیات</th></tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td class="font-semibold"> course.title </td>
+                    <td> course.get_level_display </td>
+                    <td> course.price|intcomma  ت</td>
+                    <td>
+                        {% if course.status == 'published' %}
+                        <span class="text-xs font-bold text-success bg-success/10 px-2 py-1 rounded-lg">منتشر</span>
+                        {% else %}
+                        <span class="text-xs font-bold text-muted bg-elevated px-2 py-1 rounded-lg">پیش‌نویس</span>
+                        {% endif %}
+                    </td>
+                    <td> course.enroll_count </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'panel:course_edit' course.id %}" class="text-primary hover:bg-primary/10 w-8 h-8 rounded-lg flex items-center justify-center transition" title="ویرایش"><i class="fas fa-edit text-xs"></i></a>
+                            <form method="post" action="{% url 'panel:course_toggle' course.id %}" class="inline">{% csrf_token %}<button type="submit" class="text-accent hover:bg-accent/10 w-8 h-8 rounded-lg flex items-center justify-center transition" title="تغییر وضعیت"><i class="fas fa-toggle-on text-xs"></i></button></form>
+                            <form method="post" action="{% url 'panel:course_delete' course.id %}" class="inline">{% csrf_token %}<button type="submit" class="text-danger hover:bg-danger/10 w-8 h-8 rounded-lg flex items-center justify-center transition" title="حذف"><i class="fas fa-trash text-xs"></i></button></form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-gray-400 py-8">دوره‌ای موجود نیست</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

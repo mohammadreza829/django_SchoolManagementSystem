@@ -1,86 +1,42 @@
-{% extends 'accounts/base.html' %}
-{% load static %}
-
+{% extends 'base.html' %}
 {% block title %}دوره‌های من{% endblock %}
-
 {% block content %}
-<div class="p-4 sm:mr-64 mt-14">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-white flex items-center gap-3">
-                <i class="fa-solid fa-graduation-cap text-indigo-500"></i>
-                دوره‌های من
-            </h1>
-            <p class="text-gray-400 mt-2">دوره‌هایی که در آن‌ها ثبت‌نام کرده‌اید و در حال یادگیری هستید.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for course in courses %}
-            <div class="bg-[#13161d] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-indigo-500/10 transition-all group">
-                <!-- Thumbnail -->
-                <div class="relative h-48 overflow-hidden">
-                    {% if course.thumbnail %}
-                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                    {% else %}
-                    <div class="w-full h-full bg-gray-800 flex items-center justify-center">
-                        <i class="fa-solid fa-play text-4xl text-gray-700"></i>
-                    </div>
-                    {% endif %}
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                            {{ course.get_level_display }}
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Content -->
-                <div class="p-5">
-                    <h3 class="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-indigo-400 transition-colors">
-                        {{ course.title }}
-                    </h3>
-                    <p class="text-sm text-gray-400 mb-5 line-clamp-2 h-10">
-                        {{ course.short_description|truncatewords:15 }}
-                    </p>
-
-                    <!-- Progress -->
-                    <div class="space-y-2 mb-5">
-                        <div class="flex justify-between text-xs">
-                            <span class="text-gray-400">میزان پیشرفت</span>
-                            <span class="text-indigo-400 font-bold">{{ course.progress_percentage|default:0 }}%</span>
-                        </div>
-                        <div class="w-full bg-gray-800 rounded-full h-2">
-                            <div class="bg-indigo-500 h-2 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)]" 
-                                 style="width: {{ course.progress_percentage|default:0 }}%"></div>
-                        </div>
-                        <div class="text-[10px] text-gray-500 flex justify-between">
-                            <span>{{ course.completed_lessons|default:0 }} جلسه گذرانده شده</span>
-                            <span>از {{ course.total_lessons }} جلسه</span>
-                        </div>
-                    </div>
-
-                    <a href="{% url 'courses:lesson_detail' course.slug course.lessons.first.slug %}" 
-                       class="block w-full text-center py-3 bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-600/20 rounded-xl font-bold transition-all">
-                        <i class="fa-solid fa-play ml-1 text-xs"></i>
-                        ادامه یادگیری
-                    </a>
-                </div>
-            </div>
-            {% empty %}
-            <!-- Empty State -->
-            <div class="col-span-full py-20 text-center">
-                <div class="inline-flex p-6 bg-gray-800/50 rounded-full mb-4">
-                    <i class="fa-solid fa-folder-open text-5xl text-gray-600"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">هنوز دوره‌ای ندارید!</h3>
-                <p class="text-gray-400 mb-6">یادگیری را از همین امروز شروع کنید.</p>
-                <a href="{% url 'courses:course_list' %}" class="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/20">
-                    مشاهده دوره‌ها
-                    <i class="fa-solid fa-arrow-left"></i>
-                </a>
-            </div>
-            {% endfor %}
-        </div>
+<section class="py-10"><div class="container-x">
+  <div data-reveal class="mb-8">
+    <div class="section-eyebrow mb-3"><i data-lucide="book-marked" class="w-3.5 h-3.5"></i> مسیر یادگیری</div>
+    <h1 class="section-title"><span class="grad-text">دوره‌های</span> من</h1>
+  </div>
+  <div x-data="{ tab: 'active' }">
+    <div class="flex gap-2 border-b border-white/10 mb-7" data-reveal>
+      <button @click="tab='active'" :class="tab==='active' && 'active'" class="tab">در حال یادگیری</button>
+      <button @click="tab='completed'" :class="tab==='completed' && 'active'" class="tab">تکمیل‌شده</button>
+      <button @click="tab='all'" :class="tab==='all' && 'active'" class="tab">همه</button>
     </div>
-</div>
+    <div x-show="tab==='active' || tab==='all'" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>{% for course in courses %}{% if course.progress_percentage < 100 %}
+      <a data-item href="{{ course.get_absolute_url }}" class="course-card">
+        <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}</div>
+        <div class="card-body">
+          <h3 class="card-title">{{ course.title }}</h3>
+          <div class="flex items-center justify-between text-xs text-slate-400 mt-2">
+            <span>پیشرفت</span><b class="text-white">{{ course.progress_percentage|default:0 }}٪</b>
+          </div>
+          <div class="progress mt-1"><span class="bar" style="width: {{ course.progress_percentage|default:0 }}%"></span></div>
+          <button class="btn btn-primary btn-sm mt-3 w-full"><i data-lucide="play" class="w-4 h-4"></i> ادامه</button>
+        </div>
+      </a>
+    {% endif %}{% empty %}<div class="col-span-full glass rounded-2xl p-14 text-center">
+      <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-white/5 grid place-items-center"><i data-lucide="book-open" class="w-10 h-10 text-slate-500"></i></div>
+      <h3 class="font-bold mb-2">هنوز دوره‌ای فعال نداری</h3>
+      <p class="text-slate-400 text-sm mb-5">یکی رو بردار و سفرت رو شروع کن.</p>
+      <a href="{% url 'courses:course_list' %}" class="btn btn-primary">مرور دوره‌ها</a>
+    </div>{% endfor %}</div>
+    <div x-show="tab==='completed'" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>{% for course in courses %}{% if course.progress_percentage >= 100 %}
+      <a data-item href="{{ course.get_absolute_url }}" class="course-card">
+        <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}">{% endif %}<div class="absolute top-3 right-3"><span class="badge badge-green"><i data-lucide="check" class="w-3 h-3"></i> تکمیل</span></div></div>
+        <div class="card-body"><h3 class="card-title">{{ course.title }}</h3>
+          <a href="#" class="btn btn-gold btn-sm mt-3 w-full"><i data-lucide="award" class="w-4 h-4"></i> دریافت گواهی</a></div>
+      </a>
+    {% endif %}{% endfor %}</div>
+  </div>
+</div></section>
 {% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}وبلاگ{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-5 py-8">
+    <div class="mb-8">
+        <span class="section-label mb-3"><i class="fas fa-newspaper"></i> وبلاگ</span>
+        <h1 class="text-2xl md:text-3xl font-black text-dark mt-3 mb-2">مقالات و اخبار آموزشی</h1>
+        <p class="text-sm text-muted">جدیدترین مطالب دنیای آموزش و فناوری</p>
+    </div>
+
+    {% if articles %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for article in articles %}
+        <a href="#" class="course-card block group">
+            <div class="h-44 relative overflow-hidden">
+                <div class="w-full h-full flex items-center justify-center text-5xl text-white" style="background:linear-gradient(135deg,#6d28d9,#06b6d4)">
+                    <i class="fas fa-blog"></i>
+                </div>
+                <div class="absolute top-3 right-3 text-xs bg-white/20 text-white px-3 py-1 rounded-lg backdrop-blur">121</div>
+            </div>
+            <div class="p-5">
+                <h3 class="font-bold text-base text-dark mb-2 line-clamp-2 group-hover:text-primary transition">122</h3>
+                <p class="text-sm text-muted line-clamp-3 mb-4 leading-relaxed">123</p>
+                <div class="flex items-center gap-2 text-xs text-muted-light">
+                    <div class="avatar-circle w-5 h-5 text-[8px]" style="background:linear-gradient(135deg,#6d28d9,#06b6d4)">124</div>
+                    <span> user.get_full_name|default:user.username </span>
+                    <span>•</span>
+                    <span>125</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20">
+        <div class="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center text-4xl text-muted-light" style="background:rgba(109,40,217,0.05)"><i class="fas fa-newspaper"></i></div>
+        <h3 class="font-bold text-lg text-dark mb-1">مقاله‌ای موجود نیست</h3>
+        <p class="text-sm text-muted">به‌زودی مقالات آموزشی منتشر می‌شود.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}سوالات:  quiz_avg|safe {% endblock %}
+{% block heading %}سوالات:  quiz_avg|safe {% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+    <div class="flex items-center justify-between">
+        <p class="text-sm text-muted">چاپمانده سوال:  quiz.question_count </p>
+        <a href="{% url 'panel:question_add' quiz.id %}" class="btn btn-primary"><i class="fas fa-plus"></i> سوال جدید</a>
+    </div>
+
+    <div class="card p-5">
+        <div class="space-y-3">
+            {% for qq in quiz_questions %}
+            <div class="flex items-start gap-3 p-4 bg-elevated rounded-xl">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-primary bg-primary/10 shrink-0"> forloop.counter </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-dark font-medium leading-relaxed"> qq.question.text|truncatechars:120 </p>
+                    <div class="flex items-center gap-3 mt-2">
+                        <span class="text-[10px] font-bold text-muted bg-white border border-border px-2 py-0.5 rounded"> qq.question.get_question_type_display </span>
+                        <span class="text-[10px] font-bold text-muted bg-white border border-border px-2 py-0.5 rounded"> qq.question.get_difficulty_display </span>
+                        <span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded"> qq.question.points  بارم</span>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'panel:question_remove' quiz.id qq.id %}" class="inline">{% csrf_token %}<button type="submit" class="text-danger hover:bg-danger/10 w-8 h-8 rounded-lg flex items-center justify-center transition shrink-0"><i class="fas fa-times text-xs"></i></button></form>
+            </div>
+            {% empty %}
+            <p class="text-center text-sm text-gray-400 py-8">سوالی ثبت نشده. اولین سوال رو اضافه کن!</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

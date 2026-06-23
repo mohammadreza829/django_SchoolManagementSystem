@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}مکتب‌پلاس · پلتفرم آموزش آنلاین{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}مکتب‌پلاس: یاد بگیر، رشد کن، بدرخش.{% endblock %}">
+    <meta name="theme-color" content="#07071a">
+    {% block extra_head %}{% endblock %}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Vazirmatn', 'system-ui', 'sans-serif'] },
+            colors: {
+              ink: { 0: '#07071a', 1: '#0b0a23', 2: '#10102d', 3: '#181638' },
+              violet: { 350: '#a78bfa', 450: '#8b5cf6', 550: '#7c3aed' },
+              gold: { 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b' }
+            },
+            boxShadow: {
+              glow: '0 10px 50px -10px rgba(139,92,246,.45), 0 0 0 1px rgba(255,255,255,.05)',
+              'glow-gold': '0 10px 50px -10px rgba(251,191,36,.45)',
+              card: '0 12px 40px -12px rgba(0,0,0,.6)'
+            },
+            animation: {
+              'float-slow': 'float 8s ease-in-out infinite',
+              shimmer: 'shimmer 2.5s linear infinite',
+              pop: 'pop .25s ease-out'
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="{% static 'css/maktab.css' %}">
+    <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="min-h-screen bg-ink-0 text-slate-100 antialiased">
+
+    <div class="mesh-bg fixed inset-0 -z-10" aria-hidden="true">
+        <div class="mesh-blob mesh-blob-1"></div>
+        <div class="mesh-blob mesh-blob-2"></div>
+        <div class="mesh-blob mesh-blob-3"></div>
+        <div class="mesh-grain"></div>
+    </div>
+
+    {# ============ NAVBAR ============ #}
+    <header x-data="{ scrolled: false, open: false, menu: false }"
+            @scroll.window="scrolled = window.scrollY > 20"
+            :class="scrolled && 'is-scrolled'"
+            class="site-nav fixed top-0 inset-x-0 z-40">
+      <div class="container-x flex items-center gap-4 py-3.5">
+        <a href="{% url 'home' %}" class="flex items-center gap-2 group shrink-0">
+          <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-purple-600 grid place-items-center text-white shadow-glow group-hover:scale-105 transition">
+            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+          </span>
+          <span class="text-lg font-extrabold tracking-tight grad-text hidden sm:inline">مکتب‌پلاس</span>
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-1 mr-4" x-data="{ catOpen: false }">
+          <a href="{% url 'home' %}" class="nav-link">خانه</a>
+          <a href="{% url 'courses:course_list' %}" class="nav-link">دوره‌ها</a>
+          <div class="relative" @mouseleave="catOpen = false">
+            <button @mouseenter="catOpen = true" @click="catOpen = !catOpen" class="nav-link flex items-center gap-1">
+              دسته‌بندی <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </button>
+            <div x-show="catOpen" x-transition x-cloak @mouseenter="catOpen = true"
+                 class="absolute top-full right-0 mt-2 w-72 glass-strong rounded-2xl p-3 shadow-glow">
+              <div class="grid grid-cols-1 gap-1 max-h-96 overflow-y-auto">
+                {% for cat in all_categories|slice:':12' %}
+                <a href="{% url 'courses:category_detail' cat.slug %}" class="menu-item">
+                  <i data-lucide="{{ cat.icon|default:'folder' }}" class="w-4 h-4 text-violet-300"></i>
+                  <span class="flex-1">{{ cat.name }}</span>
+                  <span class="badge badge-slate text-[10px]">{{ cat.courses.count }}</span>
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <a href="{% url 'quiz:quiz_list' %}" class="nav-link">آزمون‌ها</a>
+        </nav>
+
+        <form action="{% url 'courses:search' %}" method="get" class="hidden md:flex flex-1 max-w-md mr-auto">
+          <div class="flex items-center w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-2 transition">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 ml-2"></i>
+            <input type="text" name="q" placeholder="دنبال چی می‌گردی؟" class="bg-transparent outline-none flex-1 text-sm placeholder:text-slate-500">
+            <kbd class="text-[10px] text-slate-400 bg-white/10 px-1.5 rounded">⌘ K</kbd>
+          </div>
+        </form>
+
+        <div class="flex items-center gap-2">
+          {% if user.is_authenticated %}
+            <a href="{% url 'accounts:notifications' %}" class="icon-btn relative" title="اعلان‌ها">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              {% with unread_count=user.notifications.unread.count|default:0 %}
+                {% if unread_count %}<span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-ink-0"></span>{% endif %}
+              {% endwith %}
+            </a>
+            <div class="relative" @click.outside="menu = false">
+              <button @click="menu = !menu" class="flex items-center gap-2 p-1 pl-3 rounded-2xl hover:bg-white/5 transition">
+                {% if user.profile.avatar %}
+                  <img src="{{ user.profile.get_avatar_url }}" class="w-8 h-8 rounded-full object-cover ring-2 ring-violet-500/30">
+                {% else %}
+                  <span class="avatar w-8 h-8 text-xs">{{ user.username|first|upper }}</span>
+                {% endif %}
+                <span class="hidden md:inline text-sm font-medium">{{ user.first_name|default:user.username }}</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+              </button>
+              <div x-show="menu" x-transition x-cloak class="absolute top-full left-0 mt-2 w-60 glass-strong rounded-2xl p-2 shadow-glow">
+                <a href="{% url 'accounts:dashboard' %}" class="menu-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> داشبورد</a>
+                <a href="{% url 'accounts:profile' %}" class="menu-item"><i data-lucide="user" class="w-4 h-4"></i> پروفایل</a>
+                <a href="{% url 'courses:my_courses' %}" class="menu-item"><i data-lucide="book-marked" class="w-4 h-4"></i> دوره‌های من</a>
+                <a href="{% url 'accounts:edit_profile' %}" class="menu-item"><i data-lucide="settings" class="w-4 h-4"></i> تنظیمات</a>
+                <div class="my-1 h-px bg-white/10"></div>
+                <form method="post" action="{% url 'accounts:logout' %}">
+                  {% csrf_token %}
+                  <button class="menu-item w-full !text-rose-300"><i data-lucide="log-out" class="w-4 h-4"></i> خروج</button>
+                </form>
+              </div>
+            </div>
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">ورود</a>
+            <a href="{% url 'accounts:student_signup' %}" class="btn btn-primary btn-sm">ثبت‌نام</a>
+          {% endif %}
+          <button @click="open = !open" class="icon-btn lg:hidden" title="منو"><i data-lucide="menu" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+
+      <div x-show="open" x-transition x-cloak class="lg:hidden border-t border-white/10 bg-ink-1/95 backdrop-blur-xl">
+        <nav class="container-x py-4 grid gap-1">
+          <a href="{% url 'home' %}" class="menu-item"><i data-lucide="home" class="w-4 h-4"></i> خانه</a>
+          <a href="{% url 'courses:course_list' %}" class="menu-item"><i data-lucide="library" class="w-4 h-4"></i> دوره‌ها</a>
+          <a href="{% url 'quiz:quiz_list' %}" class="menu-item"><i data-lucide="clipboard-check" class="w-4 h-4"></i> آزمون‌ها</a>
+          {% if user.is_authenticated %}<a href="{% url 'accounts:dashboard' %}" class="menu-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> داشبورد</a>{% endif %}
+        </nav>
+      </div>
+    </header>
+
+    <main class="pt-20">
+      {% if messages %}
+      <div class="fixed top-24 left-1/2 -translate-x-1/2 z-50 space-y-2 w-[92%] max-w-md">
+        {% for message in messages %}
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" x-transition
+             class="toast toast-{{ message.tags|default:'info' }}">
+          <i data-lucide="info" class="w-4 h-4"></i>
+          <span class="flex-1">{{ message }}</span>
+          <button @click="show = false" class="opacity-60 hover:opacity-100"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="relative mt-24 border-t border-white/10">
+      <div class="container-x py-14 grid lg:grid-cols-4 gap-10">
+        <div class="lg:col-span-2">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 grid place-items-center"><i data-lucide="graduation-cap" class="w-5 h-5"></i></span>
+            <span class="text-xl font-extrabold grad-text">مکتب‌پلاس</span>
+          </div>
+          <p class="text-sm text-slate-400 leading-7 max-w-md">پلتفرم آموزش آنلاینی که با عشق ساخته شده — برای یادگیرنده‌هایی که جدی‌اند.</p>
+          <div class="flex gap-2 mt-5">
+            <a class="icon-btn" href="#"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+            <a class="icon-btn" href="#"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+            <a class="icon-btn" href="#"><i data-lucide="github" class="w-4 h-4"></i></a>
+            <a class="icon-btn" href="#"><i data-lucide="youtube" class="w-4 h-4"></i></a>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4 text-sm">مسیرها</h4>
+          <div class="flex flex-col gap-2 text-sm text-slate-400">
+            <a href="{% url 'courses:course_list' %}" class="hover:text-white">دوره‌ها</a>
+            <a href="{% url 'quiz:quiz_list' %}" class="hover:text-white">آزمون‌ها</a>
+            <a href="#" class="hover:text-white">وبلاگ</a>
+            <a href="#" class="hover:text-white">درباره‌ی ما</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4 text-sm">خبرنامه</h4>
+          <p class="text-xs text-slate-400 mb-3">دوره‌های جدید رو از دست نده.</p>
+          <form class="flex gap-2">
+            <input type="email" placeholder="ایمیلت" class="input !py-2 !text-sm">
+            <button class="btn btn-primary !py-2 !px-4"><i data-lucide="send" class="w-4 h-4"></i></button>
+          </form>
+        </div>
+      </div>
+      <div class="border-t border-white/5">
+        <div class="container-x py-5 text-center text-xs text-slate-500">© 2026 مکتب‌پلاس · ساخته‌شده با ❤️</div>
+      </div>
+    </footer>
+
+    <script type="module">
+      import { animate, stagger, inView } from 'https://cdn.jsdelivr.net/npm/motion@10.18.0/+esm'
+      const ease = [0.22, 1, 0.36, 1]
+      document.querySelectorAll('[data-reveal]').forEach(el => {
+        inView(el, () => { animate(el, { opacity: [0, 1], y: [24, 0] }, { duration: 0.7, easing: ease }) }, { amount: 0.2 })
+      })
+      document.querySelectorAll('[data-stagger]').forEach(parent => {
+        const items = parent.querySelectorAll('[data-item]')
+        inView(parent, () => { animate(items, { opacity: [0, 1], y: [22, 0], scale: [0.97, 1] }, { duration: 0.55, delay: stagger(0.07), easing: ease }) }, { amount: 0.15 })
+      })
+      document.querySelectorAll('[data-counter]').forEach(el => {
+        const target = parseFloat(el.dataset.counter)
+        const dec = parseInt(el.dataset.decimals || '0')
+        const suf = el.dataset.suffix || ''
+        inView(el, () => {
+          animate(0, target, { duration: 1.6, easing: ease, onUpdate: v => { el.textContent = v.toLocaleString('fa-IR', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf } })
+        })
+      })
+    </script>
+    <script>lucide.createIcons();document.addEventListener('alpine:initialized',()=>setTimeout(()=>lucide.createIcons(),50))</script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

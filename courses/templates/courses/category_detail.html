@@ -1,158 +1,32 @@
-{% extends 'accounts/base.html' %}
-{% load static %}
-
-{% block title %}{{ category.name }} - دوره‌ها{% endblock %}
-
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} | مکتب‌پلاس{% endblock %}
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-6">
-
-    <!-- HEADER -->
-    <div class="bg-surface border border-white/10 rounded-2xl p-6 text-center shadow-glow-sm">
-
-        {% if category.icon %}
-            <i class="{{ category.icon }} text-primary text-4xl"></i>
-        {% endif %}
-
-        <h1 class="text-2xl font-bold text-white mt-3">
-            {{ category.name }}
-        </h1>
-
-        {% if category.parent %}
-        <a href="{% url 'courses:category_detail' category.parent.slug %}"
-           class="text-xs text-text-2 hover:text-primary transition">
-            ← {{ category.parent.name }}
-        </a>
-        {% endif %}
-
-        <p class="text-text-2 text-sm mt-2">
-            {{ category.description|default:"دوره‌های آموزشی در این دسته‌بندی" }}
-        </p>
-
+<section class="py-10"><div class="container-x">
+  <div class="glass-strong rounded-3xl p-8 lg:p-12 mb-10 relative overflow-hidden" data-reveal>
+    <div class="orb w-72 h-72 bg-violet-500/40 -top-20 -right-20"></div>
+    <div class="orb w-72 h-72 bg-fuchsia-500/40 -bottom-20 -left-20"></div>
+    <div class="relative">
+      <div class="section-eyebrow mb-3"><i data-lucide="layers" class="w-3.5 h-3.5"></i> دسته‌بندی</div>
+      <h1 class="text-3xl lg:text-5xl font-extrabold mb-3">دوره‌های <span class="grad-text">{{ category.name }}</span></h1>
+      <p class="text-slate-300 max-w-xl">{{ courses|length }} دوره در این دسته‌بندی جمع‌آوری شده تا بهترین مسیر یادگیری‌ات رو پیدا کنی.</p>
     </div>
-
-    <!-- SUBCATEGORIES -->
-    {% if category.subcategories.exists %}
-    <div class="bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
-
-        <h3 class="text-white font-bold mb-4">زیردسته‌ها</h3>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {% for subcat in category.subcategories.all %}
-                {% if subcat.is_active %}
-                <a href="{% url 'courses:category_detail' subcat.slug %}"
-                   class="p-4 bg-elevated hover:bg-hovered border border-white/10 rounded-xl text-center transition">
-
-                    {% if subcat.icon %}
-                        <i class="{{ subcat.icon }} text-primary text-xl"></i>
-                    {% else %}
-                        <i class="fas fa-folder text-primary text-xl"></i>
-                    {% endif %}
-
-                    <div class="text-sm text-white mt-2">{{ subcat.name }}</div>
-                    <div class="text-xs text-text-2">{{ subcat.courses.count }} دوره</div>
-
-                </a>
-                {% endif %}
-            {% endfor %}
+  </div>
+  {% if category.subcategories.all %}<div class="flex flex-wrap gap-2 mb-8" data-reveal>{% for sub in category.subcategories.all %}
+    <a href="{% url 'courses:category_detail' sub.slug %}" class="badge badge-slate hover:bg-violet-500/20 transition">{{ sub.name }}</a>
+  {% endfor %}</div>{% endif %}
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>{% for course in courses %}
+    <a data-item href="{{ course.get_absolute_url }}" class="course-card group">
+      <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}</div>
+      <div class="card-body">
+        <h3 class="card-title group-hover:text-violet-300">{{ course.title }}</h3>
+        <p class="text-sm text-slate-400 line-clamp-2 leading-7">{{ course.short_description }}</p>
+        <div class="card-meta mt-auto">
+          <span><i data-lucide="clock" class="w-3.5 h-3.5"></i> {{ course.duration_hours }} س</span>
+          <span><i data-lucide="video" class="w-3.5 h-3.5"></i> {{ course.total_lessons }} ج</span>
         </div>
-
-    </div>
-    {% endif %}
-
-    <!-- FILTER + SORT -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-
-        <!-- FILTER -->
-        <div class="bg-surface border border-white/10 rounded-2xl p-4 shadow-glow-sm">
-
-            <h4 class="text-white font-bold mb-3">سطح دوره</h4>
-
-            <form method="get" id="filterForm" class="space-y-2 text-sm">
-
-                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
-                    <input type="radio" name="level" value="" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if not selected_level %}checked{% endif %}>
-                    همه
-                </label>
-                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
-                    <input type="radio" name="level" value="beginner" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if selected_level == 'beginner' %}checked{% endif %}>
-                    مقدماتی
-                </label>
-                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
-                    <input type="radio" name="level" value="intermediate" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if selected_level == 'intermediate' %}checked{% endif %}>
-                    متوسط
-                </label>
-                <label class="flex items-center gap-2 text-text-2 cursor-pointer hover:text-white transition">
-                    <input type="radio" name="level" value="advanced" onchange="document.getElementById('filterForm').submit()" class="accent-primary" {% if selected_level == 'advanced' %}checked{% endif %}>
-                    پیشرفته
-                </label>
-
-            </form>
-        </div>
-
-        <!-- COURSES -->
-        <div class="lg:col-span-3 space-y-4">
-
-            <!-- SORT -->
-            <div class="flex justify-between items-center bg-surface border border-white/10 rounded-xl p-3">
-                <span class="text-text-2 text-sm">{{ courses.count }} دوره</span>
-
-                <select class="bg-elevated border border-white/10 text-sm text-text-1 rounded-lg px-3 py-1"
-                        onchange="window.location.href=this.value">
-                    <option value="?sort=newest" {% if sort == 'newest' %}selected{% endif %}>جدیدترین</option>
-                    <option value="?sort=popular" {% if sort == 'popular' %}selected{% endif %}>محبوب‌ترین</option>
-                    <option value="?sort=cheapest" {% if sort == 'cheapest' %}selected{% endif %}>ارزان‌ترین</option>
-                    <option value="?sort=expensive" {% if sort == 'expensive' %}selected{% endif %}>گران‌ترین</option>
-                </select>
-            </div>
-
-            <!-- GRID -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-
-                {% for course in courses %}
-                <a href="{% url 'courses:course_detail' course.slug %}"
-                   class="bg-surface border border-white/10 rounded-2xl overflow-hidden hover:shadow-glow transition">
-
-                    <!-- IMAGE -->
-                    <div class="h-40 bg-elevated flex items-center justify-center overflow-hidden">
-                        {% if course.thumbnail %}
-                            <img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                            <i class="fas fa-video text-3xl text-text-3"></i>
-                        {% endif %}
-                    </div>
-
-                    <div class="p-4 space-y-2">
-
-                        <div class="text-xs text-primary">
-                            {{ course.get_level_display }}
-                        </div>
-
-                        <div class="text-sm font-bold text-white">
-                            {{ course.title|truncatechars:40 }}
-                        </div>
-
-                        <div class="text-xs text-text-2">
-                            {% for t in course.teachers.all %}
-                                {{ t.get_full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        </div>
-
-                        <div class="flex justify-between text-xs text-text-2 pt-2 border-t border-white/10">
-                            <span>{{ course.duration_hours }}h</span>
-                            <span>{{ course.total_lessons }} درس</span>
-                            <span>{{ course.enroll_count }}</span>
-                        </div>
-
-                    </div>
-
-                </a>
-                {% empty %}
-                    <p class="text-text-2">دوره‌ای یافت نشد</p>
-                {% endfor %}
-
-            </div>
-
-        </div>
-    </div>
-</div>
+      </div>
+      <div class="card-footer"><span class="text-xs text-slate-400 truncate">{{ course.get_teachers_names }}</span><div class="price-tag">{% if course.is_free %}<span class="price-free">رایگان</span>{% else %}<span class="price-current">{{ course.final_price|floatformat:0 }}</span>{% endif %}</div></div>
+    </a>
+    {% empty %}<div class="col-span-full glass rounded-2xl p-14 text-center text-slate-400">دوره‌ای در این دسته وجود نداره.</div>{% endfor %}</div>
+</div></section>
 {% endblock %}

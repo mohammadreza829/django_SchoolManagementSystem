@@ -1,150 +1,57 @@
-{% extends 'accounts/base.html' %}
-
-{% block title %}{{ lesson.title }}{% endblock %}
-
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} | {{ course.title }}{% endblock %}
 {% block content %}
-<div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-    <!-- SIDEBAR LESSONS -->
-    <div class="bg-surface border border-white/10 rounded-2xl p-4 shadow-glow-sm h-fit">
-
-        <h3 class="text-white font-bold mb-3 text-sm">
-            {{ course.title }}
-        </h3>
-
-        <div class="space-y-1 max-h-[70vh] overflow-auto pr-1">
-
-            {% for l in course.lessons.all|dictsort:"order" %}
-            <a href="{% url 'courses:lesson_detail' course.slug l.slug %}"
-               class="block p-2 rounded-xl text-xs transition
-                      {% if l.id == lesson.id %}bg-primary text-white{% else %}text-text-2 hover:bg-elevated{% endif %}">
-
-                <div class="flex justify-between items-center">
-                    <span>
-                        {{ l.order }}. {{ l.title|truncatechars:25 }}
-                    </span>
-
-                    {% if l.id in lesson_progress %}
-                        <span class="text-green-400">✓</span>
-                    {% endif %}
-                </div>
-
-            </a>
-            {% endfor %}
-
-        </div>
-
+<section class="py-6"><div class="container-x">
+  <nav class="text-xs text-slate-400 mb-4 flex items-center gap-2 flex-wrap">
+    <a href="{% url 'courses:course_list' %}" class="hover:text-white">دوره‌ها</a><i data-lucide="chevron-left" class="w-3 h-3"></i>
+    <a href="{{ course.get_absolute_url }}" class="hover:text-white">{{ course.title }}</a><i data-lucide="chevron-left" class="w-3 h-3"></i>
+    <span class="text-slate-200 truncate">{{ lesson.title }}</span>
+  </nav>
+  <div class="grid lg:grid-cols-[1fr_320px] gap-6">
+    <div data-reveal>
+      <div class="player-frame mb-5">
+        {% if lesson.content_type == 'video' %}
+          {% if lesson.video_file %}<video src="{{ lesson.video_file.url }}" controls class="w-full aspect-video"></video>
+          {% elif lesson.video_url %}<iframe src="{{ lesson.video_url }}" class="w-full aspect-video" frameborder="0" allowfullscreen></iframe>
+          {% else %}<div class="aspect-video grid place-items-center bg-ink-2"><i data-lucide="video-off" class="w-16 h-16 text-slate-600"></i></div>{% endif %}
+        {% elif lesson.content_type == 'article' %}
+          <div class="glass rounded-2xl p-6 lg:p-10 prose prose-invert max-w-none leading-9">{{ lesson.article_content|safe }}</div>
+        {% endif %}
+      </div>
+      <h1 class="text-2xl lg:text-3xl font-extrabold mb-3">{{ lesson.title }}</h1>
+      <div class="flex flex-wrap items-center gap-4 text-sm text-slate-400 mb-6">
+        <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4"></i> {{ lesson.duration_minutes }} دقیقه</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="eye" class="w-4 h-4"></i> {{ lesson.view_count }} بازدید</span>
+      </div>
+      {% if user.is_authenticated %}<form method="post" action="{% url 'courses:mark_lesson_complete' lesson.id %}" class="mb-8">{% csrf_token %}
+        <button class="btn btn-primary"><i data-lucide="check-circle" class="w-4 h-4"></i> علامت‌گذاری به‌عنوان تکمیل</button>
+      </form>{% endif %}
+      <div class="mt-10"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="message-circle" class="w-5 h-5 text-violet-300"></i> دیدگاه‌ها</h2>
+        {% if user.is_authenticated %}<form method="post" action="{% url 'courses:add_comment' lesson.id %}" class="glass rounded-2xl p-4 mb-5">{% csrf_token %}
+          <textarea name="content" class="textarea" rows="3" placeholder="دیدگاهت رو بنویس…"></textarea>
+          <div class="flex justify-end mt-3"><button class="btn btn-primary btn-sm"><i data-lucide="send" class="w-4 h-4"></i> ارسال</button></div>
+        </form>{% endif %}
+        <div class="space-y-3">{% for c in lesson.comments.all|slice:":20" %}
+          <div class="comment"><div class="flex items-center gap-2 mb-2">
+            {% if c.user.profile.avatar %}<img src="{{ c.user.profile.get_avatar_url }}" class="w-8 h-8 rounded-full">{% else %}<span class="avatar w-8 h-8 text-xs">{{ c.user.username|first|upper }}</span>{% endif %}
+            <span class="font-bold text-sm">{{ c.user.get_full_name|default:c.user.username }}</span>
+            <span class="text-xs text-slate-500 mr-auto">{{ c.created_at|timesince }} پیش</span>
+          </div><p class="text-sm text-slate-300 leading-7">{{ c.content }}</p></div>
+        {% empty %}<p class="text-sm text-slate-500 text-center py-5">هنوز دیدگاهی ثبت نشده.</p>{% endfor %}</div>
+      </div>
     </div>
-
-    <!-- MAIN -->
-    <div class="lg:col-span-3 space-y-6">
-
-        <!-- TOP BAR -->
-        <div class="flex justify-between items-center">
-            <h1 class="text-xl font-bold text-white">{{ lesson.title }}</h1>
-
-            <div>
-                {% if progress and not progress.is_completed %}
-                <form method="post" action="{% url 'courses:mark_lesson_complete' lesson.id %}">
-                    {% csrf_token %}
-                    <button class="bg-secondary text-white px-3 py-1 rounded-lg text-sm">
-                        تکمیل شد
-                    </button>
-                </form>
-                {% elif progress and progress.is_completed %}
-                    <span class="text-green-400 text-sm">✓ تکمیل شده</span>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- VIDEO -->
-        <div class="bg-black rounded-2xl overflow-hidden aspect-video">
-            {% if lesson.video_file %}
-                <video src="{{ lesson.video_file.url }}" class="w-full h-full" controls controlslist="nodownload" preload="metadata" playsinline>
-                    مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند.
-                </video>
-            {% elif lesson.video_url %}
-                <iframe src="{{ lesson.video_url }}" class="w-full h-full" allowfullscreen frameborder="0"></iframe>
-            {% else %}
-                <div class="flex items-center justify-center h-full text-text-3">
-                    ویدیو موجود نیست
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- DESCRIPTION -->
-        <div class="bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
-            <h3 class="text-white font-bold mb-2">توضیحات جلسه</h3>
-            <p class="text-text-2 text-sm">
-                {{ lesson.description|default:"توضیحی ثبت نشده است." }}
-            </p>
-        </div>
-
-        <!-- COMMENTS -->
-        <div class="bg-surface border border-white/10 rounded-2xl p-5 shadow-glow-sm">
-
-            <h3 class="text-white font-bold mb-4">
-                نظرات ({{ comments.count }})
-            </h3>
-
-            {% if user.is_authenticated %}
-            <form method="post" action="{% url 'courses:add_comment' lesson.id %}" class="mb-4 space-y-2">
-                {% csrf_token %}
-                <textarea name="comment"
-                          class="w-full bg-elevated border border-white/10 rounded-xl p-3 text-sm text-white"
-                          placeholder="نظر خود را بنویسید..."></textarea>
-
-                <button class="bg-primary text-white px-4 py-2 rounded-xl text-sm">
-                    ارسال
-                </button>
-            </form>
-            {% endif %}
-
-            <div class="space-y-3">
-
-                {% for comment in comments %}
-                <div class="border-b border-white/10 pb-3">
-
-                    <div class="flex justify-between text-xs text-text-2">
-                        <span class="text-white">
-                            {{ comment.user.get_full_name|default:comment.user.username }}
-                        </span>
-                        <span>{{ comment.created_at|timesince }} پیش</span>
-                    </div>
-
-                    <p class="text-sm text-text-2 mt-1">
-                        {{ comment.text }}
-                    </p>
-
-                </div>
-                {% empty %}
-                <p class="text-text-2 text-sm">هنوز نظری ثبت نشده</p>
-                {% endfor %}
-
-            </div>
-
-        </div>
-
-        <!-- NAV -->
-        <div class="flex justify-between">
-
-            {% if prev_lesson %}
-            <a href="{% url 'courses:lesson_detail' course.slug prev_lesson.slug %}"
-               class="bg-elevated text-text-2 px-4 py-2 rounded-xl text-sm">
-                ← قبلی
-            </a>
-            {% endif %}
-
-            {% if next_lesson %}
-            <a href="{% url 'courses:lesson_detail' course.slug next_lesson.slug %}"
-               class="bg-primary text-white px-4 py-2 rounded-xl text-sm">
-                بعدی →
-            </a>
-            {% endif %}
-
-        </div>
-
-    </div>
-
-</div>
+    <aside class="lg:sticky lg:top-24 self-start">
+      <div class="glass rounded-2xl p-4" data-reveal>
+        <h3 class="font-bold mb-3 flex items-center gap-2"><i data-lucide="list" class="w-4 h-4 text-violet-300"></i> سرفصل‌ها</h3>
+        <div class="space-y-1 max-h-[600px] overflow-y-auto">{% for l in course.lessons.all %}
+          <a href="{% url 'courses:lesson_detail' course.slug l.slug %}" class="lesson-item {% if l.id == lesson.id %}active{% endif %} flex items-center gap-2 p-3 rounded-xl text-sm">
+            <span class="lesson-num">{{ forloop.counter }}</span>
+            <span class="flex-1 truncate">{{ l.title }}</span>
+            <span class="text-xs text-slate-500">{{ l.duration_minutes }}د</span>
+          </a>
+        {% endfor %}</div>
+      </div>
+    </aside>
+  </div>
+</div></section>
 {% endblock %}

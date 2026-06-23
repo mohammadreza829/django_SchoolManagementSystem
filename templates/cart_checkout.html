@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}سبد خرید{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-5 py-8">
+    <h1 class="text-2xl md:text-3xl font-black text-dark mb-2">سبد خرید و پرداخت</h1>
+    <p class="text-sm text-muted mb-8">دوره‌های انتخاب‌شده‌ات رو بررسی و پرداخت کن</p>
+
+    <!-- Pending enrollments (from Enrollment model, payment_status=pending) -->
+    {% if pending_courses %}
+    <div class="space-y-4 mb-6">
+        {% for enrollment in pending_courses %}
+        <div class="bg-white border border-border rounded-2xl p-5 flex items-center gap-4">
+            <div class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl text-white shrink-0" style="background:linear-gradient(135deg,#6d28d9,#06b6d4)">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-sm text-dark truncate"> course.title </h3>
+                <p class="text-xs text-muted mt-1">استاد:  teacher.get_full_name|default:teacher.username </p>
+            </div>
+            <div class="text-left">
+                <p class="text-lg font-black text-dark"> course.price|intcomma </p>
+                <p class="text-xs text-muted">تومان</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Summary + checkout -->
+    <div class="bg-white border border-border rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-3 text-sm">
+            <span class="text-muted">تعداد دوره‌ها</span>
+            <span class="font-semibold text-dark"> count </span>
+        </div>
+        <div class="flex items-center justify-between mb-3 text-sm">
+            <span class="text-muted">مجموع</span>
+            <span class="font-semibold text-dark text-lg">chatcmpl-tool-fc827fbf39184effa0b7e5ed00352f2d تومان</span>
+        </div>
+        <div class="border-t border-border pt-3 mt-3">
+            <div class="flex items-center justify-between mb-5">
+                <span class="font-bold text-dark">قابل پرداخت</span>
+                <span class="text-2xl font-black grad-text">chatcmpl-tool-fc827fbf39184effa0b7e5ed00352f2d تومان</span>
+            </div>
+            <button class="btn-primary w-full py-3.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                <i class="fas fa-credit-card"></i> پرداخت و ثبت‌نام
+            </button>
+            <p class="text-xs text-muted text-center mt-3">پرداخت امن از طریق درگاه بانکی</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-20">
+        <div class="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center text-4xl text-muted-light" style="background:rgba(109,40,217,0.05)"><i class="fas fa-shopping-cart"></i></div>
+        <h3 class="font-bold text-lg text-dark mb-1">سبد خریدت خالیه</h3>
+        <p class="text-sm text-muted mb-4">ابتدا در یک دوره ثبت‌نام کن</p>
+        <a href="{% url 'courses:course_list' %}" class="btn-primary inline-block px-6 py-3 rounded-xl text-sm">مشاهده دوره‌ها</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

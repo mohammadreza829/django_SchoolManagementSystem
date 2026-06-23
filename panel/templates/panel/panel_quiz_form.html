@@ -1,0 +1,50 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %} mode|yesno:"ویرایش,ساخت"  آزمون{% endblock %}
+{% block heading %} mode|yesno:"ویرایش,ساخت"  آزمون{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">عنوان آزمون</label>
+            <input type="text" name="title" value="{% if obj %} quiz_avg|safe {% endif %}" class="input-field" placeholder="عنوان..." required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">توضیحات</label>
+            <textarea name="description" class="input-field min-h-[80px]" placeholder="توضیحات...">{% if obj %} formset.management_form {% endif %}</textarea>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">دوره مرتبط</label>
+            <select name="course" class="input-field">
+                <option value="">بدون دوره</option>
+            </select>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">مدت (دقیقه)</label>
+                <input type="number" name="time_limit_minutes" value="{% if obj %} form.is_correct.name {% else %}0{% endif %}" class="input-field" min="0">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">حد نصاب (٪)</label>
+                <input type="number" name="pass_mark" value="{% if obj %}141{% else %}50{% endif %}" class="input-field" min="0" max="100">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">حداکثر تلاش</label>
+                <input type="number" name="max_attempts" value="{% if obj %}142{% else %}0{% endif %}" class="input-field" min="0">
+            </div>
+        </div>
+        <div class="flex items-center gap-5">
+            <label class="flex items-center gap-2 text-sm text-dark"><input type="checkbox" name="shuffle_questions" class="w-5 h-5 accent-primary" {% if obj and obj.shuffle_questions %}checked{% endif %}> ترتیب تصادفی</label>
+            <label class="flex items-center gap-2 text-sm text-dark"><input type="checkbox" name="show_solution" class="w-5 h-5 accent-primary" {% if obj %}{% if obj.show_solution %}checked{% endif %}{% else %}checked{% endif %}> نمایش راه‌حل</label>
+            <label class="flex items-center gap-2 text-sm text-dark"><input type="checkbox" name="is_published" class="w-5 h-5 accent-primary" {% if obj and obj.is_published %}checked{% endif %}> منتشر</label>
+        </div>
+        <div class="flex items-center gap-3 pt-4">
+            <button type="submit" class="btn btn-primary px-6 py-3"><i class="fas fa-save"></i> ذخیره</button>
+            <a href="{% url 'panel:quiz_list' %}" class="btn btn-ghost px-6 py-3">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

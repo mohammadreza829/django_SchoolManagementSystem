@@ -1,0 +1,61 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %} mode|yesno:"ویرایش دوره,ساخت دوره" {% endblock %}
+{% block heading %} mode|yesno:"ویرایش دوره,ساخت دوره جدید" {% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">عنوان دوره</label>
+            <input type="text" name="title" value="{% if obj %} course.title {% endif %}" class="input-field" placeholder="عنوان دوره" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">توضیح کوتاه</label>
+            <input type="text" name="short_description" value="{% if obj %} course.short_description {% endif %}" class="input-field" placeholder="توضیح مختصر" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">توضیحات کامل</label>
+            <textarea name="description" class="input-field min-h-[120px]" placeholder="توضیحات کامل دوره...">{% if obj %} course.description {% endif %}</textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">دسته‌بندی</label>
+                <select name="category" class="input-field">{% if obj %}133{% endif %}</select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">سطح</label>
+                <select name="level" class="input-field">
+                    <option value="beginner" {% if obj and obj.level == 'beginner' %}selected{% endif %}>مقدماتی</option>
+                    <option value="intermediate" {% if obj and obj.level == 'intermediate' %}selected{% endif %}>متوسط</option>
+                    <option value="advanced" {% if obj and obj.level == 'advanced' %}selected{% endif %}>پیشرفته</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">قیمت (تومان)</label>
+                <input type="number" name="price" value="{% if obj %} course.price|intcomma {% endif %}" class="input-field" required>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">درصد تخفیف</label>
+                <input type="number" name="discount_percent" value="{% if obj %}chatcmpl-tool-16eeb953ecb240ecb88665f506839e9a{% endif %}" class="input-field" min="0" max="100">
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">مدت دوره (ساعت)</label>
+            <input type="number" name="duration_hours" value="{% if obj %} course.duration_hours {% endif %}" class="input-field">
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">تصویر بندانگشتی</label>
+            <input type="file" name="thumbnail" class="input-field" accept="image/*">
+        </div>
+        <div class="flex items-center gap-3 pt-4">
+            <button type="submit" class="btn btn-primary px-6 py-3"><i class="fas fa-save"></i> ذخیره</button>
+            <a href="{% url 'panel:course_list' %}" class="btn btn-ghost px-6 py-3">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

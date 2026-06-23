@@ -1,160 +1,29 @@
-{% extends 'accounts/base.html' %}
-{% load static %}
-
+{% extends 'base.html' %}
 {% block title %}ویرایش پروفایل{% endblock %}
-
 {% block content %}
-<div class="max-w-6xl mx-auto">
-
-    <form method="post" enctype="multipart/form-data" class="space-y-6">
-        {% csrf_token %}
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- ── MAIN FORMS ── -->
-            <div class="lg:col-span-2 space-y-6">
-
-                <!-- Account Info -->
-                <div class="bg-surface border border-white/10 rounded-2xl p-6 shadow-glow-sm">
-                    <div class="flex items-center gap-2 border-b border-white/10 pb-3 mb-5">
-                        <i class="fa-solid fa-user-gear text-primary"></i>
-                        <h3 class="text-white font-bold">اطلاعات اصلی حساب</h3>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for field in user_form %}
-                        <div class="space-y-2">
-                            <label class="text-xs text-text-2">{{ field.label }}</label>
-                            <div class="form-input-wrapper">
-                                {{ field }}
-                            </div>
-                            {% if field.errors %}
-                                <p class="text-xs text-red-400">{{ field.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Profile Details -->
-                <div class="bg-surface border border-white/10 rounded-2xl p-6 shadow-glow-sm">
-                    <div class="flex items-center gap-2 border-b border-white/10 pb-3 mb-5">
-                        <i class="fa-solid fa-address-card text-primary"></i>
-                        <h3 class="text-white font-bold">جزئیات پروفایل</h3>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for field in profile_form %}
-                            {% if field.name != 'avatar' and field.name != 'cover' %}
-                            <div class="space-y-2">
-                                <label class="text-xs text-text-2">{{ field.label }}</label>
-                                <div class="form-input-wrapper">
-                                    {{ field }}
-                                </div>
-                                {% if field.errors %}
-                                    <p class="text-xs text-red-400">{{ field.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- ── SIDEBAR UPLOAD ── -->
-            <div class="space-y-6">
-
-                <div class="bg-surface border border-white/10 rounded-2xl p-6 shadow-glow-sm">
-                    <div class="flex items-center gap-2 border-b border-white/10 pb-3 mb-5">
-                        <i class="fa-solid fa-image text-primary"></i>
-                        <h3 class="text-white font-bold">تصاویر پروفایل</h3>
-                    </div>
-
-                    <div class="space-y-5">
-
-                        <div class="space-y-2">
-                            <label class="text-xs text-text-2">آواتار</label>
-                            <div class="file-input">
-                                {{ profile_form.avatar }}
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="text-xs text-text-2">کاور</label>
-                            <div class="file-input">
-                                {{ profile_form.cover }}
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- ACTIONS -->
-                <button type="submit"
-                    class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl shadow-glow transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check"></i>
-                    ذخیره تغییرات
-                </button>
-
-                <a href="{% url 'accounts:profile' %}"
-                    class="block w-full text-center py-3 rounded-xl bg-elevated hover:bg-hovered text-text-2 transition">
-                    انصراف
-                </a>
-
-            </div>
-
-        </div>
-    </form>
-</div>
-
-<!-- ── STYLE FIX (aligned with base system) ── -->
-<style>
-/* inputs unified with base theme */
-.form-input-wrapper input,
-.form-input-wrapper textarea,
-.form-input-wrapper select {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 13px;
-    color: var(--text-1);
-    outline: none;
-    transition: 0.2s;
-}
-
-.form-input-wrapper input:focus,
-.form-input-wrapper textarea:focus,
-.form-input-wrapper select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-/* file input */
-.file-input input[type="file"] {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px;
-    color: var(--text-2);
-    font-size: 12px;
-}
-
-.file-input input[type="file"]::file-selector-button {
-    background: var(--elevated);
-    color: var(--text-1);
-    border: 1px solid var(--border);
-    padding: 6px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-left: 8px;
-}
-
-.file-input input[type="file"]::file-selector-button:hover {
-    background: var(--hovered);
-}
-</style>
+<section class="py-10"><div class="container-x max-w-4xl">
+  <div data-reveal class="mb-8">
+    <div class="section-eyebrow mb-3"><i data-lucide="user-cog" class="w-3.5 h-3.5"></i> تنظیمات</div>
+    <h1 class="section-title"><span class="grad-text">ویرایش</span> پروفایل</h1>
+  </div>
+  <form method="post" enctype="multipart/form-data" class="space-y-6">{% csrf_token %}
+    {% if user_form or profile_form %}
+      <div class="glass rounded-2xl p-6" data-reveal>
+        <h2 class="text-lg font-bold mb-5 flex items-center gap-2"><i data-lucide="user" class="w-5 h-5 text-violet-300"></i> حساب کاربری</h2>
+        <div class="grid sm:grid-cols-2 gap-4">{% for field in user_form %}<div><label class="label">{{ field.label }}</label>{{ field }}{% if field.errors %}<p class="field-error">{{ field.errors|first }}</p>{% endif %}</div>{% endfor %}</div>
+      </div>
+      <div class="glass rounded-2xl p-6" data-reveal>
+        <h2 class="text-lg font-bold mb-5 flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-fuchsia-300"></i> پروفایل</h2>
+        <div class="grid sm:grid-cols-2 gap-4">{% for field in profile_form %}<div class="{% if 'bio' in field.name %}sm:col-span-2{% endif %}"><label class="label">{{ field.label }}</label>{{ field }}{% if field.help_text %}<p class="help-text">{{ field.help_text|safe }}</p>{% endif %}{% if field.errors %}<p class="field-error">{{ field.errors|first }}</p>{% endif %}</div>{% endfor %}</div>
+      </div>
+    {% else %}
+      <div class="glass rounded-2xl p-6" data-reveal><div class="grid sm:grid-cols-2 gap-4">{% for field in form %}<div class="{% if 'bio' in field.name %}sm:col-span-2{% endif %}"><label class="label">{{ field.label }}</label>{{ field }}{% if field.errors %}<p class="field-error">{{ field.errors|first }}</p>{% endif %}</div>{% endfor %}</div></div>
+    {% endif %}
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'accounts:profile' %}" class="btn btn-ghost">انصراف</a>
+      <button class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i> ذخیره</button>
+    </div>
+  </form>
+</div></section>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('form input:not([type=checkbox]):not([type=hidden]):not([type=file]), form select, form textarea').forEach(el=>{if(el.tagName==='TEXTAREA'){el.classList.add('textarea');el.rows=4;}else if(el.tagName==='SELECT')el.classList.add('select');else el.classList.add('input');});document.querySelectorAll('input[type=file]').forEach(el=>el.classList.add('input','!py-2'))});</script>
 {% endblock %}

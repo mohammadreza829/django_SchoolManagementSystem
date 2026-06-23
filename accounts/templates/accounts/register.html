@@ -1,40 +1,48 @@
-{% extends 'accounts/base.html' %}
-
-{% block title %}ثبت‌نام دانش‌آموز{% endblock %}
-
+{% extends 'base.html' %}
+{% block title %}ثبت‌نام | مکتب‌پلاس{% endblock %}
 {% block content %}
-<div class="max-w-xl mx-auto">
-
-    <div class="bg-surface border border-white/10 rounded-2xl p-6 shadow-glow-sm">
-
-        <h2 class="text-lg font-bold text-white mb-6">
-            <i class="fas fa-user-plus text-primary ml-2"></i>
-            ثبت‌نام دانش‌آموز جدید
-        </h2>
-
+<section class="py-12">
+  <div class="container-x">
+    <div class="auth-grid">
+      <div class="p-8 lg:p-12" data-reveal>
+        <div class="section-eyebrow mb-4 inline-flex"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ثبت‌نام</div>
+        <h1 class="text-3xl font-extrabold mb-2">به <span class="grad-text">مکتب‌پلاس</span> بپیوند</h1>
+        <p class="text-slate-400 text-sm mb-7">حسابت رو بساز و سفرت رو شروع کن.</p>
         <form method="post" class="space-y-4">
-            {% csrf_token %}
-
-            {% for field in form %}
-            <div>
-                <label class="text-xs text-text-2">{{ field.label }}</label>
-                <div class="mt-1">
-                    {{ field }}
-                </div>
-                {% if field.errors %}
-                    <p class="text-xs text-red-400">{{ field.errors|striptags }}</p>
-                {% endif %}
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div class="toast toast-error"><i data-lucide="alert-circle" class="w-4 h-4"></i><span>{{ form.non_field_errors|first }}</span></div>{% endif %}
+          {% for field in form %}{% if field.field.widget.input_type != 'hidden' %}
+          <div>
+            <label class="label {% if field.field.required %}required{% endif %}">{{ field.label }}</label>
+            <div class="input-group">
+              {% if 'password' in field.name %}<i data-lucide="lock" class="input-icon w-4 h-4"></i>
+              {% elif 'email' in field.name %}<i data-lucide="mail" class="input-icon w-4 h-4"></i>
+              {% elif 'phone' in field.name %}<i data-lucide="phone" class="input-icon w-4 h-4"></i>
+              {% else %}<i data-lucide="user" class="input-icon w-4 h-4"></i>{% endif %}
+              {{ field }}
             </div>
-            {% endfor %}
-
-            <button type="submit"
-                class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-2.5 rounded-xl transition">
-                ثبت‌نام
-            </button>
-
+            {% if field.help_text %}<p class="help-text">{{ field.help_text|safe }}</p>{% endif %}
+            {% if field.errors %}<p class="field-error">{{ field.errors|first }}</p>{% endif %}
+          </div>
+          {% endif %}{% endfor %}
+          <label class="flex items-start gap-2 text-xs text-slate-300"><input type="checkbox" required class="w-4 h-4 accent-violet-500 mt-0.5"><span>با <a href="#" class="text-violet-300">قوانین</a> و <a href="#" class="text-violet-300">حریم خصوصی</a> موافقم.</span></label>
+          <button class="btn btn-gold w-full btn-lg"><i data-lucide="sparkles" class="w-5 h-5"></i> ثبت‌نام</button>
+          <div class="text-center text-sm text-slate-400 pt-3">حساب داری؟ <a href="{% url 'accounts:login' %}" class="text-violet-300 font-bold">وارد شو</a></div>
         </form>
-
+      </div>
+      <div class="auth-side relative overflow-hidden p-10 hidden lg:flex flex-col justify-between">
+        <div class="orb w-72 h-72 bg-fuchsia-500/40 -top-20 -right-20"></div>
+        <div class="relative">
+          <h2 class="text-3xl font-extrabold leading-snug mb-3">سفرت از اینجا شروع می‌شه</h2>
+          <ul class="space-y-3 text-sm text-slate-200">
+            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> درسترسی به دوره‌های رایگان</li>
+            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> پشتیبانی اختصاصی</li>
+            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> گواهینامه‌ی رسمی</li>
+          </ul>
+        </div>
+      </div>
     </div>
-
-</div>
+  </div>
+</section>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('form input:not([type=checkbox]):not([type=hidden]), form select, form textarea').forEach(el=>{if(el.tagName==='TEXTAREA')el.classList.add('textarea');else if(el.tagName==='SELECT')el.classList.add('select');else el.classList.add('input');})})</script>
 {% endblock %}

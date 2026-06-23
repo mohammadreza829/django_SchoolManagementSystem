@@ -1,0 +1,35 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}نتایج{% endblock %}
+{% block heading %}نتایج و نمرات{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+    <p class="text-sm text-muted">آمار کلی آزمون‌ها</p>
+    <div class="card overflow-hidden">
+        <table>
+            <thead>
+                <tr><th>آزمون</th><th>تعداد تلاش</th><th>میانگین</th><th>عملیات</th></tr>
+            </thead>
+            <tbody>
+                {% for q in quizzes %}
+                <tr>
+                    <td class="font-semibold"> quiz_avg|safe </td>
+                    <td> q.attempt_count </td>
+                    <td class="font-bold"> q.avg_score|floatformat:1  ٪</td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'panel:quiz_results' q.id %}" class="text-primary hover:bg-primary/10 w-8 h-8 rounded-lg flex items-center justify-center transition" title="جزئیات"><i class="fas fa-list text-xs"></i></a>
+                            <a href="{% url 'panel:quiz_results_csv' q.id %}" class="text-accent hover:bg-accent/10 w-8 h-8 rounded-lg flex items-center justify-center transition" title="خروجی CSV"><i class="fas fa-file-csv text-xs"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-gray-400 py-8">آزمونی موجود نیست</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

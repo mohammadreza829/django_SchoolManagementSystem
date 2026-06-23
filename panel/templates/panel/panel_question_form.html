@@ -1,0 +1,61 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}افزودن سوال{% endblock %}
+{% block heading %}افزودن سوال به:  quiz_avg|safe {% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">موضوع</label>
+             form.text.name 
+            <select name="topic" class="input-field" required>
+                <option value="">انتخاب موضوع...</option>
+                {% for t in form.topic.field.queryset %}
+                <option value=" t.id "> t.name </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">متن سوال</label>
+            <textarea name="text" class="input-field min-h-[100px]" placeholder="متن سوال..." required></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">نوع سوال</label>
+                <select name="question_type" class="input-field">
+                    <option value="single">تک‌گزینه‌ای</option>
+                    <option value="multiple">چندگزینه‌ای</option>
+                    <option value="truefalse">درست/غلط</option>
+                    <option value="numeric">پاسخ عددی</option>
+                    <option value="short">پاسخ کوتاه</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-dark mb-2">سطح</label>
+                <select name="difficulty" class="input-field">
+                    <option value="easy">آسان</option>
+                    <option value="medium" selected>متوسط</option>
+                    <option value="hard">سخت</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">بارم (نمره)</label>
+            <input type="number" name="points" value="1" class="input-field" min="1">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-dark mb-2">راه‌حل / توضیح</label>
+            <textarea name="solution" class="input-field min-h-[80px]" placeholder="راه‌حل بعد از آزمون..."></textarea>
+        </div>
+
+        <div class="flex items-center gap-3 pt-4">
+            <button type="submit" class="btn btn-primary px-6 py-3"><i class="fas fa-save"></i> ذخیره سوال</button>
+            <a href="{% url 'panel:quiz_questions' quiz.id %}" class="btn btn-ghost px-6 py-3">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
