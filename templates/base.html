@@ -85,6 +85,9 @@
             </div>
           </div>
           <a href="{% url 'quiz:quiz_list' %}" class="nav-link">آزمون‌ها</a>
+          {% if user.is_authenticated and user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
+          <a href="{% url 'panel:dashboard' %}" class="nav-link flex items-center gap-1 !text-violet-300"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> پنل مدیریت</a>
+          {% endif %}
         </nav>
 
         <form action="{% url 'courses:search' %}" method="get" class="hidden md:flex flex-1 max-w-md mr-auto">
@@ -117,6 +120,15 @@
                 <a href="{% url 'accounts:dashboard' %}" class="menu-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> داشبورد</a>
                 <a href="{% url 'accounts:profile' %}" class="menu-item"><i data-lucide="user" class="w-4 h-4"></i> پروفایل</a>
                 <a href="{% url 'courses:my_courses' %}" class="menu-item"><i data-lucide="book-marked" class="w-4 h-4"></i> دوره‌های من</a>
+                {% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
+                <div class="my-1 h-px bg-white/10"></div>
+                <a href="{% url 'panel:dashboard' %}" class="menu-item !text-violet-300"><i data-lucide="shield-check" class="w-4 h-4"></i> پنل مدیریت</a>
+                <a href="{% url 'panel:course_list' %}" class="menu-item"><i data-lucide="book-open-check" class="w-4 h-4"></i> مدیریت دوره‌ها</a>
+                <a href="{% url 'panel:quiz_list' %}" class="menu-item"><i data-lucide="file-question" class="w-4 h-4"></i> مدیریت آزمون‌ها</a>
+                <a href="{% url 'panel:results' %}" class="menu-item"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> نتایج و نمرات</a>
+                {% if user.is_superuser %}<a href="/admin/" class="menu-item !text-gold-300"><i data-lucide="key-round" class="w-4 h-4"></i> پنل جنگو</a>{% endif %}
+                <div class="my-1 h-px bg-white/10"></div>
+                {% endif %}
                 <a href="{% url 'accounts:edit_profile' %}" class="menu-item"><i data-lucide="settings" class="w-4 h-4"></i> تنظیمات</a>
                 <div class="my-1 h-px bg-white/10"></div>
                 <form method="post" action="{% url 'accounts:logout' %}">
@@ -139,6 +151,14 @@
           <a href="{% url 'courses:course_list' %}" class="menu-item"><i data-lucide="library" class="w-4 h-4"></i> دوره‌ها</a>
           <a href="{% url 'quiz:quiz_list' %}" class="menu-item"><i data-lucide="clipboard-check" class="w-4 h-4"></i> آزمون‌ها</a>
           {% if user.is_authenticated %}<a href="{% url 'accounts:dashboard' %}" class="menu-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> داشبورد</a>{% endif %}
+          {% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
+          <div class="my-1 h-px bg-white/10"></div>
+          <a href="{% url 'panel:dashboard' %}" class="menu-item !text-violet-300"><i data-lucide="shield-check" class="w-4 h-4"></i> پنل مدیریت</a>
+          <a href="{% url 'panel:course_list' %}" class="menu-item"><i data-lucide="book-open-check" class="w-4 h-4"></i> مدیریت دوره‌ها</a>
+          <a href="{% url 'panel:quiz_list' %}" class="menu-item"><i data-lucide="file-question" class="w-4 h-4"></i> مدیریت آزمون‌ها</a>
+          <a href="{% url 'panel:results' %}" class="menu-item"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> نتایج و نمرات</a>
+          {% if user.is_superuser %}<a href="/admin/" class="menu-item !text-gold-300"><i data-lucide="key-round" class="w-4 h-4"></i> پنل جنگو</a>{% endif %}
+          {% endif %}
         </nav>
       </div>
     </header>
