@@ -402,9 +402,12 @@ def category_detail(request, slug):
     نمایش همه دوره‌های یک دسته‌بندی
     """
     category = get_object_or_404(Category, slug=slug, is_active=True)
+    # دوره‌های خود دسته + دوره‌های همه‌ی زیردسته‌ها
+    subcategory_ids = list(category.subcategories.values_list("id", flat=True))
+    category_ids = [category.id] + subcategory_ids
     courses = Course.objects.filter(
-        category=category, status="published"
-    ).prefetch_related("teachers")
+        category_id__in=category_ids, status="published"
+    ).prefetch_related("teachers").select_related("category")
 
     # فیلتر بر اساس سطح
     level = request.GET.get("level")

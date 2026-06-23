@@ -37,43 +37,74 @@ html, body { background: var(--bg-0); color: var(--text); }
 /* Selection */
 ::selection { background: rgba(168, 85, 247, 0.4); color: white; }
 
-/* ====== Gradient mesh background ====== */
-.mesh-bg { z-index: -10; }
-.mesh-bg .blob {
+/* ====== Gradient mesh background (always visible, vibrant) ====== */
+.mesh-bg {
+  z-index: -10;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(139, 92, 246, 0.25), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 80% 100%, rgba(217, 70, 239, 0.22), transparent 60%),
+    radial-gradient(ellipse 100% 70% at 50% 50%, rgba(56, 189, 248, 0.10), transparent 70%),
+    linear-gradient(180deg, #06061a 0%, #0a0820 50%, #0d0a28 100%);
+}
+.mesh-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.55;
+  filter: blur(100px);
+  opacity: 0.7;
   will-change: transform;
-  animation: floatBlob 20s ease-in-out infinite;
+  animation: floatBlob 22s ease-in-out infinite;
 }
-.mesh-bg .blob-1 {
+.mesh-blob-1 {
+  width: 620px; height: 620px;
+  top: -160px; right: -120px;
+  background: radial-gradient(circle at 30% 30%, #a855f7 0%, #7c3aed 40%, transparent 70%);
+}
+.mesh-blob-2 {
   width: 560px; height: 560px;
-  top: -140px; right: -90px;
-  background: radial-gradient(circle at 30% 30%, #a855f7, transparent 60%);
-}
-.mesh-bg .blob-2 {
-  width: 500px; height: 500px;
-  bottom: -100px; left: -120px;
-  background: radial-gradient(circle at 60% 40%, #d946ef, transparent 60%);
+  bottom: -140px; left: -140px;
+  background: radial-gradient(circle at 60% 40%, #d946ef 0%, #c026d3 40%, transparent 70%);
   animation-delay: -7s;
 }
-.mesh-bg .blob-3 {
-  width: 420px; height: 420px;
-  top: 40%; left: 35%;
-  background: radial-gradient(circle at 50% 50%, #38bdf8, transparent 60%);
-  opacity: 0.32;
+.mesh-blob-3 {
+  width: 480px; height: 480px;
+  top: 35%; left: 40%;
+  background: radial-gradient(circle at 50% 50%, #38bdf8 0%, #6366f1 40%, transparent 70%);
+  opacity: 0.4;
   animation-delay: -14s;
 }
-.mesh-bg .grain {
+.mesh-grain {
   position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0"/></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>");
   mix-blend-mode: overlay;
-  opacity: 0.5;
+  opacity: 0.4;
 }
+/* Subtle dotted grid overlay across the whole site for added depth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -9;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 40%, transparent 100%);
+}
+/* Legacy classes (.blob, .blob-1...) kept as aliases for any other page using them */
+.mesh-bg .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.6; will-change: transform; animation: floatBlob 20s ease-in-out infinite; }
+.mesh-bg .blob-1 { width: 560px; height: 560px; top: -140px; right: -90px; background: radial-gradient(circle at 30% 30%, #a855f7, transparent 60%); }
+.mesh-bg .blob-2 { width: 500px; height: 500px; bottom: -100px; left: -120px; background: radial-gradient(circle at 60% 40%, #d946ef, transparent 60%); animation-delay: -7s; }
+.mesh-bg .blob-3 { width: 420px; height: 420px; top: 40%; left: 35%; background: radial-gradient(circle at 50% 50%, #38bdf8, transparent 60%); opacity: 0.32; animation-delay: -14s; }
+.mesh-bg .grain { position: absolute; inset: 0; background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0"/></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>"); mix-blend-mode: overlay; opacity: 0.5; }
 @keyframes floatBlob {
   0%, 100% { transform: translate(0,0) scale(1); }
-  33% { transform: translate(40px, -30px) scale(1.07); }
+  33% { transform: translate(50px, -40px) scale(1.08); }
+  66% { transform: translate(-40px, 50px) scale(0.96); }
+}
+
   66% { transform: translate(-30px, 40px) scale(0.97); }
 }
 
@@ -582,3 +613,215 @@ html, body { background: var(--bg-0); color: var(--text); }
 
 /* Floating label tweak */
 label.required::after { content: ' *'; color: #f87171; }
+
+
+/* ============ LIGHT THEME v2 ============
+   تم سفید / کرمی با لامسه‌های بنفش و طلایی
+   Override block — در انتها برای غلبه بر سبک‌های پیشفرض
+========================================== */
+:root {
+  --bg-0: #f7f7fb;
+  --bg-1: #ffffff;
+  --bg-2: #f1f1f7;
+  --surface: rgba(255,255,255,0.78);
+  --surface-2: rgba(255,255,255,0.95);
+  --border: rgba(15,23,42,0.10);
+  --border-2: rgba(15,23,42,0.16);
+  --text: #0f172a;
+  --muted: #475569;
+  --dim: #64748b;
+}
+
+html, body {
+  background: #f7f7fb;
+  color: #0f172a;
+}
+
+/* Re-map text-slate-* (used everywhere) to look right on light bg */
+.text-slate-100, .text-white { color: #0f172a !important; }
+.text-slate-200 { color: #1e293b !important; }
+.text-slate-300 { color: #334155 !important; }
+.text-slate-400 { color: #64748b !important; }
+.text-slate-500 { color: #94a3b8 !important; }
+
+/* Scrollbar (light) */
+::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.18); border: 2px solid #f7f7fb; }
+::-webkit-scrollbar-thumb:hover { background: rgba(15,23,42,0.32); }
+::selection { background: rgba(168, 85, 247, 0.25); color: #0f172a; }
+
+/* Mesh background (subtle on light) */
+.mesh-bg {
+  z-index: -10; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 0%, rgba(139, 92, 246, 0.10), transparent 65%),
+    radial-gradient(ellipse 80% 60% at 85% 100%, rgba(217, 70, 239, 0.09), transparent 65%),
+    radial-gradient(ellipse 100% 70% at 50% 50%, rgba(56, 189, 248, 0.05), transparent 70%),
+    linear-gradient(180deg, #f7f7fb 0%, #ffffff 50%, #f1f1f7 100%);
+}
+.mesh-blob { opacity: 0.28; filter: blur(120px); }
+.mesh-blob-3 { opacity: 0.15; }
+.mesh-bg .grain, .mesh-grain { opacity: 0.06; mix-blend-mode: multiply; }
+
+/* Dotted grid backdrop — darker dots on white */
+body::before {
+  background-image: radial-gradient(circle at 1px 1px, rgba(15,23,42,0.06) 1px, transparent 0) !important;
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 100%);
+}
+
+/* Glass surfaces become frosted white */
+.glass {
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(15,23,42,0.08);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  color: #0f172a;
+}
+.glass-strong {
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(15,23,42,0.10);
+  box-shadow: 0 10px 32px -12px rgba(15,23,42,0.10);
+  color: #0f172a;
+}
+
+/* Navbar (light) */
+.site-nav, header.site-nav {
+  background: rgba(255,255,255,0.72) !important;
+  border-bottom: 1px solid rgba(15,23,42,0.06);
+  backdrop-filter: saturate(150%) blur(16px);
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+}
+.site-nav.scrolled { background: rgba(255,255,255,0.92) !important; box-shadow: 0 4px 20px -8px rgba(15,23,42,0.08); }
+.nav-link { color: #475569; }
+.nav-link:hover { color: #0f172a; background: rgba(15,23,42,0.05); }
+.nav-link.active { color: #0f172a; background: rgba(168,85,247,0.10); }
+
+/* Icon buttons */
+.icon-btn { background: rgba(15,23,42,0.04); border-color: rgba(15,23,42,0.10); color: #475569; }
+.icon-btn:hover { background: rgba(15,23,42,0.08); color: #0f172a; border-color: rgba(15,23,42,0.18); }
+
+/* Menu items */
+.menu-item { color: #334155; }
+.menu-item:hover { background: rgba(15,23,42,0.06); color: #0f172a; }
+
+/* Inputs */
+input, textarea, select {
+  background: rgba(15,23,42,0.03) !important;
+  border-color: rgba(15,23,42,0.12) !important;
+  color: #0f172a !important;
+}
+input::placeholder, textarea::placeholder { color: #94a3b8 !important; }
+
+/* Gradient text (still works on light) */
+.grad-text {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #d97706 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Buttons — ghost / outline tuned for light */
+.btn-ghost { background: rgba(15,23,42,0.05); color: #0f172a; border-color: rgba(15,23,42,0.10); }
+.btn-ghost:hover { background: rgba(15,23,42,0.10); border-color: rgba(15,23,42,0.20); }
+.btn-outline { color: #0f172a; border-color: rgba(15,23,42,0.18); }
+.btn-outline:hover { background: rgba(15,23,42,0.04); border-color: rgba(15,23,42,0.28); }
+
+/* Dividers used inline */
+.bg-white\/5, .bg-white\/8, .bg-white\/10 { background: rgba(15,23,42,0.05) !important; }
+.border-white\/5, .border-white\/10, .border-white\/15, .border-white\/20 { border-color: rgba(15,23,42,0.10) !important; }
+.bg-ink-0, .bg-ink-1, .bg-ink-2 { background: #ffffff !important; }
+
+/* ============ COURSE CARD — redesigned ============ */
+.course-card {
+  background: #ffffff;
+  border: 1px solid rgba(15,23,42,0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  display: flex; flex-direction: column;
+  text-decoration: none;
+  color: #0f172a;
+  transition: transform .35s cubic-bezier(.2,.7,.2,1), border-color .25s, box-shadow .35s;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04), 0 4px 12px -4px rgba(15,23,42,0.05);
+}
+.course-card::before {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.5), transparent 35%, transparent 65%, rgba(217, 70, 239, 0.45));
+  border-radius: 18px;
+}
+.course-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(168,85,247,0.30);
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04), 0 24px 50px -16px rgba(168, 85, 247, 0.30);
+}
+.course-card .card-thumb {
+  aspect-ratio: 16 / 10;
+  background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 50%, #fef3c7 100%);
+  position: relative; overflow: hidden;
+}
+.course-card .card-thumb::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 80% 10%, rgba(168,85,247,0.18), transparent 50%),
+    radial-gradient(circle at 15% 90%, rgba(217,70,239,0.12), transparent 55%);
+}
+.course-card .card-thumb .placeholder {
+  position: relative; z-index: 1;
+  background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
+  color: rgba(124, 58, 237, 0.55);
+  font-size: 56px;
+}
+.card-body { padding: 18px 20px 14px; gap: 12px; }
+.card-body .badge {
+  align-self: flex-start;
+  background: rgba(168,85,247,0.10);
+  color: #6d28d9;
+  border: 1px solid rgba(168,85,247,0.18);
+}
+.card-title { color: #0f172a !important; font-size: 17px; font-weight: 800; line-height: 1.55; min-height: 3em; }
+.card-meta { color: #64748b !important; gap: 14px; font-weight: 500; }
+.card-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.card-footer {
+  background: #fafafe;
+  border-top: 1px solid rgba(15,23,42,0.06);
+  padding: 14px 20px;
+}
+.card-footer .text-slate-400, .card-footer .text-slate-500 { color: #475569 !important; font-weight: 500; }
+.price-current { color: #b45309 !important; font-size: 18px; font-weight: 800; }
+.price-original { color: #94a3b8 !important; }
+.price-free { color: #15803d !important; }
+
+/* ============ STAT CARDS — light vibe ============ */
+.stat-card {
+  background: #ffffff;
+  border: 1px solid rgba(15,23,42,0.08);
+  border-radius: 18px;
+  padding: 22px 20px;
+  box-shadow: 0 4px 14px -6px rgba(15,23,42,0.06);
+  transition: transform .25s, box-shadow .25s, border-color .25s;
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(168,85,247,0.30);
+  box-shadow: 0 14px 30px -12px rgba(168,85,247,0.22);
+}
+
+/* Hero orbs softer on light */
+.orb { opacity: 0.55; filter: blur(70px); }
+
+/* Section subtitle / eyebrow text */
+.section-eyebrow { color: #6d28d9; background: rgba(168,85,247,0.10); border: 1px solid rgba(168,85,247,0.18); }
+.section-title { color: #0f172a; }
+.section-subtitle { color: #475569; }
+
+/* Notification item interactive style (dashboard) */
+.notif-item { text-decoration: none; color: inherit; }
+.notif-item:hover { transform: translateX(-2px); }
+
+/* Avatars on light */
+.avatar { background: linear-gradient(135deg, #a855f7, #d946ef); color: #fff; }
+
+/* Footer (the dark band at bottom may need lifting) */
+footer, .site-footer { background: #ffffff; border-top: 1px solid rgba(15,23,42,0.08); color: #475569; }
+
+/* Hero grid bg overlay (if exists) tone down */
+.hero-grid-bg { opacity: 0.5; }

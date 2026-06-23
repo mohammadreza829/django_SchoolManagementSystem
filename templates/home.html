@@ -10,17 +10,12 @@
   <div class="container-x relative">
     <div class="grid lg:grid-cols-12 gap-12 items-center">
       <div class="lg:col-span-7">
-        <div data-reveal class="section-eyebrow mb-6">
-          <span class="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse"></span>
-          پلتفرم یادگیری نسل جدید
-        </div>
         <h1 data-reveal class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] mb-6">
           یاد بگیر، بساز،<br>
           <span class="grad-text">به جایی برس که باید.</span>
         </h1>
         <p data-reveal class="text-lg text-slate-300 leading-9 max-w-xl mb-8">
-          دوره‌های ویدیویی حرفه‌ای، آزمون‌های هوشمند و گواهینامه‌ی رسمی —
-          همه در یک پلتفرم که برای یادگیرنده‌های جدی طراحی شده.
+          دوره‌های حرفه‌ای و آزمون‌های هوشمند، همه یکجا.
         </p>
 
         <form data-reveal action="{% url 'courses:search' %}" method="get" class="max-w-xl mb-7">
@@ -36,11 +31,6 @@
           <a href="#categories" class="btn btn-ghost"><i data-lucide="compass" class="w-4 h-4"></i> دسته‌بندی‌ها</a>
         </div>
 
-        <div data-reveal class="flex items-center gap-6 text-xs text-slate-400">
-          <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> پشتیبانی ۲۴/۷</div>
-          <div class="flex items-center gap-2"><i data-lucide="award" class="w-4 h-4 text-gold-400"></i> گواهینامه‌ی رسمی</div>
-          <div class="flex items-center gap-2"><i data-lucide="infinity" class="w-4 h-4 text-violet-300"></i> دسترسی مادام‌العمر</div>
-        </div>
       </div>
 
       <div class="lg:col-span-5 relative h-[520px] hidden lg:block">
@@ -113,7 +103,6 @@
     <div data-reveal class="text-center max-w-2xl mx-auto mb-12">
       <div class="section-eyebrow mb-3 mx-auto inline-flex"><i data-lucide="layers" class="w-3.5 h-3.5"></i> دسته‌بندی‌ها</div>
       <h2 class="section-title">از <span class="grad-text">هر مسیری</span> که دوست داری شروع کن</h2>
-      <p class="section-subtitle mt-3">از برنامه‌نویسی تا طراحی، از کسب‌وکار تا هنر — جای خودت رو پیدا کن.</p>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-stagger>
       {% for cat in all_categories|slice:':8' %}
@@ -122,7 +111,7 @@
           <i data-lucide="{{ cat.icon|default:'folder' }}" class="w-6 h-6 text-violet-200"></i>
         </span>
         <h3 class="font-bold mb-1">{{ cat.name }}</h3>
-        <p class="text-xs text-slate-400">{{ cat.courses.count }} دوره</p>
+        <p class="text-xs text-slate-400"> cat.total_courses_count|default:0  دوره</p>
       </a>
       {% empty %}
       <div class="col-span-full text-center text-slate-400 glass rounded-2xl p-10">به زودی دسته‌بندی‌های بیشتری اضافه می‌شه.</div>
