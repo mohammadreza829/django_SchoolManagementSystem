@@ -204,6 +204,8 @@ class Notification(models.Model):
         User, on_delete=models.CASCADE, related_name='notifications', verbose_name="کاربر"
     )
     message = models.CharField(max_length=255, verbose_name="پیام")
+    link = models.CharField(max_length=500, blank=True, default="", verbose_name="لینک مقصد")
+    title = models.CharField(max_length=120, blank=True, default="", verbose_name="عنوان")
     is_read = models.BooleanField(default=False, verbose_name="خوانده شده؟")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 

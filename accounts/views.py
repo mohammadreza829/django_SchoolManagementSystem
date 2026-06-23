@@ -166,7 +166,7 @@ def change_password(request):
 def notifications_view(request):
     notes = request.user.notifications.all()
     notes.filter(is_read=False).update(is_read=True)
-    return render(request, "accounts/notifications.html", {"notes": notes})
+    return render(request, "accounts/notifications.html", {"notifications": notes})
 
 
 from django.contrib.admin.views.decorators import staff_member_required

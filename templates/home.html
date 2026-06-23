@@ -111,7 +111,7 @@
           <i data-lucide="{{ cat.icon|default:'folder' }}" class="w-6 h-6 text-violet-200"></i>
         </span>
         <h3 class="font-bold mb-1">{{ cat.name }}</h3>
-        <p class="text-xs text-slate-400"> cat.total_courses_count|default:0  دوره</p>
+        <p class="text-xs text-slate-400">{{ cat.total_courses_count|default:0 }} دوره</p>
       </a>
       {% empty %}
       <div class="col-span-full text-center text-slate-400 glass rounded-2xl p-10">به زودی دسته‌بندی‌های بیشتری اضافه می‌شه.</div>

@@ -15,6 +15,7 @@ from django.utils import timezone
 
 from courses.models import Course
 from Enrollment.models import Enrollment
+from accounts.models import Notification
 from .models import CourseMessage
 
 
@@ -103,4 +104,27 @@ def post_message(request, course_id):
         text=text[:2000],
         is_announcement=is_announcement,
     )
+
+    # اگر فرستنده استاد یا ادمین بود، برای دانش‌آموزان ثبت‌نام‌شده‌ی فعال نوتیفیکیشن بساز
+    if is_teacher:
+        student_ids = list(
+            Enrollment.objects.filter(
+                course=course,
+                status="active",
+                payment_status__in=["free", "paid"],
+            ).exclude(student=request.user).values_list("student_id", flat=True)
+        )
+        preview = (text[:80] + "…") if len(text) > 80 else text
+        prefix = "اعلان استاد" if is_announcement else "پیام جدید از استاد"
+        notif_text = f"{prefix} در دوره‌ی «{course.title}»: {preview}"
+        from django.urls import reverse
+        chat_url = reverse("chat:room", args=[course.id])
+        notif_title = ("اعلان استاد" if is_announcement else "پیام جدید") + f" «{course.title}»"
+        notifications = [
+            Notification(user_id=sid, message=notif_text, link=chat_url, title=notif_title)
+            for sid in student_ids
+        ]
+        if notifications:
+            Notification.objects.bulk_create(notifications)
+
     return JsonResponse({"ok": True, "message": _serialize(msg, request.user)})

@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q, F, Avg
 from django.utils import timezone
+from accounts.models import Notification
 from .models import (
     Course,
     Category,
@@ -232,21 +233,35 @@ def enroll_course(request, course_slug):
                 messages.error(request, "ظرفیت این دوره تکمیل شده است.")
                 return redirect("courses:course_detail", slug=course_slug)
 
+        # تا راه‌اندازی درگاه پرداخت، همه‌ی ثبت‌نام‌ها فوری فعال می‌شوند (TODO: پرداخت)
         Enrollment.objects.create(
             student=request.user,
             course=locked,
             status="active",
-            payment_status="free" if locked.is_free else "pending",
+            payment_status="free" if locked.is_free else "paid",
             price_paid=0 if locked.is_free else locked.final_price,
         )
     # enroll_count و is_full توسط signal اپ Enrollment خودکار به‌روز می‌شود
+
+    # اعلان خوش‌آمد خودکار
+    try:
+        from django.urls import reverse as _reverse
+        Notification.objects.create(
+            user=request.user,
+            title=f"ثبت‌نام در «{course.title}»",
+            message="به دوره خوش اومدی! جلسه‌ی اول رو شروع کن.",
+            link=_reverse("courses:course_detail", args=[course.slug]),
+        )
+    except Exception:
+        pass
 
     if course.is_free:
         messages.success(request, "با موفقیت در دوره ثبت‌نام شدید ✅")
     else:
         messages.success(
             request,
-            "ثبت‌نام شما ثبت شد. برای دسترسی به محتوا، پرداخت را تکمیل کنید.",
+            "ثبت‌نام شما با موفقیت انجام شد ✅ "
+            "(درگاه پرداخت به‌زودی اضافه می‌شه — فعلاً دسترسیات به جلسات باز شد).",
         )
 
     return redirect("courses:course_detail", slug=course_slug)

@@ -707,12 +707,15 @@ body::before {
 .menu-item:hover { background: rgba(15,23,42,0.06); color: #0f172a; }
 
 /* Inputs */
-input, textarea, select {
+/* Inputs: only style the .input pill, leave bg-transparent inputs alone */
+.input, .input-pill, input.input, textarea.input, select.input {
   background: rgba(15,23,42,0.03) !important;
-  border-color: rgba(15,23,42,0.12) !important;
+  border: 1px solid rgba(15,23,42,0.10) !important;
   color: #0f172a !important;
 }
-input::placeholder, textarea::placeholder { color: #94a3b8 !important; }
+.input::placeholder, textarea.input::placeholder { color: #94a3b8 !important; }
+input.bg-transparent, textarea.bg-transparent { background: transparent !important; border-color: transparent !important; color: #0f172a !important; }
+input.bg-transparent::placeholder, textarea.bg-transparent::placeholder { color: #94a3b8 !important; }
 
 /* Gradient text (still works on light) */
 .grad-text {
@@ -825,3 +828,205 @@ footer, .site-footer { background: #ffffff; border-top: 1px solid rgba(15,23,42,
 
 /* Hero grid bg overlay (if exists) tone down */
 .hero-grid-bg { opacity: 0.5; }
+
+
+/* ====== Nav search pill: blend with white nav ====== */
+header .bg-white\/5,
+header .bg-white\/10 {
+  background: rgba(15,23,42,0.035) !important;
+}
+header .border-white\/10,
+header .border-white\/20 {
+  border-color: transparent !important;
+}
+header form > div {
+  background: rgba(15,23,42,0.04) !important;
+  border: 1px solid transparent !important;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+  box-shadow: inset 0 0 0 0 transparent;
+}
+header form > div:hover,
+header form > div:focus-within {
+  background: rgba(15,23,42,0.06) !important;
+  border-color: rgba(168, 85, 247, 0.25) !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.10);
+}
+header form input[type="text"]::placeholder { color: #94a3b8 !important; }
+header form kbd {
+  background: rgba(15,23,42,0.06) !important;
+  color: #64748b !important;
+  border: 1px solid rgba(15,23,42,0.06);
+}
+
+/* ============ TRI-COLOR THEME v3 (blue + emerald + violet) ============ */
+:root {
+  --brand-blue:    #3b82f6;
+  --brand-blue-2:  #0ea5e9;
+  --brand-emerald: #10b981;
+  --brand-emerald-2: #14b8a6;
+  --brand-violet:  #8b5cf6;
+  --brand-violet-2: #a855f7;
+  --brand-grad:    linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #10b981 100%);
+  --brand-grad-soft: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.15) 50%, rgba(16,185,129,0.15) 100%);
+}
+
+/* Selection */
+::selection { background: rgba(139, 92, 246, 0.25); color: #0f172a; }
+
+/* ---- Gradient brand text ---- */
+.grad-text {
+  background: var(--brand-grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+.grad-text-violet, .grad-text-gold {
+  background: var(--brand-grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ---- Eyebrow / pills ---- */
+.section-eyebrow {
+  color: #5b21b6;
+  background: linear-gradient(135deg, rgba(59,130,246,0.10), rgba(139,92,246,0.10), rgba(16,185,129,0.10));
+  border: 1px solid rgba(139,92,246,0.22);
+}
+
+/* ---- Primary button: tri-color ---- */
+.btn-primary {
+  background: var(--brand-grad) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px -6px rgba(59,130,246,0.45), 0 4px 14px -4px rgba(139,92,246,0.35);
+}
+.btn-primary:hover {
+  filter: brightness(1.06) saturate(1.08);
+  box-shadow: 0 10px 26px -8px rgba(59,130,246,0.55), 0 8px 22px -6px rgba(16,185,129,0.40);
+  transform: translateY(-1px);
+}
+
+/* ---- Course card hover / accents ---- */
+.course-card::before {
+  background: linear-gradient(135deg, rgba(59,130,246,0.45), transparent 35%, transparent 65%, rgba(16,185,129,0.45)) !important;
+}
+.course-card:hover {
+  border-color: rgba(139,92,246,0.32) !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.05), 0 24px 50px -16px rgba(59,130,246,0.28) !important;
+}
+.course-card .card-thumb {
+  background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 50%, #d1fae5 100%) !important;
+}
+.course-card .card-thumb::after {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(59,130,246,0.22), transparent 50%),
+    radial-gradient(circle at 15% 90%, rgba(16,185,129,0.18), transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(139,92,246,0.12), transparent 60%) !important;
+}
+.course-card .card-thumb .placeholder { color: rgba(99, 102, 241, 0.55) !important; }
+.card-body .badge {
+  background: rgba(59,130,246,0.10) !important;
+  color: #1d4ed8 !important;
+  border: 1px solid rgba(59,130,246,0.22) !important;
+}
+.price-current { color: #047857 !important; }   /* emerald price */
+
+/* ---- Stat cards hover ---- */
+.stat-card:hover {
+  border-color: rgba(139,92,246,0.32) !important;
+  box-shadow: 0 14px 30px -12px rgba(59,130,246,0.22) !important;
+}
+
+/* ---- Category cards: STRONG CONTRAST + tri-color icon thumb ---- */
+#categories .glass h3,
+.category-card h3 {
+  color: #0f172a !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+#categories .glass p,
+.category-card p { color: #475569 !important; font-weight: 600; }
+#categories .glass {
+  background: #ffffff !important;
+  border: 1px solid rgba(15,23,42,0.08) !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  transition: transform .25s, border-color .25s, box-shadow .25s;
+}
+#categories .glass:hover {
+  transform: translateY(-4px);
+  border-color: rgba(139,92,246,0.30) !important;
+  box-shadow: 0 14px 30px -12px rgba(59,130,246,0.22) !important;
+}
+/* Override the violet-only gradient on the small icon square */
+#categories .glass > span:first-child {
+  background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(139,92,246,0.25), rgba(16,185,129,0.25)) !important;
+  border-color: rgba(139,92,246,0.30) !important;
+}
+#categories .glass > span:first-child i { color: #6d28d9 !important; }
+
+/* ---- Mesh blobs: re-tint to blue/violet/emerald ---- */
+.mesh-blob-1, .blob1 {
+  background: radial-gradient(circle, rgba(59,130,246,0.45), transparent 70%) !important;
+}
+.mesh-blob-2, .blob2 {
+  background: radial-gradient(circle, rgba(139,92,246,0.45), transparent 70%) !important;
+}
+.mesh-blob-3, .blob3 {
+  background: radial-gradient(circle, rgba(16,185,129,0.45), transparent 70%) !important;
+}
+
+/* ---- Section title underline accent ---- */
+.section-title { color: #0f172a; }
+
+/* ---- Nav search pill: violet ring → multi ring ---- */
+header form > div:hover,
+header form > div:focus-within {
+  background: rgba(15,23,42,0.06) !important;
+  border-color: rgba(139,92,246,0.30) !important;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.10), 0 0 0 6px rgba(59,130,246,0.05);
+}
+
+/* ---- <select> dropdown options FIX (white-on-white was unreadable) ---- */
+.select, select.select, select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,0.12) !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+.select:focus, select:focus {
+  border-color: rgba(139,92,246,0.40) !important;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.12) !important;
+  outline: none;
+}
+.select option, select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  font-weight: 500;
+  padding: 8px;
+}
+.select option:checked, select option:checked {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+  color: #ffffff !important;
+}
+
+/* ---- Avatar: tri-color ---- */
+.avatar { background: var(--brand-grad) !important; color: #fff; }
+
+/* ---- Notification card hover: violet → multi ---- */
+.notif-item:hover { background: rgba(139,92,246,0.06) !important; }
+.notif-row:hover .glass { border-color: rgba(139,92,246,0.25) !important; }
+
+/* ---- Badge hovers ---- */
+.badge:hover { filter: brightness(1.04); }
+.badge-slate:hover { background: rgba(139,92,246,0.10) !important; color: #5b21b6 !important; }
+
+/* ---- Icon color helpers used inline ---- */
+.text-violet-300, .text-violet-400 { color: #8b5cf6 !important; }
+.text-emerald-300, .text-emerald-400 { color: #10b981 !important; }
+.text-blue-300, .text-blue-400, .text-sky-300, .text-sky-400 { color: #3b82f6 !important; }
+.text-violet-200 { color: #6d28d9 !important; }
+
+/* ---- Footer: leave white but accent links ---- */
+footer a:hover, .site-footer a:hover { color: #6d28d9; }

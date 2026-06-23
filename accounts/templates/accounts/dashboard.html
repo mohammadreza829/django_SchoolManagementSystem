@@ -60,7 +60,7 @@
           </div>
           <div class="space-y-2">
             {% for n in user.notifications.all|slice:":4" %}
-            <a href="{% url 'accounts:notifications' %}" class="notif-item flex gap-2 text-sm p-2 rounded-lg cursor-pointer transition {% if not n.is_read %}bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/15{% else %}hover:bg-white/5{% endif %}">
+            <a href="{% if n.link %}{{ n.link }}{% else %}{% url 'accounts:notifications' %}{% endif %}" class="notif-item flex gap-2 text-sm p-2 rounded-lg cursor-pointer transition {% if not n.is_read %}bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/15{% else %}hover:bg-white/5{% endif %}">
               <i data-lucide="circle-dot" class="w-3 h-3 text-violet-300 mt-1.5 shrink-0"></i>
               <div class="flex-1 min-w-0">
                 <p class="line-clamp-2">{{ n.message }}</p>

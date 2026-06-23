@@ -20,7 +20,7 @@
           {% for cat in all_categories %}{% if not cat.parent %}
             <a href="{% url 'courses:category_detail' cat.slug %}" class="menu-item text-sm">
               <span class="flex-1">{{ cat.name }}</span>
-              <span class="badge badge-slate text-[10px]">{{ cat.courses.count }}</span>
+              <span class="badge badge-slate text-[10px]">{{ cat.total_courses_count|default:0 }}</span>
             </a>
           {% endif %}{% endfor %}
         </div>

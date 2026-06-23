@@ -44,8 +44,9 @@
             </div>
             {% if user.is_authenticated %}{% if is_enrolled %}
               <a href="#curriculum" class="btn btn-primary btn-lg w-full mb-3"><i data-lucide="play" class="w-5 h-5"></i> ادامه‌ی یادگیری</a>
+              <a href="{% url 'chat:room' course.id %}" class="btn btn-outline btn-lg w-full mb-3"><i data-lucide="message-circle" class="w-5 h-5"></i> پیام‌رسان دوره</a>
             {% else %}
-              <form method="post" action="{% url 'courses:enroll_course' course.slug %}"><input type="hidden" name="csrfmiddlewaretoken" value=" csrf_token ">
+              <form method="post" action="{% url 'courses:enroll_course' course.slug %}">{% csrf_token %}
                 <button class="btn btn-gold btn-lg w-full mb-3"><i data-lucide="sparkles" class="w-5 h-5"></i> ثبت‌نام در دوره</button>
               </form>
             {% endif %}{% else %}

@@ -3,22 +3,34 @@
 {% block content %}
 <section class="py-10"><div class="container-x max-w-3xl">
   <div class="flex items-center justify-between mb-8" data-reveal>
-    <div><div class="section-eyebrow mb-2"><i data-lucide="bell" class="w-3.5 h-3.5"></i> صندوق پیام‌ها</div>
-      <h1 class="section-title"><span class="grad-text">اعلان‌های</span> تو</h1></div>
-  </div>
-  <div class="space-y-3" data-stagger>{% for n in notifications %}
-    <div data-item class="glass rounded-2xl p-4 flex items-start gap-3 {% if not n.is_read %}border-r-4 !border-r-violet-500{% endif %}">
-      <span class="w-10 h-10 rounded-xl bg-violet-500/15 text-violet-300 grid place-items-center shrink-0"><i data-lucide="info" class="w-5 h-5"></i></span>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 mb-1"><h3 class="font-bold text-sm">{{ n.title|default:'اعلان' }}</h3>{% if not n.is_read %}<span class="w-2 h-2 rounded-full bg-violet-500"></span>{% endif %}</div>
-        <p class="text-sm text-slate-300 leading-7">{{ n.message }}</p>
-        <div class="text-xs text-slate-500 mt-2">{{ n.created_at|timesince }} پیش</div>
-      </div>
+    <div>
+      <div class="section-eyebrow mb-2"><i data-lucide="bell" class="w-3.5 h-3.5"></i> صندوق پیام‌ها</div>
+      <h1 class="section-title"><span class="grad-text">اعلان‌های</span> تو</h1>
     </div>
-    {% empty %}<div class="glass rounded-2xl p-14 text-center">
+  </div>
+  <div class="space-y-3" data-stagger>
+    {% for n in notifications %}
+    {% if n.link %}<a href="{{ n.link }}" class="notif-row block">{% else %}<div class="notif-row block cursor-default">{% endif %}
+      <div data-item class="glass rounded-2xl p-4 flex items-start gap-3 transition hover:!bg-violet-500/5 {% if not n.is_read %}border-r-4 !border-r-violet-500{% endif %}">
+        <span class="w-10 h-10 rounded-xl bg-violet-500/15 text-violet-300 grid place-items-center shrink-0"><i data-lucide="info" class="w-5 h-5"></i></span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="font-bold text-sm">{{ n.title|default:"اعلان جدید" }}</h3>
+            {% if not n.is_read %}<span class="w-2 h-2 rounded-full bg-violet-500"></span>{% endif %}
+          </div>
+          <p class="text-sm text-slate-300 leading-7">{{ n.message }}</p>
+          <div class="text-xs text-slate-500 mt-2">{{ n.created_at|timesince }} پیش</div>
+        </div>
+        {% if n.link %}<i data-lucide="arrow-left" class="w-4 h-4 text-slate-400 mt-3 shrink-0"></i>{% endif %}
+      </div>
+    {% if n.link %}</a>{% else %}</div>{% endif %}
+    {% empty %}
+    <div class="glass rounded-2xl p-14 text-center">
       <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-white/5 grid place-items-center"><i data-lucide="bell-off" class="w-10 h-10 text-slate-500"></i></div>
       <h3 class="text-lg font-bold mb-1">صندوقت خلوته</h3>
       <p class="text-slate-400 text-sm">به محض دریافت اعلان جدید، اینجا به‌روز می‌شه.</p>
-    </div>{% endfor %}</div>
+    </div>
+    {% endfor %}
+  </div>
 </div></section>
 {% endblock %}

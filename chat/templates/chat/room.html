@@ -18,7 +18,7 @@
     .topbar a:hover { color: #14192a; }
     .messages { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
     .msg { max-width: 78%; padding: 9px 13px; border-radius: 14px; background: #ffffff; border: 1px solid rgba(15,23,42,0.07); color: #1a1f2e; align-self: flex-start; }
-    .msg.mine { align-self: flex-end; background: #6366f1; color: #fff; }
+    .msg.mine { align-self: flex-end; background: linear-gradient(135deg,#7c3aed,#a855f7); color: #fff; }
     .msg.announce { align-self: stretch; max-width: 100%; background: #22c55e22; border: 1px solid #22c55e88; }
     .msg .meta { font-size: 11px; opacity: 0.75; margin-bottom: 3px; }
     .msg .text { font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
@@ -26,8 +26,8 @@
     .composer { border-top: 1px solid rgba(15,23,42,0.09); background: #ffffff; padding: 12px 16px; }
     .composer form { display: flex; gap: 8px; align-items: center; }
     .composer input[type=text] { flex: 1; background: #f7f8fc; border: 1px solid rgba(15,23,42,0.12); color: #1a1f2e; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; }
-    .composer input[type=text]:focus { border-color: #6366f1; }
-    .composer button { background: #6366f1; color: #fff; border: none; border-radius: 10px; padding: 11px 18px; cursor: pointer; font-size: 14px; }
+    .composer input[type=text]:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,.15); }
+    .composer button { background: linear-gradient(135deg,#7c3aed,#a855f7); color: #fff; border: none; border-radius: 10px; padding: 11px 18px; cursor: pointer; font-size: 14px; }
     .composer button:hover { background: #7c3aed; }
     .ann { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #22c55e; cursor: pointer; white-space: nowrap; }
     .empty { text-align: center; color: #6b7280; margin-top: 40px; font-size: 14px; }
