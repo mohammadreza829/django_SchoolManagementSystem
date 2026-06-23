@@ -21,10 +21,10 @@
                         primary:   '#6366f1',
                         'primary-hover': '#7c3aed',
                         secondary: '#22c55e',
-                        dark:      '#0d0f14',
-                        surface:   '#13161d',
-                        elevated:  '#1a1e28',
-                        hovered:   '#1f2433',
+                        dark:      '#f3f5f9',
+                        surface:   '#ffffff',
+                        elevated:  '#f7f9fc',
+                        hovered:   '#eef1f7',
                     },
                     fontFamily: {
                         sans: ['Vazirmatn', 'Tahoma', 'sans-serif'],
@@ -42,13 +42,13 @@
         /* ── Base ── */
         *, *::before, *::after { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
-        body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: #0d0f14; color: #f0f2f8; }
+        body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f5f9; color: #1a1f2e; }
 
         /* ── Scrollbar ── */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.16); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
 
         /* ── CSS Vars ── */
         :root {
@@ -60,16 +60,16 @@
             --warning:      #f59e0b;
             --danger:       #ef4444;
             --info:         #38bdf8;
-            --border:       rgba(255,255,255,0.07);
-            --border-hover: rgba(255,255,255,0.12);
-            --text-1:       #f0f2f8;
-            --text-2:       #8b92a9;
-            --text-3:       #545c72;
+            --border:       rgba(15,23,42,0.09);
+            --border-hover: rgba(15,23,42,0.16);
+            --text-1:       #1a1f2e;
+            --text-2:       #5a6477;
+            --text-3:       #97a1b2;
         }
 
         /* ── Navbar glass ── */
         .navbar-glass {
-            background: rgba(19,22,29,0.85);
+            background: rgba(255,255,255,0.82);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
@@ -77,7 +77,7 @@
 
         /* ── Sidebar ── */
         #logo-sidebar {
-            background: #13161d;
+            background: #ffffff;
             border-left: 1px solid var(--border);
         }
 
@@ -86,13 +86,13 @@
             display: flex; align-items: center;
             padding: 10px 14px;
             border-radius: 10px;
-            color: #8b92a9;
+            color: #5a6477;
             font-size: 13.5px;
             font-weight: 500;
             transition: all 0.15s ease;
             gap: 10px;
         }
-        .nav-item:hover { background: #1f2433; color: #f0f2f8; }
+        .nav-item:hover { background: #eef1f7; color: #1a1f2e; }
         .nav-item.active {
             background: rgba(99,102,241,0.13);
             color: #818cf8;
@@ -116,19 +116,19 @@
             display: flex; align-items: center;
             padding: 8px 12px;
             border-radius: 8px;
-            color: #8b92a9;
+            color: #5a6477;
             font-size: 12.5px;
             transition: all 0.15s;
         }
-        .nav-sub-item:hover { background: #1f2433; color: #f0f2f8; }
+        .nav-sub-item:hover { background: #eef1f7; color: #1a1f2e; }
 
         /* ── Search input ── */
         .search-input {
-            background: #1a1e28;
+            background: #f1f3f8;
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 8px 14px 8px 36px;
-            color: #f0f2f8;
+            color: #1a1f2e;
             font-family: 'Vazirmatn', sans-serif;
             font-size: 13px;
             width: 100%;
@@ -137,30 +137,31 @@
         }
         .search-input:focus {
             border-color: var(--accent);
-            background: #1f2433;
+            background: #ffffff;
             box-shadow: 0 0 0 3px var(--accent-glow);
         }
         .search-input::placeholder { color: var(--text-3); }
 
         /* ── User dropdown ── */
         #dropdown-user {
-            background: #1a1e28 !important;
+            background: #ffffff !important;
             border: 1px solid var(--border-hover) !important;
             border-radius: 12px !important;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+            box-shadow: 0 14px 44px rgba(15,23,42,0.14) !important;
         }
         #dropdown-user .dropdown-header {
             padding: 14px 16px;
             border-bottom: 1px solid var(--border);
         }
+        #dropdown-user .dropdown-header p.font-bold { color: #14192a; }
         #dropdown-user ul li a {
             padding: 9px 16px;
             font-size: 13px;
-            color: #8b92a9;
+            color: #5a6477;
             transition: all 0.15s;
             display: block;
         }
-        #dropdown-user ul li a:hover { background: #1f2433; color: #f0f2f8; }
+        #dropdown-user ul li a:hover { background: #f1f3f8; color: #1a1f2e; }
         #dropdown-user ul li a.logout { color: #ef4444; }
         #dropdown-user ul li a.logout:hover { background: rgba(239,68,68,0.1); }
 
@@ -182,15 +183,15 @@
         .notif-btn {
             width: 36px; height: 36px;
             display: flex; align-items: center; justify-content: center;
-            background: #1a1e28;
+            background: #ffffff;
             border: 1px solid var(--border);
             border-radius: 10px;
-            color: #8b92a9;
+            color: #5a6477;
             font-size: 15px;
             transition: all 0.15s;
             position: relative;
         }
-        .notif-btn:hover { background: #1f2433; color: #f0f2f8; border-color: var(--border-hover); }
+        .notif-btn:hover { background: #eef1f7; color: #1a1f2e; border-color: var(--border-hover); }
 
         /* ── Sidebar promo card ── */
         .promo-card {
@@ -223,11 +224,11 @@
         .toast {
             display: flex; align-items: center; gap: 10px;
             padding: 12px 18px;
-            background: #1a1e28;
+            background: #ffffff;
             border: 1px solid var(--border-hover);
             border-radius: 10px;
-            font-size: 13px; color: #f0f2f8;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            font-size: 13px; color: #1a1f2e;
+            box-shadow: 0 14px 44px rgba(15,23,42,0.16);
             pointer-events: auto;
             animation: toastIn 0.3s ease;
             min-width: 240px; max-width: 360px;
@@ -244,17 +245,44 @@
         /* ── Mobile overlay ── */
         #sidebar-overlay {
             display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.65);
+            background: rgba(15,23,42,0.35);
             z-index: 35;
             backdrop-filter: blur(2px);
         }
         #sidebar-overlay.open { display: block; }
     </style>
 
+    <style>
+        /* ════════════════════════════
+           Light theme — inner content normalization
+           Makes pages authored for the old dark theme render clean on light.
+        ════════════════════════════ */
+        main .text-white { color: #14192a; }
+        main .text-gray-100, main .text-gray-200, main .text-gray-300 { color: #2b3242; }
+        main .text-gray-400 { color: #5a6477; }
+        main .text-gray-500 { color: #8a93a6; }
+        main .border-gray-800, main .border-gray-700, main .border-gray-600 { border-color: rgba(15,23,42,0.1) !important; }
+        main .bg-\[\#13161d\], main .bg-\[\#1a1e28\], main .bg-\[\#1f2433\] { background-color: #ffffff !important; }
+        main .bg-\[\#0d0f14\], main .bg-\[\#0f1117\] { background-color: #f1f3f8 !important; }
+        main .border-white\/5, main .border-white\/10, main .border-white\/20 { border-color: rgba(15,23,42,0.09) !important; }
+        main .divide-white\/10 > * { border-color: rgba(15,23,42,0.09) !important; }
+        main .bg-white\/5, main .bg-white\/10 { background-color: #f1f3f8 !important; }
+        main .bg-black\/20, main .bg-black\/30, main .bg-black\/40 { background-color: #f1f3f8 !important; }
+        /* keep white text on genuinely colored / dark surfaces */
+        main .bg-primary, main .bg-primary *,
+        main .bg-primary-hover, main .bg-primary-hover *,
+        main .bg-secondary, main .bg-secondary *,
+        main [class*="bg-gradient-to"], main [class*="bg-gradient-to"] *,
+        main .promo-card, main .promo-card *,
+        main .buy-card, main .buy-card *,
+        main .detail-hero, main .detail-hero *,
+        main .hero-mesh, main .hero-mesh * { color: #fff; }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 
-<body class="bg-dark text-gray-100 antialiased">
+<body class="bg-dark text-gray-800 antialiased">
 
     <!-- ── Sidebar Overlay (mobile) ── -->
     <div id="sidebar-overlay" onclick="closeSidebar()"></div>
@@ -367,7 +395,7 @@
 
     <!-- ══════════════════════════════
          SIDEBAR
-    ══════════════════════════════ -->
+    ═══════════��══════════════════ -->
     <aside
         id="logo-sidebar"
         class="fixed top-0 right-0 z-40 w-64 h-screen pt-[64px] transition-transform -translate-x-full sm:translate-x-0"

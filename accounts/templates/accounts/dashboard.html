@@ -7,7 +7,7 @@
 <style>
     /* ── Progress Bar ── */
     .progress-bar-track {
-        background: rgba(255,255,255,0.08);
+        background: rgba(15,23,42,0.07);
         border-radius: 99px;
         height: 5px;
         overflow: hidden;
@@ -26,8 +26,8 @@
         display: flex; align-items: center; gap: 14px;
         padding: 14px 16px;
         border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.07);
-        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(15,23,42,0.08);
+        background: #fafbfd;
         transition: all 0.18s;
         text-decoration: none;
         color: inherit;
@@ -52,8 +52,8 @@
         display: flex; gap: 12px;
         padding: 12px;
         border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(15,23,42,0.07);
+        background: #fafbfd;
         transition: all 0.18s;
         text-decoration: none; color: inherit;
     }
@@ -70,15 +70,15 @@
 
     /* ── Stat card ── */
     .stat-card {
-        background: #1a1e28;
-        border: 1px solid rgba(255,255,255,0.07);
+        background: #ffffff;
+        border: 1px solid rgba(15,23,42,0.08);
         border-radius: 14px;
         padding: 18px 20px;
         position: relative;
         overflow: hidden;
         transition: border-color 0.2s, transform 0.2s;
     }
-    .stat-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
+    .stat-card:hover { border-color: rgba(15,23,42,0.14); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(20,25,42,0.07); }
     .stat-card::before {
         content: '';
         position: absolute; top: 0; left: 0; right: 0;
@@ -102,17 +102,17 @@
 
     /* ── Section card ── */
     .section-card {
-        background: #1a1e28;
-        border: 1px solid rgba(255,255,255,0.07);
+        background: #ffffff;
+        border: 1px solid rgba(15,23,42,0.08);
         border-radius: 14px;
         overflow: hidden;
     }
     .section-head {
         display: flex; align-items: center; justify-content: space-between;
         padding: 16px 20px;
-        border-bottom: 1px solid rgba(255,255,255,0.07);
+        border-bottom: 1px solid rgba(15,23,42,0.08);
     }
-    .section-title { font-size: 14px; font-weight: 600; color: #f0f2f8; }
+    .section-title { font-size: 14px; font-weight: 600; color: #14192a; }
     .section-link  { font-size: 12px; color: #818cf8; transition: color 0.15s; text-decoration: none; }
     .section-link:hover { color: #a5b4fc; }
     .section-body { padding: 16px; }
@@ -133,14 +133,14 @@
         text-align: center; padding: 32px 16px;
         color: #545c72;
     }
-    .empty-state i { font-size: 36px; margin-bottom: 10px; display: block; color: #2a2f42; }
+    .empty-state i { font-size: 36px; margin-bottom: 10px; display: block; color: #c2c8d4; }
     .empty-state p { font-size: 13px; margin-bottom: 14px; }
 
     /* ── Activity item ── */
     .activity-item {
         display: flex; gap: 12px; align-items: flex-start;
         padding: 10px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(15,23,42,0.06);
     }
     .activity-item:last-child { border-bottom: none; }
     .activity-dot {
@@ -159,12 +159,12 @@
 {% block content %}
 
 <!-- ══ Page Header ══ -->
-<div class="greeting-glow flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7 p-5 rounded-2xl border border-white/5" style="background:#1a1e28;">
+<div class="greeting-glow flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7 p-5 rounded-2xl border border-white/5" style="background:#ffffff;">
     <div>
-        <h1 class="text-xl font-bold tracking-tight" style="color:#f0f2f8;">
+        <h1 class="text-xl font-bold tracking-tight" style="color:#14192a;">
             خوش آمدی، {{ request.user.get_full_name|default:request.user.username }} 👋
         </h1>
-        <p class="text-sm mt-1" style="color:#8b92a9;">اینجا خلاصه‌ای از پیشرفت آموزشی شما است</p>
+        <p class="text-sm mt-1" style="color:#5a6477;">اینجا خلاصه‌ای از پیشرفت آموزشی شما است</p>
     </div>
     <a
         href="{% url 'courses:course_list' %}"
@@ -181,7 +181,7 @@
     <!-- Active courses -->
     <div class="stat-card c-purple">
         <div class="stat-icon purple"><i class="fas fa-books"></i></div>
-        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#14192a;">
             {{ active_courses|length|default:"0" }}
         </div>
         <div class="text-xs" style="color:#545c72;">دوره فعال</div>
@@ -193,7 +193,7 @@
     <!-- Completed -->
     <div class="stat-card c-green">
         <div class="stat-icon green"><i class="fas fa-certificate"></i></div>
-        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#14192a;">
             {{ completed_courses|length|default:"0" }}
         </div>
         <div class="text-xs" style="color:#545c72;">دوره تکمیل‌شده</div>
@@ -205,7 +205,7 @@
     <!-- Learning hours -->
     <div class="stat-card c-amber">
         <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
-        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#14192a;">
             {{ total_hours|default:"0" }}
         </div>
         <div class="text-xs" style="color:#545c72;">ساعت یادگیری</div>
@@ -217,7 +217,7 @@
     <!-- Avg progress -->
     <div class="stat-card c-blue">
         <div class="stat-icon blue"><i class="fas fa-chart-line"></i></div>
-        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#f0f2f8;">
+        <div class="text-2xl font-bold tracking-tight mb-1" style="color:#14192a;">
             {{ avg_progress|default:"0" }}٪
         </div>
         <div class="text-xs" style="color:#545c72;">میانگین پیشرفت</div>
@@ -262,7 +262,7 @@
                         <!-- Info -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-2 mb-2">
-                                <h3 class="font-semibold text-sm truncate" style="color:#f0f2f8;">{{ course.title }}</h3>
+                                <h3 class="font-semibold text-sm truncate" style="color:#14192a;">{{ course.title }}</h3>
                                 <span class="lv-badge lv-default flex-shrink-0">{{ course.get_level_display }}</span>
                             </div>
                             <!-- Progress -->
@@ -275,7 +275,7 @@
                                     ></div>
                                     {% endwith %}
                                 </div>
-                                <span class="text-[11px] font-semibold flex-shrink-0" style="color:#8b92a9;">
+                                <span class="text-[11px] font-semibold flex-shrink-0" style="color:#5a6477;">
                                     {{ course.user_progress|default:"0" }}٪
                                 </span>
                             </div>
@@ -374,7 +374,7 @@
                             {% endif %}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold mb-1 leading-snug" style="color:#f0f2f8;">
+                            <h4 class="text-sm font-semibold mb-1 leading-snug" style="color:#14192a;">
                                 {{ course.title|truncatechars:36 }}
                             </h4>
                             <p class="text-xs mb-2 leading-relaxed" style="color:#545c72;">
@@ -405,19 +405,19 @@
             </div>
             <div class="section-body grid grid-cols-2 gap-2">
                 {% with links=quick_links|default:'' %}
-                <a href="{% url 'accounts:profile' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                <a href="{% url 'accounts:profile' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(15,23,42,0.09);color:#5a6477;">
                     <i class="fas fa-user-circle text-xl" style="color:#818cf8;"></i>
                     <span class="text-xs font-medium">پروفایل</span>
                 </a>
-                <a href="{% url 'accounts:notifications' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                <a href="{% url 'accounts:notifications' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(15,23,42,0.09);color:#5a6477;">
                     <i class="fas fa-bell text-xl" style="color:#818cf8;"></i>
                     <span class="text-xs font-medium">اعلان‌ها</span>
                 </a>
-                <a href="{% url 'courses:search' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                <a href="{% url 'courses:search' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(15,23,42,0.09);color:#5a6477;">
                     <i class="fas fa-search text-xl" style="color:#818cf8;"></i>
                     <span class="text-xs font-medium">جستجو</span>
                 </a>
-                <a href="{% url 'accounts:edit_profile' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(255,255,255,0.07);color:#8b92a9;">
+                <a href="{% url 'accounts:edit_profile' %}" class="flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition hover:border-indigo-500/40 hover:bg-indigo-500/5" style="border-color:rgba(15,23,42,0.09);color:#5a6477;">
                     <i class="fas fa-cog text-xl" style="color:#818cf8;"></i>
                     <span class="text-xs font-medium">تنظیمات</span>
                 </a>
