@@ -1,0 +1,267 @@
+/* =====================================================================
+   UI UX PRO MAX  —  Soft UI Evolution (Education / Light / Blue+Green)
+   ---------------------------------------------------------------------
+   ساخته‌شده طبق قواعد ui-ux-pro-max-skill:
+     • Style: Soft UI Evolution + Accessible & Ethical
+     • Palette: آبی (اعتماد) + سبز (آرامش)
+     • حذف کامل گرادیان بنفش/صورتیِ «AI» (anti-pattern)
+     • کنتراست حداقل 4.5:1 · focus واضح · cursor-pointer
+     • ترنزیشن نرم 150–300ms · احترام به prefers-reduced-motion
+   این فایل بعد از maktab.css لود می‌شود تا لایه‌ی مرجع باشد.
+   ===================================================================== */
+
+:root {
+  --bg:            #eef2f8;
+  --bg-2:          #f7f9fc;
+  --surface:       #ffffff;
+  --surface-2:     #f1f5fb;
+  --border:        #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --ink:    #0f172a;   /* متن اصلی  */
+  --ink-2:  #334155;   /* متن ثانویه */
+  --muted:  #5b6b82;   /* متن کم‌رنگ ولی خوانا (4.5:1) */
+
+  --brand:     #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-50:  #eff6ff;
+  --brand-100: #dbeafe;
+
+  --green:     #059669;
+  --green-700: #047857;
+  --green-50:  #ecfdf5;
+
+  /* گرادیان برند: آبی → آسمانی → سبز (بدون بنفش/صورتی) */
+  --gradient: linear-gradient(135deg, #2563eb 0%, #0ea5e9 48%, #059669 100%);
+
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
+  --shadow:    0 2px 6px rgba(15,23,42,.05), 0 14px 30px -16px rgba(37,99,235,.20);
+  --shadow-lg: 0 10px 24px -10px rgba(15,23,42,.14), 0 28px 56px -24px rgba(37,99,235,.30);
+  --t: 220ms cubic-bezier(.22,1,.36,1);
+
+  /* بازتعریف متغیرهای تم قبلی — تا گرادیان بنفش همه‌جا خودکار آبی/سبز شود */
+  --v4-blue:   #2563eb;
+  --v4-violet: #0ea5e9;
+  --v4-emerald:#059669;
+  --v4-grad:   linear-gradient(135deg, #2563eb 0%, #0ea5e9 48%, #059669 100%);
+  --v4-ink:    #0f172a;
+  --v4-muted:  #5b6b82;
+}
+
+/* ---------- پایه ---------- */
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgba(37,99,235,.18); color: #0b2e6b; }
+
+/* ---------- دسترس‌پذیری ---------- */
+a, button, summary, label[for], [role="button"], .btn, .nav-link, .menu-item,
+.icon-btn, input[type="checkbox"], input[type="radio"], select {
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- پس‌زمینه‌ی بلاب‌ها (نرم و جامد — بدون نئون) ---------- */
+.mesh-bg { opacity: 1; }
+.mesh-blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(90px); opacity: .45;
+}
+.mesh-blob-1 { width: 42vw; height: 42vw; right: -10vw; top: -12vw;
+  background: radial-gradient(circle, rgba(37,99,235,.20), transparent 70%); }
+.mesh-blob-2 { width: 38vw; height: 38vw; left: -8vw; top: 18vh;
+  background: radial-gradient(circle, rgba(5,150,105,.18), transparent 70%); }
+.mesh-blob-3 { width: 34vw; height: 34vw; right: 8vw; bottom: -10vh;
+  background: radial-gradient(circle, rgba(14,165,233,.16), transparent 70%); }
+.mesh-grain { display: none; }
+
+/* ---------- نوار بالا ---------- */
+.site-nav {
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  border-bottom: 1px solid transparent;
+  transition: background var(--t), box-shadow var(--t), border-color var(--t);
+}
+.site-nav.is-scrolled {
+  background: rgba(255,255,255,.9) !important;
+  box-shadow: 0 8px 30px -16px rgba(15,23,42,.22);
+  border-bottom: 1px solid var(--border);
+}
+.nav-link {
+  padding: .5rem .85rem; border-radius: 12px;
+  font-weight: 600; font-size: .92rem;
+  color: var(--ink-2) !important;
+  transition: color var(--t), background var(--t);
+}
+.nav-link:hover { color: var(--brand) !important; background: var(--brand-50); }
+
+/* ---------- کارت‌ها و سطوح (Soft UI) ---------- */
+.glass, .card, .bg-surface {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: none !important;
+}
+.glass-strong {
+  background: rgba(255,255,255,.97) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+  backdrop-filter: blur(14px) saturate(150%);
+}
+.bg-elevated { background: var(--surface-2) !important; border: 1px solid var(--border) !important; }
+.bg-hovered,
+[class~="hover:bg-hovered"]:hover { background: var(--brand-50) !important; }
+[class~="hover:border-primary/50"]:hover { border-color: rgba(37,99,235,.40) !important; }
+
+/* ---------- دکمه‌ها ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  font-weight: 700; border-radius: 14px; padding: .7rem 1.25rem;
+  border: 1px solid transparent;
+  transition: transform var(--t), box-shadow var(--t), background var(--t), color var(--t), border-color var(--t);
+}
+.btn:active { transform: translateY(0) scale(.99); }
+.btn-sm { padding: .45rem .9rem; font-size: .85rem; border-radius: 12px; }
+.btn-primary, .bg-primary {
+  background: var(--gradient) !important; color: #fff !important;
+  border: none !important;
+  box-shadow: 0 8px 20px -8px rgba(37,99,235,.55);
+}
+.btn-primary:hover, [class~="hover:bg-primary-hover"]:hover {
+  box-shadow: 0 12px 26px -8px rgba(37,99,235,.62);
+  transform: translateY(-1px); filter: saturate(1.06);
+}
+.btn-ghost {
+  background: var(--surface) !important; color: var(--ink-2) !important;
+  border: 1px solid var(--border) !important; box-shadow: var(--shadow-sm);
+}
+.btn-ghost:hover {
+  background: var(--brand-50) !important; color: var(--brand) !important;
+  border-color: rgba(37,99,235,.35) !important;
+}
+.icon-btn {
+  display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem;
+  border-radius: 14px; background: var(--surface); border: 1px solid var(--border);
+  color: var(--ink-2); box-shadow: var(--shadow-sm);
+  transition: color var(--t), background var(--t), border-color var(--t), transform var(--t);
+}
+.icon-btn:hover {
+  color: var(--brand); background: var(--brand-50);
+  border-color: rgba(37,99,235,.35); transform: translateY(-1px);
+}
+
+/* ---------- ورودی‌ها ---------- */
+.input, .search-input {
+  width: 100%; background: var(--surface) !important;
+  border: 1px solid var(--border) !important; border-radius: 13px;
+  padding: .7rem 1rem; color: var(--ink) !important; font-size: .92rem;
+  transition: border-color var(--t), box-shadow var(--t), background var(--t);
+}
+.input::placeholder, .search-input::placeholder { color: #94a3b8 !important; }
+.input:focus, .search-input:focus {
+  outline: none; border-color: rgba(37,99,235,.5) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.14) !important; background: #fff !important;
+}
+
+/* ---------- منو‌ها / بج‌ها / آواتار ---------- */
+.menu-item {
+  display: flex; align-items: center; gap: .6rem; padding: .6rem .7rem;
+  border-radius: 12px; font-size: .9rem; font-weight: 500;
+  color: var(--ink-2) !important; transition: background var(--t), color var(--t);
+}
+.menu-item:hover { background: var(--brand-50) !important; color: var(--brand) !important; }
+.badge { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .55rem;
+  border-radius: 9px; font-size: .7rem; font-weight: 700; }
+.badge-slate { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--border); }
+.avatar { display: grid; place-items: center; border-radius: 50%;
+  background: var(--gradient); color: #fff; font-weight: 700; }
+
+/* ---------- لوگو و متن گرادیانی ---------- */
+.brand-badge {
+  background: var(--gradient) !important; color: #fff !important;
+  box-shadow: 0 8px 18px -6px rgba(37,99,235,.5);
+}
+.grad-text {
+  background: linear-gradient(135deg, #2563eb 0%, #059669 100%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent !important; -webkit-text-fill-color: transparent;
+}
+
+/* ---------- توست‌ها ---------- */
+.toast {
+  display: flex; align-items: center; gap: .6rem; padding: .8rem 1rem;
+  border-radius: 14px; background: #fff; border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg); color: var(--ink); font-size: .9rem;
+}
+.toast-success { background: var(--green-50); border-color: rgba(5,150,105,.35); color: #065f46; }
+.toast-error   { background: #fff1f2; border-color: rgba(225,29,72,.35); color: #9f1239; }
+.toast-warning { background: #fffbeb; border-color: rgba(217,119,6,.35); color: #92400e; }
+.toast-info    { background: var(--brand-50); border-color: rgba(37,99,235,.35); color: #1e40af; }
+
+/* ---------- بج اعلان ---------- */
+.notif-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
+  padding: 0 4px; display: grid; place-items: center; border-radius: 9px;
+  background: #e11d48; color: #fff; font-size: 11px; font-weight: 800;
+  box-shadow: 0 2px 6px rgba(225,29,72,.5); border: 2px solid #fff;
+}
+
+/* ---------- توکن‌های رنگ (صفحات آزمون/داشبورد) ---------- */
+.text-primary { color: var(--brand) !important; }
+[class~="bg-primary/15"], [class~="bg-primary/10"], [class~="bg-primary/20"] { background: var(--brand-100) !important; }
+.shadow-glow-sm, [class~="hover:shadow-glow-sm"]:hover { box-shadow: var(--shadow) !important; }
+[class~="shadow-glow"] { box-shadow: var(--shadow-lg) !important; }
+
+/* ---------- بازنگاشت کلاس‌های دارک برای حالت روشن ---------- */
+[class~="bg-ink-0"] { background-color: var(--bg) !important; }
+[class~="bg-ink-1/95"] { background-color: rgba(247,249,252,.97) !important; }
+
+[class~="text-slate-100"], [class~="text-slate-200"] { color: var(--ink) !important; }
+[class~="text-slate-300"] { color: var(--ink-2) !important; }
+[class~="text-slate-400"] { color: var(--muted) !important; }
+[class~="text-slate-500"] { color: #7c8aa0 !important; }
+
+[class~="text-violet-300"], [class~="!text-violet-300"],
+[class~="text-violet-400"], [class~="text-indigo-300"], [class~="text-indigo-400"] { color: var(--brand) !important; }
+[class~="text-gold-300"], [class~="!text-gold-300"] { color: #b45309 !important; }
+[class~="text-rose-300"], [class~="!text-rose-300"] { color: #e11d48 !important; }
+[class~="text-green-400"] { color: var(--green) !important; }
+[class~="text-red-400"]   { color: #dc2626 !important; }
+[class~="text-blue-700"]  { color: #1d4ed8 !important; }
+
+[class~="bg-white/5"]  { background-color: rgba(15,23,42,.04) !important; }
+[class~="bg-white/10"] { background-color: rgba(15,23,42,.06) !important; }
+[class~="hover:bg-white/5"]:hover  { background-color: rgba(15,23,42,.05) !important; }
+[class~="hover:bg-white/10"]:hover { background-color: rgba(37,99,235,.08) !important; }
+[class~="border-white/10"] { border-color: var(--border) !important; }
+[class~="border-white/5"]  { border-color: rgba(15,23,42,.06) !important; }
+[class~="border-white/20"], [class~="hover:border-white/20"]:hover { border-color: var(--border-strong) !important; }
+[class~="hover:text-white"]:hover { color: var(--brand) !important; }
+[class~="ring-violet-500/30"] { --tw-ring-color: rgba(37,99,235,.30) !important; }
+[class~="text-gray-100"], [class~="text-gray-200"], [class~="text-gray-300"] { color: var(--ink) !important; }
+[class~="text-gray-400"] { color: var(--muted) !important; }
+[class~="text-gray-500"] { color: #64748b !important; }
+
+/* خط جداکننده‌های توی منو (bg-white/10 به‌عنوان divider) */
+.menu-item + .h-px, .h-px[class~="bg-white/10"] { background-color: var(--border) !important; }
+
+/* ---------- کی‌بورد (kbd) ---------- */
+kbd { background: var(--surface-2) !important; color: var(--muted) !important; border: 1px solid var(--border); }

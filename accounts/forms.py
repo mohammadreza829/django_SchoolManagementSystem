@@ -53,7 +53,7 @@ class StudentSignUpForm(UserCreationForm):
         national_code = self.cleaned_data.get("national_code")
         user = self.instance
         # اگر کد ملی تغییر کرده باشد و برای کاربر دیگری ثبت شده باشد، خطا بده
-        if User.objects.filter(national_code=national_code).exists():
+        if User.objects.exclude(pk=user.pk).filter(national_code=national_code).exists():
             raise forms.ValidationError("این کد ملی قبلاً توسط کاربر دیگری ثبت شده است.")
         return national_code
 
