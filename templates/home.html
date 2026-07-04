@@ -1,203 +1,316 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}مکتب‌پلاس · یاد بگیر، بساز، بدرخش{% endblock %}
+{% block title %}مکتب‌پلاس · درس، آزمون، چت کلاس و دستیار هوشمند{% endblock %}
 
 {% block content %}
-{# ============ HERO ============ #}
-<section class="relative pt-12 lg:pt-20 pb-20 overflow-hidden">
-  <div class="hero-grid-bg absolute inset-0 pointer-events-none"></div>
-  <div class="container-x relative">
-    <div class="grid lg:grid-cols-12 gap-12 items-center">
-      <div class="lg:col-span-7">
-        <h1 data-reveal class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] mb-6">
-          یاد بگیر، بساز،<br>
-          <span class="grad-text">به جایی برس که باید.</span>
-        </h1>
-        <p data-reveal class="text-lg text-slate-300 leading-9 max-w-xl mb-8">
-          دوره‌های حرفه‌ای و آزمون‌های هوشمند، همه یکجا.
-        </p>
 
-        <form data-reveal action="{% url 'courses:search' %}" method="get" class="max-w-xl mb-7">
-          <div class="flex items-center bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl p-2 transition">
-            <i data-lucide="search" class="w-5 h-5 text-slate-400 mr-3 ml-2"></i>
-            <input type="text" name="q" placeholder="دوره‌ای که می‌خوای رو پیدا کن…" class="flex-1 bg-transparent outline-none py-2 px-1 text-sm placeholder:text-slate-500">
-            <button class="btn btn-primary !py-2 !px-5">جستجو</button>
-          </div>
-        </form>
+<svg width="0" height="0" aria-hidden="true">
+  <defs>
+    <linearGradient id="nvGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#d946ef"/>
+    </linearGradient>
+  </defs>
+</svg>
 
-        <div data-reveal class="flex flex-wrap gap-3 mb-8">
-          <a href="{% url 'courses:course_list' %}" class="btn btn-gold"><i data-lucide="sparkles" class="w-4 h-4"></i> شروع کن</a>
-          <a href="#categories" class="btn btn-ghost"><i data-lucide="compass" class="w-4 h-4"></i> دسته‌بندی‌ها</a>
-        </div>
+{# ================= HERO ================= #}
+<section class="relative overflow-hidden">
+  <div class="nv-aurora"></div>
+  <div class="container-x relative grid lg:grid-cols-12 gap-12 items-center pt-14 pb-24">
 
+    <div class="lg:col-span-7" data-reveal>
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs text-slate-300 mb-6">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        جدید: دستیار هوشمند به مکتب‌پلاس اضافه شد
+        <a href="{% url 'qa:ask' %}" class="text-violet-300 hover:text-violet-200 font-medium">امتحان کن ←</a>
       </div>
 
-      <div class="lg:col-span-5 relative h-[520px] hidden lg:block">
-        <div class="orb w-72 h-72 bg-violet-500/40 -top-10 -right-10"></div>
-        <div class="orb w-64 h-64 bg-fuchsia-500/40 bottom-10 -left-10"></div>
+      <h1 class="text-4xl md:text-6xl font-black leading-[1.25] tracking-tight">
+        درس، تمرین، آزمون، رفع اشکال —
+        <span class="grad-text block mt-2">همه در یک مسیر.</span>
+      </h1>
 
-        <div data-reveal class="glass-strong absolute top-8 left-4 right-4 p-5 rounded-2xl shadow-glow">
-          <div class="flex items-center gap-3 mb-3">
-            <span class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 grid place-items-center"><i data-lucide="book-open-text" class="w-6 h-6"></i></span>
-            <div>
-              <div class="text-xs text-slate-400">دوره‌ی فعال</div>
-              <div class="font-bold">React پیشرفته</div>
-            </div>
-            <span class="badge badge-violet mr-auto">جلسه ۱۲</span>
+      <p class="mt-6 text-slate-400 text-base md:text-lg leading-8 max-w-xl">
+        هر دوره یک کلاس کامل است: جلسه‌های مرتب، آزمون زمان‌دار با نمره‌ی لحظه‌ای،
+        چت‌روم زنده با استاد و هم‌کلاسی‌ها، و دستیاری که همان لحظه جواب سوالت را می‌دهد.
+        نه پراکندگی، نه سردرگمی.
+      </p>
+
+      {% if all_categories %}
+      <div class="mt-4 text-sm text-slate-500">
+        امروز چی یاد می‌گیری؟
+        <span class="text-violet-300 font-bold nv-caret" data-type='[{% for cat in all_categories|slice:":6" %}"{{ cat.name }}"{% if not forloop.last %},{% endif %}{% endfor %}]'></span>
+      </div>
+      {% endif %}
+
+      <form action="{% url 'courses:search' %}" method="get" class="mt-8 max-w-lg">
+        <div class="flex items-center gap-2 glass-strong rounded-2xl p-2 pr-4 focus-within:ring-2 focus-within:ring-violet-500/40 transition">
+          <i data-lucide="search" class="w-5 h-5 text-slate-400 shrink-0"></i>
+          <input type="text" name="q" placeholder="مثلاً: پایتون، ریاضی دهم، طراحی وب…" class="bg-transparent outline-none flex-1 text-sm placeholder:text-slate-500">
+          <button class="btn btn-primary btn-sm shrink-0" data-magnet>جستجو</button>
+        </div>
+      </form>
+
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <a href="{% url 'courses:course_list' %}" class="btn btn-primary btn-lg" data-magnet>
+          مشاهده‌ی دوره‌ها <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-ghost btn-lg">ادامه‌ی یادگیری</a>
+        {% else %}
+        <a href="{% url 'accounts:student_signup' %}" class="btn btn-gold btn-lg" data-magnet>ساخت حساب رایگان</a>
+        {% endif %}
+      </div>
+
+      <div class="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+        <span class="nv-tick"><i data-lucide="check-circle-2" class="w-4 h-4"></i> بدون نصب برنامه، مستقیم از مرورگر</span>
+        <span class="nv-tick"><i data-lucide="check-circle-2" class="w-4 h-4"></i> رفع اشکال داخل خود کلاس</span>
+        <span class="nv-tick"><i data-lucide="check-circle-2" class="w-4 h-4"></i> شروع با دوره‌های رایگان</span>
+      </div>
+    </div>
+
+    {# ---- موکاپ کلاس زنده ---- #}
+    <div class="lg:col-span-5 relative hidden md:block" data-reveal>
+      <div class="nv-window nv-float" data-tilt>
+        <div class="nv-winbar">
+          <span class="nv-dot bg-rose-400"></span><span class="nv-dot bg-amber-400"></span><span class="nv-dot bg-emerald-400"></span>
+          <span class="text-xs text-slate-400 mr-2 flex items-center gap-1.5"><i data-lucide="messages-square" class="w-3.5 h-3.5"></i> چت کلاس · جنگو پیشرفته</span>
+          <span class="mr-auto text-[10px] text-emerald-300 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> آنلاین</span>
+        </div>
+        <div class="p-5 space-y-3 nv-chat" data-chat-demo>
+          <div class="nv-bub is-announce" style="--d:.2s">
+            <span class="nv-who">📢 استاد · اعلان</span>
+            جلسه‌ی ۱۳ اضافه شد. تمرین کوئری‌ها را تا شنبه بفرستید.
           </div>
-          <div class="progress progress-shimmer mt-2"><span class="bar" style="width:65%"></span></div>
-          <div class="flex justify-between text-xs mt-2 text-slate-400"><span>پیشرفت</span><b class="text-white">۶۵٪</b></div>
-        </div>
-
-        <div data-reveal class="glass-strong absolute top-44 -left-2 p-5 rounded-2xl shadow-glow w-64">
-          <div class="flex items-center gap-2 mb-2"><i data-lucide="trophy" class="w-5 h-5 text-gold-400"></i><span class="font-bold text-sm">گواهینامه‌ی جدید</span></div>
-          <div class="text-xs text-slate-400 mb-3">دیتاساینس با Python</div>
-          <div class="flex -space-x-2 space-x-reverse">
-            <span class="avatar w-7 h-7 text-[10px]">م</span>
-            <span class="avatar w-7 h-7 text-[10px]">س</span>
-            <span class="avatar w-7 h-7 text-[10px]">ن</span>
-            <span class="avatar w-7 h-7 text-[10px] !bg-white/10">+۸</span>
+          <div class="nv-bub mr-auto" style="--d:.9s">
+            <span class="nv-who">سارا · دانشجو</span>
+            فرق select_related و prefetch_related دقیقاً چی بود؟ 🤔
+          </div>
+          <div class="nv-bub is-ai" style="--d:1.7s">
+            <span class="nv-who">✨ دستیار هوشمند</span>
+            اولی با JOIN در یک کوئری، دومی با کوئری جدا برای رابطه‌های چندتایی. جدول مقایسه را برایت مرتب کردم 👇
           </div>
         </div>
+      </div>
 
-        <div data-reveal class="glass-strong absolute bottom-12 right-6 p-5 rounded-2xl shadow-glow w-72">
-          <div class="flex items-center justify-between mb-2"><span class="text-xs text-slate-400">میانگین امتیاز</span><span class="stars text-base">★★★★★</span></div>
-          <div class="text-3xl font-extrabold grad-text">۴.۹</div>
-          <div class="text-xs text-slate-400">از بین ۱۲٬۴۰۰ نظر کاربران</div>
+      <div class="absolute -bottom-8 -right-6 glass-strong rounded-2xl p-4 flex items-center gap-3 shadow-glow nv-float nv-delay w-56">
+        <svg viewBox="0 0 36 36" class="nv-ring shrink-0" style="--ring:80">
+          <path class="nv-track" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"/>
+          <path class="nv-fill" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"/>
+        </svg>
+        <div>
+          <div class="text-xs text-slate-400">آزمون جلسه‌ی ۱۲</div>
+          <div class="font-extrabold text-lg fa-num">۱۶ از ۲۰</div>
+          <div class="text-[10px] text-emerald-300">کارنامه همان لحظه صادر شد</div>
         </div>
+      </div>
+
+      <div class="absolute -top-6 -left-4 glass rounded-2xl px-4 py-3 text-xs flex items-center gap-2 nv-float">
+        <i data-lucide="bell-ring" class="w-4 h-4 text-gold-300"></i>
+        اعلان جدید: نمره‌ات ثبت شد
       </div>
     </div>
   </div>
 </section>
 
-{# ============ STATS ============ #}
-<section class="py-14">
-  <div class="container-x grid grid-cols-2 lg:grid-cols-4 gap-4" data-stagger>
-    <div data-item class="stat-card">
-      <i data-lucide="users" class="w-6 h-6 text-violet-300 mb-3"></i>
-      <div class="text-3xl font-extrabold fa-num" data-counter="42500" data-suffix="+">0</div>
-      <div class="text-sm text-slate-400 mt-1">یادگیرنده</div>
+{# ================= مارکی دسته‌بندی‌ها ================= #}
+{% if all_categories %}
+<section class="py-4 border-y border-white/5 bg-white/[.02]">
+  <div class="nv-marquee">
+    <div class="nv-marquee-track">
+      {% for cat in all_categories %}
+      <a href="{% url 'courses:category_detail' cat.slug %}" class="nv-chip"><i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-3.5 h-3.5 text-violet-300"></i> {{ cat.name }}</a>
+      {% endfor %}
+      {% for cat in all_categories %}
+      <a href="{% url 'courses:category_detail' cat.slug %}" class="nv-chip"><i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-3.5 h-3.5 text-violet-300"></i> {{ cat.name }}</a>
+      {% endfor %}
     </div>
-    <div data-item class="stat-card">
-      <i data-lucide="book-open" class="w-6 h-6 text-fuchsia-300 mb-3"></i>
-      <div class="text-3xl font-extrabold fa-num" data-counter="320" data-suffix="+">0</div>
-      <div class="text-sm text-slate-400 mt-1">دوره</div>
+  </div>
+</section>
+{% endif %}
+
+{# ================= BENTO: امکانات واقعی ================= #}
+<section class="container-x py-24">
+  <div class="max-w-2xl mb-12" data-reveal>
+    <div class="section-eyebrow">بدون اغراق</div>
+    <h2 class="section-title">چیزهایی که واقعاً ازشون استفاده می‌کنی</h2>
+    <p class="text-slate-400 mt-3 leading-7">لیست ویژگی نمی‌چینیم؛ این‌ها ابزارهایی هستند که از جلسه‌ی اول تا آزمون آخر هر روز باهاشون کار می‌کنی.</p>
+  </div>
+
+  <div class="nv-bento" data-stagger>
+    <div class="nv-cell nv-span2" data-item>
+      <div class="flex flex-wrap items-start gap-6">
+        <div class="flex-1 min-w-[220px]">
+          <div class="nv-cell-icon"><i data-lucide="bot" class="w-5 h-5 text-violet-300"></i></div>
+          <h3 class="font-extrabold text-lg mb-2">دستیار هوشمند، وسط درس خوندن</h3>
+          <p class="text-sm text-slate-400 leading-7">ساعت ۲ نصفه‌شب به مشکل خوردی؟ سوالت را بپرس و جواب مرتب با جدول و نمونه‌کد بگیر — فقط در محدوده‌ی مطالب درسی، نه حرف اضافه.</p>
+          <a href="{% url 'qa:ask' %}" class="btn btn-primary btn-sm mt-4" data-magnet>همین الان بپرس <i data-lucide="sparkles" class="w-3.5 h-3.5"></i></a>
+        </div>
+        <div class="flex-1 min-w-[220px] bg-black/30 border border-white/10 rounded-xl p-4 text-xs leading-7">
+          <div class="text-slate-500 mb-1">سوال تو:</div>
+          <div class="text-slate-200 mb-3">مشتق زنجیره‌ای را با یک مثال توضیح بده</div>
+          <div class="text-slate-500 mb-1">دستیار:</div>
+          <div class="text-violet-200 nv-caret" data-type='["اگر y = f(g(x)) باشد، آن‌وقت y′ = f′(g(x)) × g′(x) …"]'></div>
+        </div>
+      </div>
     </div>
-    <div data-item class="stat-card">
-      <i data-lucide="user-check" class="w-6 h-6 text-emerald-300 mb-3"></i>
-      <div class="text-3xl font-extrabold fa-num" data-counter="120" data-suffix="+">0</div>
-      <div class="text-sm text-slate-400 mt-1">مدرس</div>
+
+    <div class="nv-cell" data-item>
+      <div class="nv-cell-icon"><i data-lucide="messages-square" class="w-5 h-5 text-fuchsia-300"></i></div>
+      <h3 class="font-extrabold mb-2">چت‌روم زنده‌ی هر دوره</h3>
+      <p class="text-sm text-slate-400 leading-7">همان‌جا که درس می‌خوانی سوال بپرس. اعلان‌های استاد از پیام‌ها جدا مشخص می‌شوند تا چیز مهمی را از دست ندهی.</p>
     </div>
-    <div data-item class="stat-card">
-      <i data-lucide="award" class="w-6 h-6 text-gold-400 mb-3"></i>
-      <div class="text-3xl font-extrabold fa-num" data-counter="4.9" data-decimals="1">0</div>
-      <div class="text-sm text-slate-400 mt-1">میانگین امتیاز</div>
+
+    <div class="nv-cell" data-item>
+      <div class="nv-cell-icon"><i data-lucide="timer" class="w-5 h-5 text-gold-300"></i></div>
+      <h3 class="font-extrabold mb-2">آزمون زمان‌دار با نمره‌ی لحظه‌ای</h3>
+      <p class="text-sm text-slate-400 leading-7">تایمر واقعی، تصحیح خودکار و کارنامه همان لحظه. نتیجه‌ات را می‌بینی و می‌فهمی کجا ضعف داری.</p>
+    </div>
+
+    <div class="nv-cell" data-item>
+      <div class="nv-cell-icon"><i data-lucide="list-video" class="w-5 h-5 text-sky-300"></i></div>
+      <h3 class="font-extrabold mb-2">درس‌های ساخت‌یافته</h3>
+      <p class="text-sm text-slate-400 leading-7">سرفصل به سرفصل، جلسه به جلسه. همیشه معلوم است کجای مسیر هستی و قدم بعدی چیست.</p>
+    </div>
+
+    <div class="nv-cell" data-item>
+      <div class="nv-cell-icon"><i data-lucide="bell-ring" class="w-5 h-5 text-emerald-300"></i></div>
+      <h3 class="font-extrabold mb-2">اعلان‌های به‌موقع</h3>
+      <p class="text-sm text-slate-400 leading-7">جلسه‌ی جدید، نمره‌ی ثبت‌شده یا پیام استاد — هر اتفاق مهمی در پنل اعلان‌هات منتظرت است.</p>
+    </div>
+
+    <div class="nv-cell" data-item>
+      <div class="nv-cell-icon"><i data-lucide="presentation" class="w-5 h-5 text-rose-300"></i></div>
+      <h3 class="font-extrabold mb-2">پنل کامل برای استادها</h3>
+      <p class="text-sm text-slate-400 leading-7">ساخت دوره، طراحی سوال و آزمون و دیدن نتایج دانشجوها — همه از یک پنل مدیریت ساده.</p>
     </div>
   </div>
 </section>
 
-{# ============ CATEGORIES ============ #}
-<section id="categories" class="py-14">
-  <div class="container-x">
-    <div data-reveal class="text-center max-w-2xl mx-auto mb-12">
-      <div class="section-eyebrow mb-3 mx-auto inline-flex"><i data-lucide="layers" class="w-3.5 h-3.5"></i> دسته‌بندی‌ها</div>
-      <h2 class="section-title">از <span class="grad-text">هر مسیری</span> که دوست داری شروع کن</h2>
+{# ================= دوره‌های منتخب ================= #}
+{% if featured_courses %}
+<section class="container-x py-8 pb-24">
+  <div class="flex items-end justify-between flex-wrap gap-4 mb-10" data-reveal>
+    <div>
+      <div class="section-eyebrow">تازه‌های مکتب</div>
+      <h2 class="section-title">دوره‌های منتشرشده</h2>
     </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-stagger>
-      {% for cat in all_categories|slice:':8' %}
-      <a data-item href="{% url 'courses:category_detail' cat.slug %}" class="glass rounded-2xl p-5 group hover:bg-white/8 transition lift">
-        <span class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 border border-violet-500/30 grid place-items-center mb-4 group-hover:scale-110 transition">
-          <i data-lucide="{{ cat.icon|default:'folder' }}" class="w-6 h-6 text-violet-200"></i>
+    <a href="{% url 'courses:course_list' %}" class="btn btn-ghost btn-sm">همه‌ی دوره‌ها <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i></a>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" data-stagger>
+    {% for course in featured_courses %}
+    <a href="{% url 'courses:course_detail' course.slug %}" class="course-card lift" data-item>
+      <div class="card-thumb">
+        {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy" class="w-full h-full object-cover">
+        {% else %}
+          <div class="w-full h-full grid place-items-center bg-gradient-to-br from-violet-550/30 to-fuchsia-500/20">
+            <i data-lucide="book-open" class="w-10 h-10 text-violet-300/60"></i>
+          </div>
+        {% endif %}
+        {% if course.category %}<span class="badge badge-violet absolute top-3 right-3">{{ course.category.name }}</span>{% endif %}
+        {% if course.is_free %}<span class="badge badge-green absolute top-3 left-3">رایگان</span>
+        {% elif course.discount_percent %}<span class="badge badge-rose absolute top-3 left-3 fa-num">٪{{ course.discount_percent }} تخفیف</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">{{ course.title }}</h3>
+        <p class="text-xs text-slate-400 leading-6 line-clamp-2">{{ course.short_description|truncatechars:90 }}</p>
+        <div class="card-meta mt-3">
+          {% if course.get_level_display %}<span class="flex items-center gap-1"><i data-lucide="signal" class="w-3.5 h-3.5"></i> {{ course.get_level_display }}</span>{% endif %}
+          <span class="flex items-center gap-1 fa-num"><i data-lucide="users" class="w-3.5 h-3.5"></i> {{ course.enroll_count|default:0 }} دانشجو</span>
+          {% if course.rating_avg %}<span class="flex items-center gap-1 text-gold-300 fa-num"><i data-lucide="star" class="w-3.5 h-3.5"></i> {{ course.rating_avg|floatformat:1 }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="text-xs text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="user-round" class="w-3.5 h-3.5"></i>
+          {{ course.teachers.first.get_full_name|default:course.teachers.first.username|default:'مدرس مکتب‌پلاس' }}
         </span>
-        <h3 class="font-bold mb-1">{{ cat.name }}</h3>
-        <p class="text-xs text-slate-400">{{ cat.total_courses_count|default:0 }} دوره</p>
-      </a>
-      {% empty %}
-      <div class="col-span-full text-center text-slate-400 glass rounded-2xl p-10">به زودی دسته‌بندی‌های بیشتری اضافه می‌شه.</div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-{# ============ FEATURED COURSES ============ #}
-<section class="py-14">
-  <div class="container-x">
-    <div class="flex flex-wrap items-end justify-between gap-4 mb-10" data-reveal>
-      <div>
-        <div class="section-eyebrow mb-3"><i data-lucide="flame" class="w-3.5 h-3.5"></i> داغ‌ترین‌ها</div>
-        <h2 class="section-title">دوره‌های <span class="grad-text">منتخب</span></h2>
+        <span class="price-tag">
+          {% if course.is_free or not course.price %}
+            <span class="price-free">رایگان</span>
+          {% else %}
+            <span class="price-current fa-num">{{ course.price|floatformat:0 }} تومان</span>
+          {% endif %}
+        </span>
       </div>
-      <a href="{% url 'courses:course_list' %}" class="btn btn-ghost btn-sm">همه‌ی دوره‌ها <i data-lucide="arrow-left" class="w-4 h-4"></i></a>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ================= مسیر شروع ================= #}
+<section class="container-x py-24 border-t border-white/5">
+  <div class="text-center max-w-xl mx-auto mb-14" data-reveal>
+    <div class="section-eyebrow">مسیر شروع</div>
+    <h2 class="section-title">از صفر تا اولین نمره، سه قدم</h2>
+  </div>
+  <div class="nv-steps grid lg:grid-cols-3 gap-8" data-stagger>
+    <div class="text-center px-6" data-item>
+      <div class="nv-step-num mx-auto mb-5 fa-num">۱</div>
+      <h3 class="font-extrabold mb-2">حساب بساز</h3>
+      <p class="text-sm text-slate-400 leading-7">ثبت‌نام کمتر از یک دقیقه طول می‌کشد و برای شروع هیچ هزینه‌ای لازم نیست.</p>
     </div>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
-      {% for course in featured_courses|default:''|slice:':6' %}
-      <a data-item href="{{ course.get_absolute_url }}" class="course-card group">
-        <div class="card-thumb">
-          {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}
-          <div class="absolute top-3 right-3 flex gap-2">
-            {% if course.is_free %}<span class="badge badge-green">رایگان</span>
-            {% elif course.discount_percent %}<span class="badge badge-rose">{{ course.discount_percent }}٪ تخفیف</span>{% endif %}
-          </div>
-        </div>
-        <div class="card-body">
-          {% if course.category %}<span class="badge badge-slate w-fit">{{ course.category.name }}</span>{% endif %}
-          <h3 class="card-title group-hover:text-violet-300 transition">{{ course.title }}</h3>
-          <p class="text-sm text-slate-400 line-clamp-2 leading-7">{{ course.short_description }}</p>
-          <div class="card-meta mt-auto">
-            <span><i data-lucide="clock" class="w-3.5 h-3.5"></i> {{ course.duration_hours }} س</span>
-            <span><i data-lucide="video" class="w-3.5 h-3.5"></i> {{ course.total_lessons }} جلسه</span>
-            {% if course.rating_avg %}<span class="text-gold-400">★ {{ course.rating_avg|floatformat:1 }}</span>{% endif %}
-          </div>
-        </div>
-        <div class="card-footer">
-          <span class="text-xs text-slate-400 truncate"><i data-lucide="user" class="w-3 h-3 inline"></i> {{ course.get_teachers_names }}</span>
-          <div class="price-tag">
-            {% if course.is_free %}<span class="price-free">رایگان</span>
-            {% else %}{% if course.discount_percent %}<span class="price-original">{{ course.price|floatformat:0 }}</span>{% endif %}
-              <span class="price-current">{{ course.final_price|floatformat:0 }}</span>{% endif %}
-          </div>
-        </div>
-      </a>
-      {% empty %}
-      <div class="col-span-full glass rounded-2xl p-12 text-center text-slate-400">به‌زودی دوره‌های منتخب اینجا نمایش داده می‌شن.</div>
-      {% endfor %}
+    <div class="text-center px-6" data-item>
+      <div class="nv-step-num mx-auto mb-5 fa-num">۲</div>
+      <h3 class="font-extrabold mb-2">دوره‌ات را انتخاب کن</h3>
+      <p class="text-sm text-slate-400 leading-7">بین دسته‌بندی‌ها بگرد، سرفصل‌ها را ببین و با دوره‌های رایگان محک بزن.</p>
+    </div>
+    <div class="text-center px-6" data-item>
+      <div class="nv-step-num mx-auto mb-5 fa-num">۳</div>
+      <h3 class="font-extrabold mb-2">یاد بگیر، بپرس، آزمون بده</h3>
+      <p class="text-sm text-slate-400 leading-7">درس را ببین، توی چت کلاس یا از دستیار هوشمند سوال بپرس و با آزمون زمان‌دار خودت را محک بزن.</p>
     </div>
   </div>
 </section>
 
-{# ============ FEATURES ============ #}
-<section class="py-14">
-  <div class="container-x">
-    <div data-reveal class="text-center max-w-2xl mx-auto mb-12">
-      <div class="section-eyebrow mb-3 mx-auto inline-flex"><i data-lucide="diamond" class="w-3.5 h-3.5"></i> چرا مکتب‌پلاس؟</div>
-      <h2 class="section-title">یادگیری در <span class="grad-text">بالاترین کیفیت</span></h2>
+{# ================= دسته‌بندی‌ها ================= #}
+{% if all_categories %}
+<section class="container-x py-8 pb-24">
+  <div class="flex items-end justify-between flex-wrap gap-4 mb-10" data-reveal>
+    <div>
+      <div class="section-eyebrow">موضوعات</div>
+      <h2 class="section-title">از کجا شروع می‌کنی؟</h2>
     </div>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
-      {% for f in '123456' %}
-      {% endfor %}
-      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-violet-500/15 grid place-items-center mb-4"><i data-lucide="play-circle" class="w-6 h-6 text-violet-300"></i></span><h3 class="font-bold mb-2">ویدیوی HD</h3><p class="text-sm text-slate-400 leading-7">پخش بدون لگ، کیفیت بالا، با امکان دانلود برای آفلاین.</p></div>
-      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-fuchsia-500/15 grid place-items-center mb-4"><i data-lucide="clipboard-check" class="w-6 h-6 text-fuchsia-300"></i></span><h3 class="font-bold mb-2">آزمون‌های هوشمند</h3><p class="text-sm text-slate-400 leading-7">سنجش یادگیری با کوییز و آزمون پایان دوره.</p></div>
-      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-emerald-500/15 grid place-items-center mb-4"><i data-lucide="award" class="w-6 h-6 text-emerald-300"></i></span><h3 class="font-bold mb-2">گواهینامه</h3><p class="text-sm text-slate-400 leading-7">بعد از تکمیل، گواهی رسمی با QR قابل اعتبارسنجی دریافت کن.</p></div>
-      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-gold-400/15 grid place-items-center mb-4"><i data-lucide="users" class="w-6 h-6 text-gold-400"></i></span><h3 class="font-bold mb-2">جامعه‌ی فعال</h3><p class="text-sm text-slate-400 leading-7">با هم‌دوره‌ای‌هات سوال بپرس، بحث کن و رشد کن.</p></div>
-      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-rose-500/15 grid place-items-center mb-4"><i data-lucide="headphones" class="w-6 h-6 text-rose-300"></i></span><h3 class="font-bold mb-2">پشتیبانی ۲۴/۷</h3><p class="text-sm text-slate-400 leading-7">هرجا گیر کردی، تیم پشتیبانی همیشه در دسترسه.</p></div>
-      <div data-item class="glass rounded-2xl p-6 lift"><span class="w-12 h-12 rounded-xl bg-sky-500/15 grid place-items-center mb-4"><i data-lucide="infinity" class="w-6 h-6 text-sky-300"></i></span><h3 class="font-bold mb-2">دسترسی مادام‌العمر</h3><p class="text-sm text-slate-400 leading-7">یک‌بار خرید، هر زمان که خواستی برگرد و دوباره ببین.</p></div>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4" data-stagger>
+    {% for cat in all_categories|slice:':8' %}
+    <a href="{% url 'courses:category_detail' cat.slug %}" class="nv-cell !p-5 flex items-center gap-3" data-item>
+      <span class="nv-cell-icon !mb-0 !w-11 !h-11 shrink-0"><i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-5 h-5 text-violet-300"></i></span>
+      <span class="min-w-0">
+        <span class="block font-bold text-sm truncate">{{ cat.name }}</span>
+        <span class="block text-[11px] text-slate-500 fa-num">{{ cat.total_courses_count }} دوره</span>
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ================= CTA ================= #}
+<section class="container-x pb-24">
+  <div class="relative overflow-hidden rounded-3xl border border-white/10 p-10 md:p-16 text-center" data-reveal>
+    <div class="nv-aurora !opacity-70"></div>
+    <div class="relative">
+      {% if user.is_authenticated %}
+        <h2 class="text-3xl md:text-4xl font-black mb-4">ادامه از همان‌جا که ماندی.</h2>
+        <p class="text-slate-300 max-w-lg mx-auto leading-8 mb-8">دوره‌هایت منتظرند؛ 15 دقیقه امروز، از یک ساعت شب امتحان باارزش‌تر است.</p>
+        <div class="flex flex-wrap justify-center gap-3">
+          <a href="{% url 'courses:my_courses' %}" class="btn btn-primary btn-lg" data-magnet>دوره‌های من</a>
+          <a href="{% url 'qa:ask' %}" class="btn btn-ghost btn-lg">یک سوال از دستیار بپرس</a>
+        </div>
+      {% else %}
+        <h2 class="text-3xl md:text-4xl font-black mb-4">اولین جلسه را همین امروز ببین.</h2>
+        <p class="text-slate-300 max-w-lg mx-auto leading-8 mb-8">ساخت حساب یک دقیقه طول می‌کشد، دوره‌های رایگان هم داریم — بهانه‌ای نمی‌ماند.</p>
+        <div class="flex flex-wrap justify-center gap-3">
+          <a href="{% url 'accounts:student_signup' %}" class="btn btn-gold btn-lg" data-magnet>ساخت حساب رایگان</a>
+          <a href="{% url 'courses:course_list' %}" class="btn btn-ghost btn-lg">اول دوره‌ها را ببینم</a>
+        </div>
+      {% endif %}
     </div>
   </div>
 </section>
 
-{# ============ CTA ============ #}
-<section class="py-16">
-  <div class="container-x">
-    <div data-reveal class="relative overflow-hidden rounded-3xl p-12 text-center" style="background: linear-gradient(135deg, rgba(139,92,246,.35), rgba(217,70,239,.35)); border: 1px solid rgba(255,255,255,.1);">
-      <div class="orb w-72 h-72 bg-gold-400/40 -top-20 -right-20"></div>
-      <div class="orb w-72 h-72 bg-violet-500/40 -bottom-20 -left-20"></div>
-      <div class="relative">
-        <h2 class="text-3xl lg:text-5xl font-extrabold mb-5">آماده‌ای <span class="grad-text">سفر یادگیری</span> رو شروع کنی؟</h2>
-        <p class="text-slate-200 mb-7 max-w-xl mx-auto">هزاران یادگیرنده‌ی دیگه به ما اعتماد کردن. نوبت توئه که قدم بعدی رو برداری.</p>
-        <a href="{% url 'accounts:student_signup' %}" class="btn btn-gold btn-lg"><i data-lucide="rocket" class="w-5 h-5"></i> همین حالا شروع کن</a>
-      </div>
-    </div>
-  </div>
-</section>
 {% endblock %}
