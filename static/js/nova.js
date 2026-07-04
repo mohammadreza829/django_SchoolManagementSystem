@@ -20,6 +20,14 @@
     onScroll();
   }
 
+  /* ---------- قیمت‌ها: جداکننده‌ی سه‌رقمی فارسی ---------- */
+  d.querySelectorAll(".price-current, .price-original, [data-price]").forEach(function (el) {
+    el.textContent = el.textContent.replace(/[0-9][0-9,]{3,}/g, function (n) {
+      var num = Number(String(n).replace(/,/g, ""));
+      return isNaN(num) ? n : num.toLocaleString("fa-IR");
+    });
+  });
+
   /* ---------- Reveal با IntersectionObserver ---------- */
   if ("IntersectionObserver" in window) {
     var io = new IntersectionObserver(function (entries) {
@@ -29,7 +37,7 @@
           io.unobserve(e.target);
         }
       });
-    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+    }, { threshold: 0.01, rootMargin: "0px 0px -36px 0px" });
 
     d.querySelectorAll("[data-reveal], [data-stagger], [data-chat-demo], .nv-io").forEach(function (el) {
       io.observe(el);
@@ -38,7 +46,7 @@
     d.querySelectorAll("[data-stagger]").forEach(function (parent) {
       var items = parent.querySelectorAll("[data-item]");
       items.forEach(function (it, i) {
-        it.style.setProperty("--nv-d", (i * 0.07).toFixed(2) + "s");
+        it.style.setProperty("--nv-d", Math.min(i * 0.07, 0.9).toFixed(2) + "s");
       });
     });
 
@@ -69,6 +77,22 @@
     d.querySelectorAll("[data-counter]").forEach(function (el) { cio.observe(el); });
   } else {
     de.classList.remove("js");
+  }
+
+  /* ---------- تور ایمنی: هر چیزی که رصد نشد بعد ۲.۵ ثانیه نمایان شود ---------- */
+  setTimeout(function () {
+    d.querySelectorAll("[data-reveal]:not(.nv-in), [data-stagger]:not(.nv-in), [data-chat-demo]:not(.nv-in)").forEach(function (el) {
+      if (el.getBoundingClientRect().top < innerHeight + 150) el.classList.add("nv-in", "nv-play");
+    });
+  }, 2500);
+
+  /* ---------- سلامِ گوی دستیار ---------- */
+  var fab = d.querySelector(".nv-fab");
+  if (fab) {
+    setTimeout(function () {
+      fab.classList.add("nv-fab-hi");
+      setTimeout(function () { fab.classList.remove("nv-fab-hi"); }, 4500);
+    }, 1400);
   }
 
   if (reduced) return; /* بقیه فقط افکت تزیینی است */

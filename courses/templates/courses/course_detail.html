@@ -1,103 +1,266 @@
 {% extends 'base.html' %}
 {% block title %}{{ course.title }} | مکتب‌پلاس{% endblock %}
+{% block meta_description %}{{ course.short_description }}{% endblock %}
 {% block content %}
-<section class="relative pt-8 pb-12 overflow-hidden">
-  {% if course.cover_image %}<div class="absolute inset-0 -z-10"><img src="{{ course.cover_image.url }}" class="w-full h-full object-cover opacity-20 blur-2xl"><div class="absolute inset-0 bg-gradient-to-b from-ink-0/80 via-ink-0/90 to-ink-0"></div></div>{% endif %}
-  <div class="container-x">
-    <nav class="text-xs text-slate-400 mb-6 flex items-center gap-2 flex-wrap" data-reveal>
-      <a href="{% url 'home' %}" class="hover:text-white">خانه</a><i data-lucide="chevron-left" class="w-3 h-3"></i>
-      <a href="{% url 'courses:course_list' %}" class="hover:text-white">دوره‌ها</a><i data-lucide="chevron-left" class="w-3 h-3"></i>
-      {% if course.category %}<a href="{% url 'courses:category_detail' course.category.slug %}" class="hover:text-white">{{ course.category.name }}</a><i data-lucide="chevron-left" class="w-3 h-3"></i>{% endif %}
-      <span class="text-slate-200 truncate">{{ course.title }}</span>
-    </nav>
-    <div class="grid lg:grid-cols-[1fr_380px] gap-8">
-      <div data-reveal>
+
+<section class="container-x pt-6 pb-16 relative">
+  <div class="nv-page-glow" aria-hidden="true"></div>
+
+  {# ---- مسیر ---- #}
+  <nav class="text-xs text-slate-400 mb-6 flex items-center gap-2 flex-wrap relative" data-reveal>
+    <a href="{% url 'home' %}" class="hover:text-violet-600 transition">خانه</a>
+    <i data-lucide="chevron-left" class="w-3 h-3"></i>
+    <a href="{% url 'courses:course_list' %}" class="hover:text-violet-600 transition">دوره‌ها</a>
+    {% if course.category %}
+    <i data-lucide="chevron-left" class="w-3 h-3"></i>
+    <a href="{% url 'courses:category_detail' course.category.slug %}" class="hover:text-violet-600 transition">{{ course.category.name }}</a>
+    {% endif %}
+    <i data-lucide="chevron-left" class="w-3 h-3"></i>
+    <span class="text-slate-600 truncate max-w-[240px]">{{ course.title }}</span>
+  </nav>
+
+  <div class="grid lg:grid-cols-[1fr_380px] gap-10 items-start relative">
+
+    {# ============ ستون اصلی ============ #}
+    <div class="min-w-0">
+
+      {# ---- هدر دوره ---- #}
+      <header data-reveal>
         <div class="flex flex-wrap gap-2 mb-4">
-          {% if course.category %}<span class="badge badge-violet">{{ course.category.name }}</span>{% endif %}
-          <span class="badge badge-slate">{% if course.level == 'beginner' %}مبتدی{% elif course.level == 'intermediate' %}متوسط{% else %}پیشرفته{% endif %}</span>
-          {% if course.is_free %}<span class="badge badge-green">رایگان</span>{% endif %}
+          {% if course.category %}<span class="badge badge-violet"><i data-lucide="layers" class="w-3 h-3"></i> {{ course.category.name }}</span>{% endif %}
+          <span class="badge badge-slate"><i data-lucide="signal" class="w-3 h-3"></i> {{ course.get_level_display }}</span>
+          {% if course.is_free %}<span class="badge badge-green">رایگان</span>
+          {% elif course.discount_percent %}<span class="badge badge-rose fa-num">٪{{ course.discount_percent }} تخفیف</span>{% endif %}
+          {% if course.is_full %}<span class="badge badge-rose">تکمیل ظرفیت</span>{% endif %}
         </div>
-        <h1 class="text-3xl lg:text-5xl font-extrabold leading-tight mb-4">{{ course.title }}</h1>
-        <p class="text-slate-300 leading-9 max-w-3xl">{{ course.short_description }}</p>
-        <div class="flex flex-wrap gap-5 mt-6 text-sm text-slate-300">
-          {% if course.rating_avg %}<span class="flex items-center gap-1.5"><span class="text-gold-400">★</span> <b class="text-white">{{ course.rating_avg|floatformat:1 }}</b><span class="text-slate-500">({{ course.rating_count }})</span></span>{% endif %}
-          <span class="flex items-center gap-1.5"><i data-lucide="users" class="w-4 h-4 text-violet-300"></i> {{ course.active_enroll_count }} یادگیرنده</span>
-          <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-fuchsia-300"></i> {{ course.duration_hours }} ساعت</span>
-          <span class="flex items-center gap-1.5"><i data-lucide="play-circle" class="w-4 h-4 text-emerald-300"></i> {{ course.total_lessons }} جلسه</span>
+
+        <h1 class="text-2xl lg:text-4xl font-black leading-[1.5] mb-4">{{ course.title }}</h1>
+        <p class="text-slate-500 leading-8 max-w-2xl">{{ course.short_description }}</p>
+
+        <div class="flex flex-wrap gap-2 mt-6" data-stagger>
+          {% if course.rating_avg %}
+          <span class="nv-stat-chip" data-item><span class="text-amber-400">★</span> <b class="fa-num" data-counter="{{ course.rating_avg }}" data-decimals="1">{{ course.rating_avg|floatformat:1 }}</b> <span class="text-slate-400 fa-num">({{ course.rating_count }} رأی)</span></span>
+          {% endif %}
+          <span class="nv-stat-chip" data-item><i data-lucide="users" class="w-4 h-4 text-violet-500"></i> <b class="fa-num" data-counter="{{ course.enroll_count }}">{{ course.enroll_count }}</b> یادگیرنده</span>
+          <span class="nv-stat-chip" data-item><i data-lucide="clock" class="w-4 h-4 text-fuchsia-500"></i> <b class="fa-num" data-counter="{{ course.duration_hours }}">{{ course.duration_hours }}</b> ساعت</span>
+          <span class="nv-stat-chip" data-item><i data-lucide="play-circle" class="w-4 h-4 text-emerald-500"></i> <b class="fa-num" data-counter="{{ course.total_lessons }}">{{ course.total_lessons }}</b> جلسه</span>
+          <span class="nv-stat-chip" data-item><i data-lucide="eye" class="w-4 h-4 text-sky-500"></i> <b class="fa-num" data-counter="{{ course.view_count }}">{{ course.view_count }}</b> بازدید</span>
         </div>
-        <div class="flex items-center gap-3 mt-6"><span class="text-sm text-slate-400">مدرسین:</span>
-          <div class="flex flex-wrap gap-2">{% for t in course.teachers.all %}
-            <a href="{% url 'accounts:profile_detail' t.username %}" class="flex items-center gap-2 glass rounded-full pl-3 pr-1 py-1 hover:bg-white/10">
-              {% if t.profile.avatar %}<img src="{{ t.profile.get_avatar_url }}" class="w-7 h-7 rounded-full">{% else %}<span class="avatar w-7 h-7 text-xs">{{ t.username|first|upper }}</span>{% endif %}
-              <span class="text-sm">{{ t.get_full_name|default:t.username }}</span>
-            </a>
-          {% endfor %}</div>
+
+        <div class="flex flex-wrap items-center gap-2.5 mt-6">
+          <span class="text-sm text-slate-400">مدرسین:</span>
+          {% for t in course.teachers.all %}
+          <a href="{% url 'accounts:profile_detail' t.username %}" class="nv-teacher-lite">
+            {% if t.profile.avatar %}<img src="{{ t.profile.avatar.url }}" class="w-7 h-7 rounded-full object-cover">
+            {% else %}<span class="w-7 h-7 rounded-full grid place-items-center text-[11px] font-bold text-white bg-gradient-to-br from-violet-500 to-fuchsia-500">{{ t.first_name|default:t.username|slice:':1' }}</span>{% endif %}
+            <span>{{ t.get_full_name|default:t.username }}</span>
+          </a>
+          {% endfor %}
         </div>
-      </div>
-      <aside class="lg:sticky lg:top-24 self-start">
-        <div class="glass-strong rounded-3xl overflow-hidden" data-reveal>
-          {% if course.thumbnail %}<div class="aspect-video"><img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video bg-gradient-to-br from-violet-600 to-fuchsia-600 grid place-items-center"><i data-lucide="play" class="w-16 h-16 text-white/70"></i></div>{% endif %}
-          <div class="p-6">
-            <div class="flex items-baseline gap-2 mb-5">
-              {% if course.is_free %}<span class="text-3xl font-extrabold grad-text">رایگان</span>
-              {% else %}{% if course.discount_percent %}<span class="text-base text-slate-500 line-through">{{ course.price|floatformat:0 }}</span><span class="badge badge-rose">{{ course.discount_percent }}٪</span>{% endif %}<span class="text-3xl font-extrabold">{{ course.final_price|floatformat:0 }}</span><span class="text-sm text-slate-400">تومان</span>{% endif %}
+      </header>
+
+      {# ---- منوی پرش چسبان ---- #}
+      <nav class="nv-subnav" data-reveal>
+        <a href="#about"><i data-lucide="align-right" class="w-4 h-4"></i> درباره‌ی دوره</a>
+        <a href="#curriculum"><i data-lucide="list-tree" class="w-4 h-4"></i> سرفصل‌ها</a>
+        <a href="#reviews"><i data-lucide="star" class="w-4 h-4"></i> نظرات</a>
+      </nav>
+
+      {# ---- درباره ---- #}
+      <section id="about" class="nv-panel p-6 lg:p-8 mt-6" data-reveal>
+        <h2 class="nv-h2"><i data-lucide="align-right" class="w-5 h-5"></i> درباره‌ی دوره</h2>
+        <div class="leading-9 text-slate-600">{{ course.description|linebreaks }}</div>
+      </section>
+
+      {# ---- سرفصل‌ها ---- #}
+      <section id="curriculum" class="mt-6" data-reveal>
+        <div class="flex items-end justify-between flex-wrap gap-2 mb-4">
+          <h2 class="nv-h2 !mb-0"><i data-lucide="list-tree" class="w-5 h-5"></i> سرفصل‌های دوره</h2>
+          <span class="text-xs text-slate-400 fa-num">{{ lessons|length }} جلسه • {{ course.duration_hours }} ساعت</span>
+        </div>
+        <div class="space-y-2.5">
+          {% for lesson in lessons %}
+          {% if lesson.is_free_preview or is_enrolled %}
+          <a href="{% url 'courses:lesson_detail' course.slug lesson.slug %}" class="nv-lesson">
+            <span class="nv-lesson-num fa-num">{{ forloop.counter }}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-sm truncate">{{ lesson.title }}</div>
+              <div class="text-xs text-slate-500 flex items-center gap-2.5 mt-1">
+                {% if lesson.duration_minutes %}<span class="flex items-center gap-1 fa-num"><i data-lucide="clock" class="w-3 h-3"></i> {{ lesson.duration_minutes }} دقیقه</span>{% endif %}
+                {% if lesson.content_type == 'video' %}<span class="flex items-center gap-1"><i data-lucide="video" class="w-3 h-3"></i> ویدیو</span>
+                {% elif lesson.content_type == 'article' %}<span class="flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i> متن</span>{% endif %}
+              </div>
             </div>
-            {% if user.is_authenticated %}{% if is_enrolled %}
-              <a href="#curriculum" class="btn btn-primary btn-lg w-full mb-3"><i data-lucide="play" class="w-5 h-5"></i> ادامه‌ی یادگیری</a>
-              <a href="{% url 'chat:room' course.id %}" class="btn btn-outline btn-lg w-full mb-3"><i data-lucide="message-circle" class="w-5 h-5"></i> پیام‌رسان دوره</a>
+            {% if lesson.is_free_preview and not is_enrolled %}<span class="btn btn-ghost btn-sm !text-emerald-600 !border-emerald-200 shrink-0"><i data-lucide="play" class="w-3.5 h-3.5"></i> پیش‌نمایش</span>
+            {% else %}<i data-lucide="play-circle" class="w-5 h-5 text-violet-500 shrink-0"></i>{% endif %}
+          </a>
+          {% else %}
+          <div class="nv-lesson locked">
+            <span class="nv-lesson-num fa-num">{{ forloop.counter }}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-sm truncate">{{ lesson.title }}</div>
+              <div class="text-xs text-slate-500 flex items-center gap-2.5 mt-1">
+                {% if lesson.duration_minutes %}<span class="flex items-center gap-1 fa-num"><i data-lucide="clock" class="w-3 h-3"></i> {{ lesson.duration_minutes }} دقیقه</span>{% endif %}
+                <span class="flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> با ثبت‌نام باز می‌شود</span>
+              </div>
+            </div>
+            <i data-lucide="lock" class="w-4 h-4 text-slate-300 shrink-0"></i>
+          </div>
+          {% endif %}
+          {% empty %}
+          <div class="nv-panel p-12 text-center">
+            <i data-lucide="clapperboard" class="w-10 h-10 mx-auto mb-3 text-slate-300"></i>
+            <p class="text-sm text-slate-500">سرفصل‌ها به‌زودی اضافه می‌شوند.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      {# ---- نظرات ---- #}
+      <section id="reviews" class="mt-10" data-reveal>
+        <h2 class="nv-h2"><i data-lucide="star" class="w-5 h-5"></i> نظر یادگیرنده‌ها</h2>
+        <div class="grid sm:grid-cols-[220px_1fr] gap-5 items-start">
+          <div class="nv-panel p-6 text-center">
+            {% if course.rating_count %}
+            <div class="nv-score-big fa-num">{{ course.rating_avg|floatformat:1 }}</div>
+            <div class="text-amber-400 mt-1 tracking-widest">{% for i in '12345' %}{% if forloop.counter <= course.rating_avg %}★{% else %}☆{% endif %}{% endfor %}</div>
+            <div class="text-xs text-slate-400 mt-2 fa-num">{{ course.rating_count }} رأی ثبت‌شده</div>
+            {% else %}
+            <i data-lucide="star" class="w-9 h-9 mx-auto mb-2 text-slate-300"></i>
+            <div class="text-sm text-slate-500">هنوز امتیازی ثبت نشده</div>
+            {% endif %}
+          </div>
+          <div class="space-y-3">
+            {% for rating in ratings|slice:':10' %}
+            <div class="nv-panel p-5">
+              <div class="flex items-center gap-3 mb-2.5">
+                {% if rating.user.profile.avatar %}<img src="{{ rating.user.profile.avatar.url }}" class="w-9 h-9 rounded-full object-cover">
+                {% else %}<span class="w-9 h-9 rounded-full grid place-items-center text-xs font-bold text-white bg-gradient-to-br from-violet-500 to-fuchsia-500">{{ rating.user.first_name|default:rating.user.username|slice:':1' }}</span>{% endif %}
+                <div class="flex-1">
+                  <div class="font-bold text-sm">{{ rating.user.get_full_name|default:rating.user.username }}</div>
+                  <div class="text-[11px] text-slate-400 fa-num">{{ rating.created_at|date:'Y/m/d' }}</div>
+                </div>
+                <span class="text-amber-400 text-sm">{% for i in '12345' %}{% if forloop.counter <= rating.score %}★{% else %}☆{% endif %}{% endfor %}</span>
+              </div>
+              {% if rating.comment %}<p class="text-sm text-slate-600 leading-8">{{ rating.comment }}</p>{% endif %}
+            </div>
+            {% empty %}
+            <div class="nv-panel p-10 text-center">
+              <p class="text-sm text-slate-500">هنوز نظری ثبت نشده — اولین نفر باش!</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    </div>
+
+    {# ============ کارت خرید (کل مسیر همراه کاربر) ============ #}
+    <aside class="lg:sticky lg:top-24 hidden lg:block" data-reveal>
+      <div class="nv-buy-card">
+        <div class="relative aspect-video overflow-hidden group">
+          {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
+          {% else %}
+            <div class="w-full h-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-violet-800 grid place-items-center"><i data-lucide="book-open-text" class="w-12 h-12 text-white/60"></i></div>
+          {% endif %}
+          <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+          {% if course.discount_percent and not course.is_free %}
+          <span class="absolute top-3 right-3 text-[11px] font-black text-white bg-gradient-to-l from-rose-500 to-orange-500 rounded-full px-3 py-1.5 shadow-lg fa-num">٪{{ course.discount_percent }}</span>
+          {% endif %}
+        </div>
+        <div class="p-6">
+          <div class="flex items-baseline gap-2.5 mb-5 flex-wrap">
+            {% if course.is_free %}<span class="nv-price !text-emerald-500">رایگان!</span>
+            {% else %}
+              {% if course.discount_percent %}<span class="price-original text-sm !text-slate-400">{{ course.price|floatformat:0 }}</span>{% endif %}
+              <span class="price-current nv-price">{{ course.final_price }}</span>
+              <span class="text-sm text-slate-400">تومان</span>
+            {% endif %}
+          </div>
+
+          {% if course.capacity and not course.is_full and course.seats_left < 10 %}
+          <div class="flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mb-4">
+            <i data-lucide="flame" class="w-4 h-4"></i> فقط <b class="fa-num">{{ course.seats_left }}</b> صندلی خالی مونده!
+          </div>
+          {% endif %}
+
+          {% if user.is_authenticated %}
+            {% if is_enrolled %}
+              {% if lessons %}<a href="{% url 'courses:lesson_detail' course.slug lessons.0.slug %}" class="btn btn-primary btn-lg w-full mb-3"><i data-lucide="play" class="w-5 h-5"></i> ادامه‌ی یادگیری</a>
+              {% else %}<a href="#curriculum" class="btn btn-primary btn-lg w-full mb-3"><i data-lucide="play" class="w-5 h-5"></i> ادامه‌ی یادگیری</a>{% endif %}
+              <a href="{% url 'chat:room' course.id %}" class="btn btn-ghost btn-lg w-full mb-3 !border-violet-200 !text-violet-700"><i data-lucide="messages-square" class="w-5 h-5"></i> چت کلاس</a>
+            {% elif course.is_full %}
+              <button class="btn btn-ghost btn-lg w-full mb-3 opacity-60 cursor-not-allowed" disabled><i data-lucide="user-x" class="w-5 h-5"></i> ظرفیت تکمیل شد</button>
             {% else %}
               <form method="post" action="{% url 'courses:enroll_course' course.slug %}">{% csrf_token %}
                 <button class="btn btn-gold btn-lg w-full mb-3"><i data-lucide="sparkles" class="w-5 h-5"></i> ثبت‌نام در دوره</button>
               </form>
-            {% endif %}{% else %}
-              <a href="{% url 'accounts:login' %}" class="btn btn-gold btn-lg w-full mb-3"><i data-lucide="log-in" class="w-5 h-5"></i> ورود و ثبت‌نام</a>
             {% endif %}
-            <ul class="space-y-3 text-sm text-slate-300 pt-4 border-t border-white/10">
-              <li class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-violet-300"></i> {{ course.duration_hours }} ساعت آموزش</li>
-              <li class="flex items-center gap-2"><i data-lucide="video" class="w-4 h-4 text-fuchsia-300"></i> {{ course.total_lessons }} جلسه‌ی ویدیویی</li>
-              <li class="flex items-center gap-2"><i data-lucide="infinity" class="w-4 h-4 text-emerald-300"></i> دسترسی مادام‌العمر</li>
-              <li class="flex items-center gap-2"><i data-lucide="award" class="w-4 h-4 text-gold-400"></i> گواهینامه‌ی پایان دوره</li>
-              <li class="flex items-center gap-2"><i data-lucide="smartphone" class="w-4 h-4 text-rose-300"></i> دسترسی از هر دستگاه</li>
-            </ul>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </div>
-</section>
-<section class="py-10" x-data="{ tab: 'desc' }"><div class="container-x">
-  <div class="flex gap-2 border-b border-white/10 mb-6 overflow-x-auto" data-reveal>
-    <button @click="tab='desc'" :class="tab==='desc' && 'active'" class="tab">توضیحات</button>
-    <button @click="tab='curriculum'" :class="tab==='curriculum' && 'active'" class="tab">سرفصل‌ها</button>
-    <button @click="tab='reviews'" :class="tab==='reviews' && 'active'" class="tab">نظرات</button>
-  </div>
-  <div x-show="tab==='desc'" class="glass rounded-2xl p-6 lg:p-8 prose prose-invert max-w-none leading-9">{{ course.description|linebreaks }}</div>
-  <div x-show="tab==='curriculum'" id="curriculum" class="space-y-2">
-    {% for lesson in course.lessons.all %}
-    <a href="{% url 'courses:lesson_detail' course.slug lesson.slug %}" class="lesson-item {% if lesson.is_free_preview %}{% else %}{% if not is_enrolled %}locked{% endif %}{% endif %} flex items-center gap-3 glass rounded-xl p-4 hover:bg-white/8">
-      <span class="lesson-num">{{ forloop.counter }}</span>
-      <div class="flex-1 min-w-0">
-        <div class="font-bold truncate">{{ lesson.title }}</div>
-        <div class="text-xs text-slate-400 flex items-center gap-2 mt-1">
-          <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> {{ lesson.duration_minutes }} د</span>
-          {% if lesson.is_free_preview %}<span class="badge badge-green text-[10px]">پیش‌نمایش</span>{% endif %}
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-gold btn-lg w-full mb-3"><i data-lucide="log-in" class="w-5 h-5"></i> ورود و ثبت‌نام</a>
+          {% endif %}
+
+          <ul class="space-y-3 text-sm text-slate-600 pt-5 mt-1 border-t border-dashed border-violet-100">
+            <li class="flex items-center gap-2.5"><i data-lucide="clock" class="w-4 h-4 text-violet-500"></i> <b class="fa-num">{{ course.duration_hours }}</b> ساعت آموزش ویدیویی</li>
+            <li class="flex items-center gap-2.5"><i data-lucide="list-video" class="w-4 h-4 text-fuchsia-500"></i> <b class="fa-num">{{ course.total_lessons }}</b> جلسه‌ی ساخت‌یافته</li>
+            {% if free_lessons %}<li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-emerald-500"></i> <b class="fa-num">{{ free_lessons|length }}</b> جلسه‌ی پیش‌نمایش رایگان</li>{% endif %}
+            <li class="flex items-center gap-2.5"><i data-lucide="messages-square" class="w-4 h-4 text-sky-500"></i> چت‌روم اختصاصی با استاد</li>
+            <li class="flex items-center gap-2.5"><i data-lucide="bot" class="w-4 h-4 text-violet-500"></i> پشتیبانی دستیار هوشمند</li>
+            <li class="flex items-center gap-2.5"><i data-lucide="infinity" class="w-4 h-4 text-emerald-500"></i> دسترسی مادام‌العمر</li>
+          </ul>
         </div>
       </div>
-      <i data-lucide="{% if lesson.is_free_preview or is_enrolled %}play-circle{% else %}lock{% endif %}" class="w-5 h-5 text-violet-300"></i>
+    </aside>
+  </div>
+</section>
+
+{# ---- نوار خرید چسبان موبایل ---- #}
+<div class="nv-buybar">
+  <div class="min-w-0">
+    {% if course.is_free %}<span class="font-black text-emerald-500">رایگان!</span>
+    {% else %}<span class="price-current text-lg">{{ course.final_price }}</span> <span class="text-xs text-slate-400">تومان</span>{% endif %}
+  </div>
+  {% if user.is_authenticated %}
+    {% if is_enrolled %}
+      {% if lessons %}<a href="{% url 'courses:lesson_detail' course.slug lessons.0.slug %}" class="btn btn-primary shrink-0"><i data-lucide="play" class="w-4 h-4"></i> ادامه‌ی یادگیری</a>{% endif %}
+    {% elif course.is_full %}
+      <button class="btn btn-ghost shrink-0 opacity-60" disabled>ظرفیت تکمیل</button>
+    {% else %}
+      <form method="post" action="{% url 'courses:enroll_course' course.slug %}">{% csrf_token %}
+        <button class="btn btn-gold shrink-0"><i data-lucide="sparkles" class="w-4 h-4"></i> ثبت‌نام</button>
+      </form>
+    {% endif %}
+  {% else %}
+    <a href="{% url 'accounts:login' %}" class="btn btn-gold shrink-0"><i data-lucide="log-in" class="w-4 h-4"></i> ورود و ثبت‌نام</a>
+  {% endif %}
+</div>
+
+{# ---- دوره‌های مرتبط ---- #}
+{% if related_courses %}
+<section class="container-x pb-24">
+  <div class="flex items-end justify-between flex-wrap gap-4 mb-7" data-reveal>
+    <h2 class="nv-h2 !mb-0"><i data-lucide="sparkles" class="w-5 h-5"></i> دوره‌های مرتبط</h2>
+    <a href="{% url 'courses:course_list' %}" class="btn btn-ghost btn-sm">همه‌ی دوره‌ها <i data-lucide="arrow-left" class="w-4 h-4"></i></a>
+  </div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5" data-stagger>
+    {% for rc in related_courses %}
+    <a href="{{ rc.get_absolute_url }}" class="course-card lift" data-item>
+      <div class="card-thumb">
+        {% if rc.thumbnail %}<img src="{{ rc.thumbnail.url }}" alt="{{ rc.title }}" loading="lazy">
+        {% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-10 h-10"></i></div>{% endif %}
+      </div>
+      <div class="card-body">
+        <h3 class="card-title text-sm">{{ rc.title }}</h3>
+        <div class="flex items-center justify-between mt-3">
+          {% if rc.rating_avg %}<span class="text-amber-400 text-xs fa-num">★ {{ rc.rating_avg|floatformat:1 }}</span>{% else %}<span></span>{% endif %}
+          {% if rc.is_free %}<span class="price-free text-sm">رایگان</span>
+          {% else %}<span class="price-current text-sm">{{ rc.final_price }} <span class="text-[10px] text-slate-400 font-normal">تومان</span></span>{% endif %}
+        </div>
+      </div>
     </a>
     {% endfor %}
   </div>
-  <div x-show="tab==='reviews'" class="space-y-4">
-    {% for rating in course.ratings.all|slice:":10" %}
-    <div class="glass rounded-2xl p-5">
-      <div class="flex items-center gap-3 mb-3">
-        {% if rating.user.profile.avatar %}<img src="{{ rating.user.profile.get_avatar_url }}" class="w-10 h-10 rounded-full">{% else %}<span class="avatar w-10 h-10">{{ rating.user.username|first|upper }}</span>{% endif %}
-        <div class="flex-1"><div class="font-bold text-sm">{{ rating.user.get_full_name|default:rating.user.username }}</div><div class="text-xs text-slate-400">{{ rating.created_at|timesince }} پیش</div></div>
-        <div class="text-gold-400">{% for i in "12345" %}{% if forloop.counter <= rating.score %}★{% else %}☆{% endif %}{% endfor %}</div>
-      </div>
-      {% if rating.comment %}<p class="text-sm text-slate-300 leading-7">{{ rating.comment }}</p>{% endif %}
-    </div>
-    {% empty %}<div class="glass rounded-2xl p-10 text-center text-slate-400">هنوز نظری ثبت نشده.</div>{% endfor %}
-  </div>
-</div></section>
+</section>
+{% endif %}
+
 {% endblock %}

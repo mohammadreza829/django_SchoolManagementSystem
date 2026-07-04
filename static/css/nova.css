@@ -199,3 +199,213 @@ html.js [data-stagger].nv-in [data-item] { opacity: 1; transform: none; }
   .nv-aurora, .nv-float, .nv-marquee-track { animation: none !important; }
   html.js [data-reveal], html.js [data-stagger] [data-item] { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
+
+/* ---------- کارت دوره‌ها: پولیش جدید ---------- */
+.course-card {
+  border-radius: 1.5rem !important; overflow: hidden; isolation: isolate;
+  border: 1px solid rgba(139, 92, 246, .16) !important;
+  box-shadow: 0 14px 40px -24px rgba(76, 29, 149, .35);
+  transition: transform .45s var(--nv-ease), box-shadow .45s, border-color .3s;
+}
+.course-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(139, 92, 246, .5) !important;
+  box-shadow: 0 34px 70px -28px rgba(124, 58, 237, .45);
+}
+.card-thumb { position: relative; overflow: hidden; }
+.card-thumb img { transition: transform .8s var(--nv-ease); }
+.course-card:hover .card-thumb img { transform: scale(1.07); }
+.card-title { font-weight: 800 !important; }
+.price-current { font-weight: 900; letter-spacing: -.01em; }
+.price-original { text-decoration: line-through; opacity: .55; }
+
+/* ---------- صفحه‌ی دوره ---------- */
+.nv-stat-chip {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .55rem 1.05rem; border-radius: 999px; font-size: .8rem;
+  border: 1px solid rgba(139, 92, 246, .2); background: rgba(139, 92, 246, .07);
+}
+.nv-lesson {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.25rem; border-radius: 1.1rem;
+  border: 1px solid rgba(139, 92, 246, .14);
+  transition: border-color .25s, transform .3s var(--nv-ease), box-shadow .3s;
+}
+.nv-lesson:hover {
+  border-color: rgba(139, 92, 246, .45);
+  transform: translateX(-6px);
+  box-shadow: 0 14px 34px -22px rgba(124, 58, 237, .4);
+}
+.nv-lesson.locked { opacity: .55; }
+.nv-lesson.locked:hover { transform: none; box-shadow: none; }
+.nv-lesson-num {
+  width: 2.3rem; height: 2.3rem; border-radius: .8rem; flex-shrink: 0;
+  display: grid; place-items: center; font-weight: 800; font-size: .85rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, .18), rgba(217, 70, 239, .12));
+  border: 1px solid rgba(139, 92, 246, .3); color: #8b5cf6;
+}
+.tab { position: relative; }
+.tab.active::after {
+  content: ""; position: absolute; bottom: -1px; right: 10%; left: 10%; height: 3px;
+  border-radius: 3px; background: linear-gradient(90deg, #8b5cf6, #d946ef);
+}
+.nv-score-big {
+  font-size: 3.4rem; font-weight: 900; line-height: 1.15;
+  background: linear-gradient(135deg, #8b5cf6, #d946ef);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ===== گوی شناور دستیار هوشمند ===== */
+.nv-fab { position: fixed; right: 1.3rem; bottom: 1.3rem; z-index: 70; display: flex; flex-direction: row-reverse; align-items: center; gap: .7rem; text-decoration: none; animation: nv-fab-bob 3.4s ease-in-out infinite; }
+.nv-fab-core { position: relative; width: 3.6rem; height: 3.6rem; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #8b5cf6, #d946ef); box-shadow: 0 10px 30px rgba(139,92,246,.45); transition: transform .3s; }
+.nv-fab:hover .nv-fab-core { transform: scale(1.08) rotate(-6deg); }
+.nv-fab-core::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(139,92,246,.55); animation: nv-fab-ping 2.4s cubic-bezier(0,0,.2,1) infinite; }
+.nv-fab-dot { position: absolute; top: .2rem; left: .2rem; width: .8rem; height: .8rem; border-radius: 50%; background: #34d399; border: 2px solid #fff; }
+.nv-fab-label { opacity: 0; transform: translateX(8px); pointer-events: none; transition: all .35s; background: rgba(16,15,43,.92); color: #fff; font-size: .78rem; font-weight: 700; padding: .55rem .95rem; border-radius: 999px; border: 1px solid rgba(139,92,246,.35); box-shadow: 0 8px 24px rgba(0,0,0,.25); white-space: nowrap; }
+.nv-fab:hover .nv-fab-label, .nv-fab:focus .nv-fab-label, .nv-fab.nv-fab-hi .nv-fab-label { opacity: 1; transform: translateX(0); }
+@keyframes nv-fab-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes nv-fab-ping { 0% { transform: scale(1); opacity: .8; } 80%, 100% { transform: scale(1.65); opacity: 0; } }
+@media (max-width: 640px) { .nv-fab { right: 1rem; bottom: 1rem; } .nv-fab-core { width: 3.1rem; height: 3.1rem; } .nv-fab-label { display: none; } }
+@media (prefers-reduced-motion: reduce) { .nv-fab, .nv-fab-core::before { animation: none; } }
+
+/* ===== کارت خرید صفحه‌ی دوره: قاب گرادیانی ===== */
+.nv-buy { position: relative; }
+.nv-buy::before { content: ""; position: absolute; inset: -1px; border-radius: 1.6rem; padding: 1.5px; background: linear-gradient(140deg, rgba(139,92,246,.7), rgba(217,70,239,.4), transparent 65%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; z-index: 1; }
+
+/* چیپ‌های آمار: هاور */
+.nv-stat-chip { transition: transform .25s, box-shadow .25s; }
+.nv-stat-chip:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(139,92,246,.18); }
+
+/* ===================================================
+   V4 — هیروی تیره‌ی صفحه‌ی دوره
+   =================================================== */
+.nv-hero-dark {
+  position: relative; overflow: hidden; color: #fff;
+  background:
+    radial-gradient(1100px 520px at 88% -12%, rgba(139,92,246,.4), transparent 62%),
+    radial-gradient(900px 460px at 8% 115%, rgba(217,70,239,.25), transparent 60%),
+    linear-gradient(135deg, #151034 0%, #1d1244 55%, #0f1531 100%);
+  border-radius: 0 0 2.75rem 2.75rem;
+}
+.nv-hero-dark::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px);
+  background-size: 42px 42px;
+  -webkit-mask-image: radial-gradient(760px 460px at 72% 14%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(760px 460px at 72% 14%, #000 25%, transparent 78%);
+}
+.nv-hero-dark .nv-orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .45; pointer-events: none; }
+
+.nv-chip-dark {
+  display: inline-flex; align-items: center; gap: .55rem;
+  padding: .6rem 1.1rem; border-radius: 999px; font-size: .8rem; color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.07);
+  backdrop-filter: blur(8px); transition: transform .25s, background .25s;
+}
+.nv-chip-dark b { color: #fff; font-size: .95rem; }
+.nv-chip-dark:hover { transform: translateY(-3px); background: rgba(255,255,255,.13); }
+
+.nv-teacher-chip {
+  display: inline-flex; align-items: center; gap: .6rem; color: #fff;
+  padding: .35rem 1rem .35rem .45rem; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.08);
+  transition: background .25s, transform .25s;
+}
+.nv-teacher-chip:hover { background: rgba(255,255,255,.16); transform: translateY(-2px); }
+
+.nv-buy-card {
+  background: #fff; color: #334155; border-radius: 1.7rem; overflow: hidden;
+  box-shadow: 0 34px 90px -32px rgba(21,16,52,.6), 0 0 0 1px rgba(139,92,246,.12);
+}
+.nv-price { font-size: 2.1rem; font-weight: 900; color: #7c3aed; letter-spacing: -.02em; }
+
+.nv-panel {
+  background: #fff; border: 1px solid rgba(139,92,246,.14); border-radius: 1.5rem;
+  box-shadow: 0 20px 55px -38px rgba(76,29,149,.35); color: #334155;
+}
+.nv-lesson { background: #fff; border-radius: 1.1rem; }
+.tab.active { color: #7c3aed; }
+
+/* ===================================================
+   V4 — کارت دوره‌ها روی تم روشن
+   =================================================== */
+.course-card { background: #fff; }
+.course-card::after {
+  content: ""; position: absolute; top: 0; right: 0; left: 0; height: 3px; z-index: 2;
+  background: linear-gradient(90deg, #8b5cf6, #d946ef, #f59e0b);
+  opacity: 0; transition: opacity .35s;
+}
+.course-card:hover::after { opacity: 1; }
+.card-thumb { aspect-ratio: 16 / 9; }
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.card-thumb::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(21,16,52,0) 55%, rgba(21,16,52,.35));
+}
+.card-thumb .placeholder {
+  width: 100%; height: 100%; display: grid; place-items: center;
+  color: rgba(255,255,255,.75);
+  background: linear-gradient(135deg, #8b5cf6, #c026d3 60%, #7c3aed);
+}
+.price-current { color: #7c3aed; font-size: 1.05em; }
+.price-free { font-weight: 900; }
+.card-footer { border-top: 1px dashed rgba(139,92,246,.22); }
+.card-meta span { color: #64748b; }
+.card-meta i { color: #8b5cf6; }
+
+/* ===================================================
+   V5 — صفحه‌ی دوره: رابط کاربری یک‌دست با تم روشن
+   =================================================== */
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 6.5rem; }
+
+.nv-page-glow {
+  position: absolute; inset: -80px 0 auto 0; height: 420px; pointer-events: none; z-index: -1;
+  background:
+    radial-gradient(640px 300px at 82% 0%, rgba(139,92,246,.1), transparent 70%),
+    radial-gradient(520px 260px at 12% 10%, rgba(217,70,239,.07), transparent 70%);
+}
+
+.nv-h2 { display: flex; align-items: center; gap: .55rem; font-size: 1.15rem; font-weight: 900; margin-bottom: 1rem; }
+.nv-h2 i, .nv-h2 svg { color: #8b5cf6; }
+
+.nv-teacher-lite {
+  display: inline-flex; align-items: center; gap: .5rem; font-size: .82rem; font-weight: 600;
+  padding: .3rem .9rem .3rem .4rem; border-radius: 999px; background: #fff;
+  border: 1px solid rgba(139,92,246,.18); box-shadow: 0 4px 14px -8px rgba(76,29,149,.25);
+  transition: transform .25s, border-color .25s;
+}
+.nv-teacher-lite:hover { transform: translateY(-2px); border-color: rgba(139,92,246,.45); }
+
+.nv-subnav {
+  position: sticky; top: 5rem; z-index: 40; margin-top: 1.75rem;
+  display: flex; gap: .25rem; width: fit-content; max-width: 100%; overflow-x: auto;
+  padding: .35rem; border-radius: 999px;
+  background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
+  border: 1px solid rgba(139,92,246,.16); box-shadow: 0 10px 30px -18px rgba(76,29,149,.3);
+}
+.nv-subnav a {
+  display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap;
+  padding: .5rem 1.1rem; border-radius: 999px; font-size: .82rem; font-weight: 700; color: #64748b;
+  transition: color .2s, background .2s;
+}
+.nv-subnav a:hover { color: #7c3aed; background: rgba(139,92,246,.09); }
+.nv-subnav a i, .nv-subnav a svg { color: #a78bfa; }
+
+/* کارت خرید: سایه‌ی نرم‌تر هماهنگ با تم روشن */
+.nv-buy-card { box-shadow: 0 24px 60px -34px rgba(76,29,149,.4), 0 0 0 1px rgba(139,92,246,.13); }
+
+/* نوار خرید چسبان موبایل */
+.nv-buybar {
+  position: fixed; right: 0; left: 0; bottom: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .8rem 1.1rem;
+  background: rgba(255,255,255,.94); backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(139,92,246,.16); box-shadow: 0 -12px 34px -18px rgba(76,29,149,.25);
+}
+@media (min-width: 1024px) { .nv-buybar { display: none; } }
+@media (max-width: 1023.98px) {
+  body:has(.nv-buybar) .nv-fab { bottom: 5.6rem; }
+}
