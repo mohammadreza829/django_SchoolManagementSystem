@@ -99,9 +99,10 @@
 
         // ---- تایمر شمارش معکوس ----
         // مدت زمان رو از مدل می‌گیریم (دقیقه). صفر یعنی بدون محدودیت.
-        var limitMinutes = {{ quiz.time_limit_minutes|default:0 }};
-        if (limitMinutes > 0) {
-            var remaining = limitMinutes * 60;
+        // زمان باقی‌مانده از سرور می‌آید تا با رفرش، صفر/ریست نشود
+        var remaining = {{ remaining_seconds }};
+        var hasTimeLimit = {{ has_time_limit|yesno:"true,false" }};
+        if (hasTimeLimit) {
             var timerEl = document.getElementById('timer');
             var wrapEl = document.getElementById('timerWrap');
             var form = document.getElementById('quizForm');

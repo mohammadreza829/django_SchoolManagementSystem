@@ -57,10 +57,32 @@ class QuizForm(StyleMixin, forms.ModelForm):
             "time_limit_minutes",
             "pass_mark",
             "max_attempts",
+            "available_from",
+            "available_until",
             "shuffle_questions",
             "show_solution",
             "is_published",
         ]
+        widgets = {
+            "available_from": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
+            "available_until": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # پذیرفتن مقدار ورودیِ <input type="datetime-local">
+        for name in ("available_from", "available_until"):
+            self.fields[name].input_formats = [
+                "%Y-%m-%dT%H:%M",
+                "%Y-%m-%dT%H:%M:%S",
+                "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d %H:%M",
+            ]
+            self.fields[name].required = False
 
 
 class QuestionForm(StyleMixin, forms.ModelForm):

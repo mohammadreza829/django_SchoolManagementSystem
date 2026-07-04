@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.auth.forms import AuthenticationForm
 from django.db import models
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import Profile, Notification
 from .forms import (
     StudentSignUpForm,  
@@ -59,8 +60,17 @@ def user_login(request):
             messages.success(
                 request, f"خوش آمدید {user.get_full_name() or user.username}!"
             )
-            next_url = request.GET.get("next")
-            return redirect(next_url or "accounts:profile")  # تغییر این خط
+            # ✅ فیکس امنیتی (Open Redirect): پارامتر next باید اعتبارسنجی شود،
+            # وگرنه مهاجم می‌تواند کاربر را بعد از لاگین به سایت فیشینگ بفرستد
+            # (مثلاً /accounts/login/?next=https://evil.com)
+            next_url = request.POST.get("next") or request.GET.get("next")
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+            return redirect("accounts:profile")
         else:
             messages.error(request, "نام کاربری یا رمز عبور اشتباه است.")
     else:

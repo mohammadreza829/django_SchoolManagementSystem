@@ -11,10 +11,12 @@ def _update_enroll_count(course):
     course.save(update_fields=["enroll_count", "is_full"])
 
 
+
 @receiver(post_save, sender=Enrollment)
 def enrollment_saved(sender, instance, **kwargs):
+    if kwargs.get("raw", False):
+        return
     _update_enroll_count(instance.course)
-
 
 @receiver(post_delete, sender=Enrollment)
 def enrollment_deleted(sender, instance, **kwargs):

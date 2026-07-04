@@ -12,6 +12,12 @@ def sync_user_profiles(sender, instance, created, **kwargs):
     فقط هنگام ایجاد کاربر جدید، پروفایل‌ها را بساز.
     برای به‌روزرسانی‌های بعدی (تغییر نقش) کاری نکن تا اطلاعات از دست نرود.
     """
+    # ✅ هنگام loaddata جنگو raw=True می‌فرستد؛ در این حالت هیچ کاری نکن
+    # چون پروفایل‌های واقعی خودشان داخل فایل fixture هستند
+    if kwargs.get("raw", False):
+        return
+
+    Profile.objects.get_or_create(user=instance)
     # پروفایل عمومی برای همه کاربران (حتی اگر وجود داشته باشد، کاری نمی‌کند)
     Profile.objects.get_or_create(user=instance)
 

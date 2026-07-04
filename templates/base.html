@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}مکتب‌پلاس · پلتفرم آموزش آنلاین{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}مکتب‌پلاس: یاد بگیر، رشد کن، بدرخش.{% endblock %}">
-    <meta name="theme-color" content="#07071a">
+    <meta name="theme-color" content="#2563eb">
     {% block extra_head %}{% endblock %}
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,10 +39,11 @@
       }
     </script>
     <link rel="stylesheet" href="{% static 'css/maktab.css' %}">
+    <link rel="stylesheet" href="{% static 'css/uiux-promax.css' %}">
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
-<body class="min-h-screen bg-ink-0 text-slate-100 antialiased">
+<body class="min-h-screen antialiased">
 
     <div class="mesh-bg fixed inset-0 -z-10" aria-hidden="true">
         <div class="mesh-blob mesh-blob-1"></div>
@@ -58,7 +59,7 @@
             class="site-nav fixed top-0 inset-x-0 z-40">
       <div class="container-x flex items-center gap-4 py-3.5">
         <a href="{% url 'home' %}" class="flex items-center gap-2 group shrink-0">
-          <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-purple-600 grid place-items-center text-white shadow-glow group-hover:scale-105 transition">
+          <span class="w-10 h-10 rounded-2xl brand-badge grid place-items-center text-white shadow-glow group-hover:scale-105 transition">
             <i data-lucide="graduation-cap" class="w-5 h-5"></i>
           </span>
           <span class="text-lg font-extrabold tracking-tight grad-text hidden sm:inline">مکتب‌پلاس</span>
@@ -184,7 +185,7 @@
       <div class="container-x py-14 grid lg:grid-cols-4 gap-10">
         <div class="lg:col-span-2">
           <div class="flex items-center gap-2 mb-4">
-            <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 grid place-items-center"><i data-lucide="graduation-cap" class="w-5 h-5"></i></span>
+            <span class="w-10 h-10 rounded-2xl brand-badge grid place-items-center text-white"><i data-lucide="graduation-cap" class="w-5 h-5"></i></span>
             <span class="text-xl font-extrabold grad-text">مکتب‌پلاس</span>
           </div>
           <p class="text-sm text-slate-400 leading-7 max-w-md">پلتفرم آموزش آنلاینی که با عشق ساخته شده — برای یادگیرنده‌هایی که جدی‌اند.</p>

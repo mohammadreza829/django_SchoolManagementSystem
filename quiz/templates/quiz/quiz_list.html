@@ -28,6 +28,11 @@
                 <span class="text-xs text-gray-400"><i class="far fa-clock ml-1"></i>{{ quiz.time_limit_minutes }} دقیقه</span>
                 {% endif %}
             </div>
+            {% if not quiz.is_open_now %}
+            <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-md {% if quiz.availability_status == 'upcoming' %}bg-blue-500/15 text-blue-700{% else %}bg-red-500/15 text-red-600{% endif %} mb-2">
+                {% if quiz.availability_status == 'upcoming' %}به‌زودی{% else %}بسته شده{% endif %}
+            </span>
+            {% endif %}
             <h3 class="font-bold text-lg mb-1">{{ quiz.title }}</h3>
             <p class="text-sm text-gray-400 line-clamp-2">{{ quiz.description }}</p>
             {% if quiz.course %}

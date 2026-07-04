@@ -21,6 +21,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+from datetime import timedelta
 
 # به جای import مستقیم User بهتره از settings.AUTH_USER_MODEL استفاده کنیم
 User = settings.AUTH_USER_MODEL
@@ -254,6 +255,16 @@ class Quiz(models.Model):
     )
     is_published = models.BooleanField(default=False, verbose_name="منتشر شده")
 
+    # بازه‌ی زمانیِ فعال بودن آزمون (خالی = بدون محدودیت)
+    available_from = models.DateTimeField(
+        blank=True, null=True, verbose_name="فعال از تاریخ",
+        help_text="خالی یعنی محدودیت شروع ندارد",
+    )
+    available_until = models.DateTimeField(
+        blank=True, null=True, verbose_name="فعال تا تاریخ",
+        help_text="خالی یعنی محدودیت پایان ندارد",
+    )
+
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -300,6 +311,26 @@ class Quiz(models.Model):
     def question_count(self):
         return self.questions.count()
 
+    @property
+    def is_open_now(self):
+        """آیا آزمون در همین لحظه در بازه‌ی فعال بودن است؟"""
+        now = timezone.now()
+        if self.available_from and now < self.available_from:
+            return False
+        if self.available_until and now > self.available_until:
+            return False
+        return True
+
+    @property
+    def availability_status(self):
+        """upcoming = هنوز شروع نشده، closed = مهلت تمام، open = فعال"""
+        now = timezone.now()
+        if self.available_from and now < self.available_from:
+            return "upcoming"
+        if self.available_until and now > self.available_until:
+            return "closed"
+        return "open"
+
 
 class QuizQuestion(models.Model):
     """
@@ -334,7 +365,7 @@ class QuizAttempt(models.Model):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     STATUS_CHOICES = (
-        (IN_PROGRESS, "در حال انجام"),
+        (IN_PROGRESS, "در ��ال انجام"),
         (COMPLETED, "تکمیل شده"),
     )
 
@@ -363,6 +394,27 @@ class QuizAttempt(models.Model):
 
     def __str__(self):
         return f"{self.student} → {self.quiz.title} ({self.percentage}%)"
+
+    @property
+    def deadline(self):
+        """زمان پایان مجاز این تلاش بر اساس مدت آزمون و زمان شروع."""
+        if self.quiz.time_limit_minutes and self.started_at:
+            return self.started_at + timedelta(minutes=self.quiz.time_limit_minutes)
+        return None
+
+    @property
+    def remaining_seconds(self):
+        """ثانیه‌های باقی‌مانده تا پایان (None یعنی بدون محدودیت زمانی)."""
+        dl = self.deadline
+        if dl is None:
+            return None
+        return max(0, int((dl - timezone.now()).total_seconds()))
+
+    @property
+    def is_expired(self):
+        """آیا زمان این تلاش تمام شده است؟"""
+        dl = self.deadline
+        return dl is not None and timezone.now() >= dl
 
     def calculate_score(self):
         """

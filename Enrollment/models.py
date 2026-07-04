@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from courses.models import Course
 
@@ -75,6 +76,18 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.student} ← {self.course.title}"
+
+    def clean(self):
+        """✅ فیکس: کنترل ظرفیت در سطح مدل — تا از طریق ادمین جنگو هم
+        نشود بیشتر از ظرفیت دوره ثبت‌نام کرد (view فقط فرانت را پوشش می‌دهد)."""
+        if self.course_id and self.status != "cancelled":
+            course = self.course
+            if course.capacity:
+                qs = course.enrollments.exclude(status="cancelled")
+                if self.pk:
+                    qs = qs.exclude(pk=self.pk)
+                if qs.count() >= course.capacity:
+                    raise ValidationError("ظرفیت این دوره تکمیل شده است.")
 
     @property
     def is_completed(self):

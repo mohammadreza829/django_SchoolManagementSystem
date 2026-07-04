@@ -3,7 +3,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Q, F, Avg
 from django.utils import timezone
 from accounts.models import Notification
@@ -28,7 +28,10 @@ def _has_course_access(user, course):
     """
     if not user.is_authenticated:
         return False
-    if user.is_superuser or user.is_staff or getattr(user, "is_teacher", False):
+    if user.is_superuser or user.is_staff:
+        return True
+    # ✅ فیکس: فقط استادِ «همین دوره» دسترسی دارد، نه هر کاربری با نقش استاد
+    if getattr(user, "is_teacher", False) and course.teachers.filter(id=user.id).exists():
         return True
     return Enrollment.objects.filter(
         student=user,
@@ -219,28 +222,62 @@ def enroll_course(request, course_slug):
         messages.error(request, "مهلت ثبت‌نام این دوره به پایان رسیده است.")
         return redirect("courses:course_detail", slug=course_slug)
 
-    # اگر قبلاً ثبت‌نام کرده، دوباره ثبت‌نام نکن
-    if Enrollment.objects.filter(student=request.user, course=course).exists():
-        messages.info(request, "شما قبلاً در این دوره ثبت‌نام کرده‌اید.")
-        return redirect("courses:course_detail", slug=course_slug)
+    # ✅ فیکس: کنترل «ثبت‌نام تکراری» و «ظرفیت» هر دو داخل یک تراکنش اتمیک + قفل ردیف دوره
+    # تا دو درخواست همزمان نه رکورد تکراری بسازند و نه از ظرفیت رد شوند.
+    try:
+        with transaction.atomic():
+            locked = Course.objects.select_for_update().get(id=course.id)
 
-    # کنترل ظرفیت به‌صورت اتمیک تا دو نفر همزمان از ظرفیت رد نشوند
-    with transaction.atomic():
-        locked = Course.objects.select_for_update().get(id=course.id)
-        if locked.capacity:
-            current = locked.enrollments.exclude(status="cancelled").count()
-            if current >= locked.capacity:
-                messages.error(request, "ظرفیت این دوره تکمیل شده است.")
+            existing = Enrollment.objects.filter(
+                student=request.user, course=locked
+            ).first()
+
+            # اگر ثبت‌نام فعال یا تکمیل‌شده دارد → تکراری است
+            if existing and existing.status != "cancelled":
+                messages.info(request, "شما قبلاً در این دوره ثبت‌نام کرده‌اید.")
                 return redirect("courses:course_detail", slug=course_slug)
 
-        # تا راه‌اندازی درگاه پرداخت، همه‌ی ثبت‌نام‌ها فوری فعال می‌شوند (TODO: پرداخت)
-        Enrollment.objects.create(
-            student=request.user,
-            course=locked,
-            status="active",
-            payment_status="free" if locked.is_free else "paid",
-            price_paid=0 if locked.is_free else locked.final_price,
-        )
+            # کنترل ظرفیت (لغوشده‌ها حساب نمی‌شوند)
+            if locked.capacity:
+                current = locked.enrollments.exclude(status="cancelled").count()
+                if current >= locked.capacity:
+                    messages.error(request, "ظرفیت این دوره تکمیل شده است.")
+                    return redirect("courses:course_detail", slug=course_slug)
+
+            payment_status = "free" if locked.is_free else "paid"
+            price_paid = 0 if locked.is_free else locked.final_price
+
+            if existing:
+                # ✅ فیکس: ثبت‌نامِ «لغوشده» دوباره فعال می‌شود
+                # (قبلاً به‌خاطر unique_together، کاربر لغوکرده هیچ‌وقت نمی‌توانست دوباره ثبت‌نام کند)
+                existing.status = "active"
+                existing.payment_status = payment_status
+                existing.price_paid = price_paid
+                existing.progress_percentage = 0
+                existing.completed_at = None
+                existing.save(
+                    update_fields=[
+                        "status",
+                        "payment_status",
+                        "price_paid",
+                        "progress_percentage",
+                        "completed_at",
+                    ]
+                )
+            else:
+                # تا راه‌اندازی درگاه پرداخت، همه‌ی ثبت‌نام‌ها فوری فعال می‌شوند (TODO: پرداخت)
+                Enrollment.objects.create(
+                    student=request.user,
+                    course=locked,
+                    status="active",
+                    payment_status=payment_status,
+                    price_paid=price_paid,
+                )
+    except IntegrityError:
+        # ✅ فیکس: اگر دو درخواست کاملاً همزمان بودند، unique_together جلوی رکورد دوم را
+        # می‌گیرد؛ به جای خطای 500 پیام مناسب نشان می‌دهیم.
+        messages.info(request, "شما قبلاً در این دوره ثبت‌نام کرده‌اید.")
+        return redirect("courses:course_detail", slug=course_slug)
     # enroll_count و is_full توسط signal اپ Enrollment خودکار به‌روز می‌شود
 
     # اعلان خوش‌آمد خودکار
@@ -314,7 +351,15 @@ def add_rating(request, course_slug):
     """
     افزودن امتیاز و نظر برای دوره (با فرم ساده POST)
     """
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(Course, slug=course_slug, status="published")
+
+    # ✅ فیکس: فقط کسی که در دوره ثبت‌نام کرده می‌تواند امتیاز بدهد
+    # (قبلاً هر کاربر لاگین‌شده‌ای می‌توانست به هر دوره‌ای امتیاز بدهد)
+    if not Enrollment.objects.filter(
+        student=request.user, course=course
+    ).exclude(status="cancelled").exists():
+        messages.error(request, "برای امتیاز دادن باید در این دوره ثبت‌نام کرده باشید.")
+        return redirect("courses:course_detail", slug=course_slug)
 
     if request.method == "POST":
         score = request.POST.get("score")
@@ -380,7 +425,7 @@ def download_attachment(request, attachment_id):
     """
     دانلود فایل ضمیمه جلسه
     """
-    from django.http import HttpResponse
+    from django.http import FileResponse
     import os
 
     attachment = get_object_or_404(LessonAttachment, id=attachment_id)
@@ -402,14 +447,12 @@ def download_attachment(request, attachment_id):
     attachment.download_count = F("download_count") + 1
     attachment.save(update_fields=["download_count"])
 
-    # ارسال فایل
-    file_path = attachment.file.path
-    file_name = os.path.basename(file_path)
-
-    with open(file_path, "rb") as f:
-        response = HttpResponse(f.read(), content_type="application/octet-stream")
-        response["Content-Disposition"] = f'attachment; filename="{file_name}"'
-        return response
+    # ✅ فیکس: استریم فایل به جای خواندن کامل در حافظه
+    # (قبلاً فایل‌های حجیم مثل ویدیو/PDF کل RAM سرور را اشغال می‌کردند)
+    file_name = os.path.basename(attachment.file.name)
+    return FileResponse(
+        attachment.file.open("rb"), as_attachment=True, filename=file_name
+    )
 
 
 def category_detail(request, slug):
