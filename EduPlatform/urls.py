@@ -16,4 +16,5 @@ urlpatterns = [
     path('quiz/', include('quiz.urls')),  # این خط باید باشد
     path('panel/', include('panel.urls')),  # پنل مدیریت
     path('chat/', include('chat.urls')),    # چت دوره‌ها
+    path('qa/', include('qa.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
