@@ -231,8 +231,8 @@ This project is released under the **MIT License** — see the [LICENSE](LICENSE
 
 <div align="center">
 
-Made with ❤️ for Persian-speaking learners
+** Made with ❤️ by mohammadreza fasli **
 
-**⭐ If you find this project useful, please give it a star!**
+** If you find this project useful, please give it a star!⭐ **
 
 </div>
