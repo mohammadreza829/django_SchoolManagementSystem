@@ -1,5 +1,6 @@
 # courses/views.py (نسخه ساده - بدون AJAX و API)
 
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -75,8 +76,21 @@ def course_list(request):
     # دسته‌بندی‌ها برای نمایش در فیلتر
     categories = Category.objects.filter(is_active=True)
 
+    # ✅ فیکس: صفحه‌بندی واقعی + حفظ فیلترها در لینک صفحات
+    # (قبلاً Paginator وجود نداشت و بلوک صفحه‌بندی تمپلیت هیچ‌وقت رندر نمی‌شد)
+    courses = courses.order_by("-created_at")
+    paginator = Paginator(courses, 9)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    # پارامترهای فعلی (q, level, category) بدون page — برای لینک‌های صفحه‌بندی
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+
     context = {
-        "courses": courses,
+        "courses": page_obj.object_list,
+        "page_obj": page_obj,
+        "is_paginated": page_obj.has_other_pages(),
+        "querystring": query_params.urlencode(),
         "categories": categories,
         "selected_category": category_slug,
         "selected_level": level,
@@ -365,6 +379,7 @@ def add_rating(request, course_slug):
         score = request.POST.get("score")
         comment = request.POST.get("comment", "")
 
+        # ✅ فیکس: قبلاً امتیاز نامعتبر بی‌صدا رد می‌شد و کاربر هیچ بازخوردی نمی‌گرفت
         if score:
             try:
                 score = int(score)
@@ -380,8 +395,16 @@ def add_rating(request, course_slug):
                     course.rating_avg = round(agg["avg"] or 0, 2)
                     course.rating_count = course.ratings.count()
                     course.save(update_fields=["rating_avg", "rating_count"])
+                    if created:
+                        messages.success(request, "امتیازت ثبت شد. ممنون از بازخوردت!")
+                    else:
+                        messages.success(request, "امتیاز قبلی‌ات به‌روز شد.")
+                else:
+                    messages.error(request, "امتیاز باید بین ۱ تا ۵ باشد.")
             except ValueError:
-                pass
+                messages.error(request, "امتیاز نامعتبر است.")
+        else:
+            messages.error(request, "برای ثبت نظر، انتخاب ستاره الزامی است.")
 
     return redirect("courses:course_detail", slug=course_slug)
 

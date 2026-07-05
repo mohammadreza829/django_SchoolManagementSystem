@@ -151,7 +151,30 @@
             {% endfor %}
           </div>
         </div>
-      </section>
+      
+  <div class="nv-panel p-6 lg:p-8 mt-6" id="rate">
+    {% if user.is_authenticated and is_enrolled %}
+    <h3 class="font-black text-lg mb-1">امتیاز تو به این دوره</h3>
+    <p class="text-slate-500 text-sm mb-4">تجربه‌ات رو با بقیه به اشتراک بذار.</p>
+    <form method="post" action="{% url 'courses:add_rating' course.slug %}" class="space-y-4">
+      {% csrf_token %}
+      <div class="nv-rate" dir="ltr">
+        <input type="radio" id="star5" name="score" value="5" required><label for="star5" title="عالی">★</label>
+        <input type="radio" id="star4" name="score" value="4"><label for="star4" title="خوب">★</label>
+        <input type="radio" id="star3" name="score" value="3"><label for="star3" title="متوسط">★</label>
+        <input type="radio" id="star2" name="score" value="2"><label for="star2" title="ضعیف">★</label>
+        <input type="radio" id="star1" name="score" value="1"><label for="star1" title="خیلی ضعیف">★</label>
+      </div>
+      <textarea name="comment" rows="3" class="input" placeholder="نظرت درباره‌ی دوره (اختیاری)"></textarea>
+      <button class="btn btn-primary btn-sm">ثبت امتیاز</button>
+    </form>
+    {% elif user.is_authenticated %}
+    <p class="text-slate-500 text-sm">برای ثبت امتیاز باید در دوره ثبت‌نام کرده باشی.</p>
+    {% else %}
+    <p class="text-slate-500 text-sm">برای ثبت امتیاز اول <a href="{% url 'accounts:login' %}" class="text-violet-600 font-bold hover:underline">وارد شو</a>.</p>
+    {% endif %}
+  </div>
+</section>
     </div>
 
     {# ============ کارت خرید (کل مسیر همراه کاربر) ============ #}

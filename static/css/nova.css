@@ -409,3 +409,11 @@ section[id] { scroll-margin-top: 6.5rem; }
 @media (max-width: 1023.98px) {
   body:has(.nv-buybar) .nv-fab { bottom: 5.6rem; }
 }
+
+
+/* --- انتخاب‌گر ستاره‌ای امتیاز --- */
+.nv-rate { display: inline-flex; flex-direction: row-reverse; gap: .1rem; }
+.nv-rate input { display: none; }
+.nv-rate label { font-size: 2rem; line-height: 1; color: #cbd5e1; cursor: pointer; transition: color .15s, transform .15s; user-select: none; }
+.nv-rate label:hover { transform: scale(1.12); }
+.nv-rate label:hover, .nv-rate label:hover ~ label, .nv-rate input:checked ~ label { color: #f59e0b; }
