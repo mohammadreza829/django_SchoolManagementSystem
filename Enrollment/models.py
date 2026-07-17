@@ -1,6 +1,6 @@
 """مدل ثبت‌نام دانش‌آموز در دوره، وضعیت پرداخت، پیشرفت و قوانین ظرفیت را تعریف می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 from django.db import models
@@ -76,11 +76,27 @@ class Enrollment(models.Model):
         """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "ثبت‌نام"
         verbose_name_plural = "ثبت‌نام‌ها"
-        unique_together = ["student", "course"]
         ordering = ["-enrolled_at"]
         indexes = [
             models.Index(fields=["student", "course"]),
             models.Index(fields=["status"]),
+            models.Index(
+                fields=["course", "status", "payment_status"],
+                name="enroll_course_state_idx",
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "course"],
+                name="enrollment_student_course_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(
+                    progress_percentage__gte=0,
+                    progress_percentage__lte=100,
+                ),
+                name="enroll_progress_0_100",
+            ),
         ]
 
     def __str__(self):

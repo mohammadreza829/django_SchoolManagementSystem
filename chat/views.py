@@ -19,45 +19,19 @@ View های چت‌روم دوره (HTTP + polling).
 """
 
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from accounts.models import Notification
 from courses.models import Course
-from Enrollment.models import Enrollment
 
 from .models import CourseMessage
+from .policies import can_access_course_chat, can_delete_course_message
+from .services import ChatServiceError, create_course_message
+from courses.policies import is_course_teacher
 
 PAGE_SIZE = 50            # تعداد پیام در هر بار بارگذاری تاریخچه
-MAX_MESSAGE_LENGTH = 2000
-RATE_LIMIT_SECONDS = 2    # حداقل فاصله‌ی بین دو پیام هر کاربر
-
-
-def _is_teacher_of(user, course):
-    """آیا کاربر استاد/ادمین این دوره است؟"""
-    if not user.is_authenticated:
-        return False
-    if user.is_superuser or user.is_staff or getattr(user, "role", "") == "admin":
-        return True
-    return course.teachers.filter(id=user.id).exists()
-
-
-def _can_access_chat(user, course):
-    """استاد دوره، ادمین، یا دانش‌آموز ثبت‌نام‌شده‌ی فعال."""
-    if not user.is_authenticated:
-        return False
-    if _is_teacher_of(user, course):
-        return True
-    return Enrollment.objects.filter(
-        student=user,
-        course=course,
-        status="active",
-        payment_status__in=["free", "paid"],
-    ).exists()
 
 
 def _get_course_teacher_ids(course):
@@ -94,11 +68,11 @@ def _serialize_chat_message(message, user, teacher_ids):
 def course_chat(request, course_id):
     """پس از بررسی دسترسی، صفحهٔ اتاق چت یک دوره را نمایش می‌دهد."""
     course = get_object_or_404(Course, id=course_id)
-    if not _can_access_chat(request.user, course):
+    if not can_access_course_chat(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
     context = {
         "course": course,
-        "is_teacher": _is_teacher_of(request.user, course),
+        "is_teacher": is_course_teacher(request.user, course),
     }
     return render(request, "chat/room.html", context)
 
@@ -112,7 +86,7 @@ def messages_json(request, course_id):
       ?before=<id>      → پیام‌های قدیمی‌تر از id (تاریخچه / اسکرول به بالا)
     """
     course = get_object_or_404(Course, id=course_id)
-    if not _can_access_chat(request.user, course):
+    if not can_access_course_chat(request.user, course):
         return HttpResponseForbidden("no access")
 
     teacher_ids = _get_course_teacher_ids(course)
@@ -145,57 +119,20 @@ def messages_json(request, course_id):
 @login_required
 @require_POST
 def post_message(request, course_id):
-    """پیام جدید را پس از اعتبارسنجی و rate limit ذخیره و اعلان‌های لازم را ایجاد می‌کند."""
+    """پس از کنترل دسترسی، ساخت پیام را به سرویس چت واگذار می‌کند."""
     course = get_object_or_404(Course, id=course_id)
-    if not _can_access_chat(request.user, course):
+    if not can_access_course_chat(request.user, course):
         return HttpResponseForbidden("no access")
 
-    text = (request.POST.get("text") or "").strip()
-    if not text:
-        return JsonResponse({"ok": False, "error": "پیام خالی است."}, status=400)
-    if len(text) > MAX_MESSAGE_LENGTH:
-        return JsonResponse(
-            {"ok": False, "error": f"پیام حداکثر می‌تواند {MAX_MESSAGE_LENGTH} کاراکتر باشد."},
-            status=400,
+    try:
+        message = create_course_message(
+            user=request.user,
+            course=course,
+            text=request.POST.get("text", ""),
+            announce=request.POST.get("is_announcement") == "1",
         )
-
-    # rate-limit: جلوگیری از اسپم (cache.add اتمیک است)
-    rate_key = f"chat_rate_{request.user.id}"
-    if not cache.add(rate_key, 1, RATE_LIMIT_SECONDS):
-        return JsonResponse(
-            {"ok": False, "error": "کمی آهسته‌تر! چند لحظه صبر کن."}, status=429
-        )
-
-    is_teacher = _is_teacher_of(request.user, course)
-    is_announcement = is_teacher and request.POST.get("is_announcement") == "1"
-
-    message = CourseMessage.objects.create(
-        course=course,
-        sender=request.user,
-        text=text,
-        is_announcement=is_announcement,
-    )
-
-    # اگر فرستنده استاد یا ادمین بود، برای دانش‌آموزان فعال نوتیفیکیشن بساز
-    if is_teacher:
-        student_ids = list(
-            Enrollment.objects.filter(
-                course=course,
-                status="active",
-                payment_status__in=["free", "paid"],
-            ).exclude(student=request.user).values_list("student_id", flat=True)
-        )
-        preview = (text[:80] + "…") if len(text) > 80 else text
-        prefix = "اعلان استاد" if is_announcement else "پیام جدید از استاد"
-        notif_text = f"{prefix} در دوره‌ی «{course.title}»: {preview}"
-        chat_url = reverse("chat:room", args=[course.id])
-        notif_title = ("اعلان استاد" if is_announcement else "پیام جدید") + f" «{course.title}»"
-        notifications = [
-            Notification(user_id=sid, message=notif_text, link=chat_url, title=notif_title)
-            for sid in student_ids
-        ]
-        if notifications:
-            Notification.objects.bulk_create(notifications)
+    except ChatServiceError as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=400)
 
     teacher_ids = _get_course_teacher_ids(course)
     return JsonResponse(
@@ -216,7 +153,7 @@ def delete_message(request, course_id, message_id):
     """حذف پیام: فقط فرستنده‌ی پیام یا استاد/ادمین دوره."""
     course = get_object_or_404(Course, id=course_id)
     msg = get_object_or_404(CourseMessage, id=message_id, course=course)
-    if not (msg.sender_id == request.user.id or _is_teacher_of(request.user, course)):
+    if not can_delete_course_message(request.user, msg):
         return HttpResponseForbidden("no access")
     msg.delete()
     return JsonResponse({"ok": True})

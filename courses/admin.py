@@ -1,12 +1,13 @@
 """مدیریت دسته‌ها، دوره‌ها، جلسات، پیشرفت، امتیاز و ضمیمه‌ها را در Django Admin پیکربندی می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 # courses/admin.py
 
 from django.contrib import admin
 from django.utils.html import format_html
+from .services import synchronize_course_rating_stats
 from .models import Course, Category, Lesson, LessonProgress, CourseRating, LessonAttachment
 from Enrollment.models import Enrollment
 
@@ -84,6 +85,17 @@ class CourseRatingAdmin(admin.ModelAdmin):
     list_display = ['user', 'course', 'score', 'created_at']
     list_filter = ['score', 'course']
     search_fields = ['user__username', 'course__title']
+
+    def save_model(self, request, obj, form, change):
+        """امتیاز را ذخیره و خلاصهٔ امتیاز دوره را از سرویس بازسازی می‌کند."""
+        super().save_model(request, obj, form, change)
+        synchronize_course_rating_stats(obj.course)
+
+    def delete_model(self, request, obj):
+        """پس از حذف امتیاز، میانگین و تعداد دوره را اصلاح می‌کند."""
+        course = obj.course
+        super().delete_model(request, obj)
+        synchronize_course_rating_stats(course)
 
 
 @admin.register(LessonAttachment)

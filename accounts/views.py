@@ -1,10 +1,10 @@
-"""جریان‌های حساب کاربری شامل ثبت‌نام، فعال‌سازی ایمیل، ورود، پروفایل، اعلان و داشبورد را مدیریت می‌کند.
+"""جریان‌های حساب کاربری شامل ثبت‌نام، ورود، پروفایل، اعلان و داشبورد را مدیریت می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate, get_user_model
+from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
@@ -12,13 +12,6 @@ from django.core.paginator import Paginator
 from django.contrib.auth.forms import AuthenticationForm
 from django.db import models
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.conf import settings as django_settings
-from django.contrib.auth import views as auth_views
-from django.urls import reverse, reverse_lazy
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from .models import Profile, Notification
 from .forms import (
     StudentSignUpForm,  
@@ -40,7 +33,7 @@ User = get_user_model()
 
 # ==================== ۱. ثبت‌نام دانش‌آموز ====================
 def register(request):
-    """ثبت‌نام دانش‌آموز جدید"""
+    """حساب دانش‌آموز را بدون ارسال یا تأیید ایمیل ایجاد می‌کند."""
     if request.user.is_authenticated:
         messages.info(request, "شما قبلاً وارد شده‌اید.")
         return redirect("accounts:profile")
@@ -48,18 +41,11 @@ def register(request):
     if request.method == "POST":
         form = StudentSignUpForm(request.POST)
         if form.is_valid():
-            # ✅ فیکس: تأیید ایمیل — حساب تا کلیک روی لینک فعال‌سازی غیرفعال می‌ماند
-            # (قبلاً هر ایمیل جعلی‌ای بدون تأیید پذیرفته می‌شد)
-            user = form.save()
-            user.is_active = False
-            user.save(update_fields=["is_active"])
-            _send_activation_email(request, user)
-            # حالت توسعه: چون سرور ایمیل واقعی تنظیم نشده، لینک فعال‌سازی در صفحه‌ی ورود هم نمایش داده می‌شود
-            if django_settings.DEBUG and _email_is_console():
-                request.session["dev_activation_link"] = _build_activation_link(request, user)
+            # حساب فعلاً مستقیم فعال می‌شود؛ احراز شماره تلفن بعداً با SMS افزوده خواهد شد.
+            form.save()
             messages.success(
                 request,
-                "حسابت ساخته شد! لینک فعال‌سازی به ایمیلت ارسال شد؛ بعد از تأیید می‌تونی وارد بشی.",
+                "حسابت با موفقیت ساخته شد؛ حالا می‌توانی وارد شوی.",
             )
             return redirect("accounts:login")
     else:
@@ -68,100 +54,9 @@ def register(request):
     return render(request, "accounts/register.html", {"form": form})
 
 
-def _email_is_console():
-    """اگر بک‌اند ایمیل «کنسولی» باشد یعنی سرور ایمیل واقعی نداریم (حالت توسعه)."""
-    return "console" in str(getattr(django_settings, "EMAIL_BACKEND", ""))
-
-
-def _build_activation_link(request, user):
-    """لینک فعال‌سازی حساب را می‌سازد."""
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
-    return request.build_absolute_uri(
-        reverse("accounts:activate", kwargs=dict(uidb64=uid, token=token))
-    )
-
-
-def _send_activation_email(request, user):
-    """لینک فعال‌سازی حساب را برای کاربر ایمیل می‌کند."""
-    link = _build_activation_link(request, user)
-    send_mail(
-        subject="فعال‌سازی حساب مکتب‌پلاس",
-        message=(
-            "سلام " + (user.first_name or user.username) + "!\n\n"
-            "برای فعال‌سازی حسابت در مکتب‌پلاس روی لینک زیر کلیک کن:\n"
-            + link + "\n\n"
-            "اگر تو ثبت‌نام نکرده‌ای، این ایمیل را نادیده بگیر."
-        ),
-        from_email=None,
-        recipient_list=[user.email],
-        fail_silently=False,
-    )
-
-
-def activate(request, uidb64, token):
-    """فعال‌سازی حساب از طریق لینک ایمیل"""
-    UserModel = get_user_model()
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = UserModel.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
-        user = None
-
-    if user is not None and default_token_generator.check_token(user, token):
-        if not user.is_active:
-            user.is_active = True
-            user.save(update_fields=["is_active"])
-        messages.success(request, "ایمیلت تأیید شد! حالا می‌تونی وارد بشی.")
-        return redirect("accounts:login")
-
-    messages.error(request, "لینک فعال‌سازی نامعتبر یا منقضی است.")
-    return redirect("accounts:login")
-
-
-# ==================== بازیابی رمز عبور ====================
-class MaktabPasswordResetView(auth_views.PasswordResetView):
-    """فرم «فراموشی رمز» — در حالت توسعه، لینک بازیابی در صفحه‌ی بعد هم نمایش داده می‌شود."""
-
-    template_name = "accounts/password_reset.html"
-    email_template_name = "accounts/password_reset_email.html"
-    subject_template_name = "accounts/password_reset_subject.txt"
-    success_url = reverse_lazy("accounts:password_reset_done")
-
-    def form_valid(self, form):
-        """پس از معتبر بودن فرم، عملیات اصلی و داده‌های کمکی حالت توسعه را ثبت می‌کند."""
-        response = super().form_valid(form)
-        if django_settings.DEBUG and _email_is_console():
-            email = form.cleaned_data["email"]
-            links = []
-            for user in form.get_users(email):
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = default_token_generator.make_token(user)
-                links.append(
-                    self.request.build_absolute_uri(
-                        reverse(
-                            "accounts:password_reset_confirm",
-                            kwargs=dict(uidb64=uid, token=token),
-                        )
-                    )
-                )
-            self.request.session["dev_reset_links"] = links
-            self.request.session["dev_reset_email"] = email
-        return response
-
-
-def password_reset_done(request):
-    """صفحه‌ی «ایمیل ارسال شد» — در حالت توسعه لینک را هم نشان می‌دهد."""
-    context = dict(dev_reset_links=None, dev_reset_email=None)
-    if django_settings.DEBUG and _email_is_console():
-        context["dev_reset_links"] = request.session.pop("dev_reset_links", None)
-        context["dev_reset_email"] = request.session.pop("dev_reset_email", None)
-    return render(request, "accounts/password_reset_done.html", context)
-
-
 # ==================== ۲. ورود و خروج ====================
 def user_login(request):
-    """ورود کاربر به سایت"""
+    """اعتبار ورودی را بررسی و کاربر معتبر را وارد سامانه می‌کند."""
     if request.user.is_authenticated:
         return redirect("accounts:profile")
 
@@ -171,11 +66,9 @@ def user_login(request):
             user = form.get_user()
             login(request, user)
             messages.success(
-                request, f"خوش آمدید {user.get_full_name() or user.username}!"
+                request,
+                f"خوش آمدید {user.get_full_name() or user.username}!",
             )
-            # ✅ فیکس امنیتی (Open Redirect): پارامتر next باید اعتبارسنجی شود،
-            # وگرنه مهاجم می‌تواند کاربر را بعد از لاگین به سایت فیشینگ بفرستد
-            # (مثلاً /accounts/login/?next=https://evil.com)
             next_url = request.POST.get("next") or request.GET.get("next")
             if next_url and url_has_allowed_host_and_scheme(
                 next_url,
@@ -184,38 +77,11 @@ def user_login(request):
             ):
                 return redirect(next_url)
             return redirect("accounts:profile")
-        else:
-            # ✅ فیکس: اگر حساب هنوز فعال نشده، پیام درست نمایش بده (نه «رمز اشتباه است»)
-            username = (request.POST.get("username") or "").strip()
-            UserModel = get_user_model()
-            inactive_user = (
-                UserModel.objects.filter(username=username, is_active=False).first()
-                if username
-                else None
-            )
-            if inactive_user:
-                messages.warning(
-                    request,
-                    "حسابت هنوز فعال نشده! لینک فعال‌سازی داخل ایمیلت را باز کن.",
-                )
-                # حالت توسعه: لینک فعال‌سازی را همین‌جا در صفحه‌ی ورود نشان بده
-                if django_settings.DEBUG and _email_is_console():
-                    request.session["dev_activation_link"] = _build_activation_link(
-                        request, inactive_user
-                    )
-            else:
-                messages.error(request, "نام کاربری یا رمز عبور اشتباه است.")
+        messages.error(request, "نام کاربری یا رمز عبور اشتباه است.")
     else:
         form = AuthenticationForm()
 
-    return render(
-        request,
-        "accounts/login.html",
-        dict(
-            form=form,
-            dev_activation_link=request.session.pop("dev_activation_link", None),
-        ),
-    )
+    return render(request, "accounts/login.html", {"form": form})
 
 
 @login_required

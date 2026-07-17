@@ -1,6 +1,6 @@
 """پیکربندی اپ Enrollment و بارگذاری signalهای مربوط به شمارندهٔ ثبت‌نام را انجام می‌دهد.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 from django.apps import AppConfig
@@ -12,7 +12,3 @@ class EnrollmentConfig(AppConfig):
     name = "Enrollment"
     verbose_name = "ثبت‌نام‌ها"
 
-    def ready(self):
-        # اتصال signalها هنگام بالا آمدن اپ
-        """هنگام آماده‌شدن اپ، signalهای مورد نیاز را ثبت می‌کند."""
-        from . import signals  # noqa: F401

@@ -163,6 +163,12 @@ class Question(models.Model):
             models.Index(fields=["topic", "difficulty"]),
             models.Index(fields=["question_type"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(numeric_tolerance__gte=0),
+                name="question_tolerance_nonnegative",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
@@ -288,6 +294,12 @@ class Quiz(models.Model):
         verbose_name = "آزمون"
         verbose_name_plural = "آزمون‌ها"
         ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(pass_mark__gte=0, pass_mark__lte=100),
+                name="quiz_pass_mark_0_100",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
@@ -408,7 +420,20 @@ class QuizAttempt(models.Model):
         verbose_name = "تلاش آزمون"
         verbose_name_plural = "تلاش‌های آزمون"
         ordering = ["-started_at"]
-        indexes = [models.Index(fields=["student", "quiz"])]
+        indexes = [
+            models.Index(fields=["student", "quiz"]),
+            models.Index(
+                fields=["student", "quiz", "status", "started_at"],
+                name="quiz_attempt_state_idx",
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["quiz", "student"],
+                condition=models.Q(status="in_progress"),
+                name="one_open_attempt_per_student",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""

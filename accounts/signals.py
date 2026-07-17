@@ -1,6 +1,6 @@
 """هنگام ساخت کاربر، پروفایل عمومی و پروفایل متناسب با نقش را ایجاد و همگام می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 from django.db.models.signals import post_save
@@ -22,8 +22,7 @@ def sync_user_profiles(sender, instance, created, **kwargs):
     if kwargs.get("raw", False):
         return
 
-    Profile.objects.get_or_create(user=instance)
-    # پروفایل عمومی برای همه کاربران (حتی اگر وجود داشته باشد، کاری نمی‌کند)
+    # پروفایل عمومی برای همهٔ نقش‌ها فقط یک بار ساخته می‌شود.
     Profile.objects.get_or_create(user=instance)
 
     if not created:

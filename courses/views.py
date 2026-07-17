@@ -1,6 +1,6 @@
 """صفحات دوره و جلسه و عملیات ثبت‌نام، پیشرفت، امتیاز، نظر، دانلود و جست‌وجو را مدیریت می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 # courses/views.py (نسخه ساده - بدون AJAX و API)
@@ -9,10 +9,16 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction, IntegrityError
-from django.db.models import Q, F, Avg
+from django.db.models import Q, F
 from django.utils import timezone
-from accounts.models import Notification
+from .policies import can_rate_course, has_course_access as _has_course_access
+from .services import (
+    CourseServiceError,
+    add_lesson_comment,
+    enroll_student,
+    mark_lesson_completed,
+    set_course_rating,
+)
 from .models import (
     Course,
     Category,
@@ -23,28 +29,6 @@ from .models import (
     LessonAttachment,
     CourseRating,
 )
-from accounts.models import User
-from Enrollment.models import Enrollment
-
-
-def _has_course_access(user, course):
-    """آیا کاربر به محتوای دوره دسترسی دارد؟
-
-    ثبت‌نام فعال با پرداخت‌شده/رایگان، یا استاد/ادمین.
-    """
-    if not user.is_authenticated:
-        return False
-    if user.is_superuser or user.is_staff:
-        return True
-    # ✅ فیکس: فقط استادِ «همین دوره» دسترسی دارد، نه هر کاربری با نقش استاد
-    if getattr(user, "is_teacher", False) and course.teachers.filter(id=user.id).exists():
-        return True
-    return Enrollment.objects.filter(
-        student=user,
-        course=course,
-        status="active",
-        payment_status__in=["free", "paid"],
-    ).exists()
 
 
 def course_list(request):
@@ -222,234 +206,96 @@ def lesson_detail(request, course_slug, lesson_slug):
 
 @login_required
 def enroll_course(request, course_slug):
-    """
-    ثبت‌نام در دوره
-    """
+    """درخواست ثبت‌نام را به سرویس دامنه می‌سپارد و نتیجه را نمایش می‌دهد."""
     course = get_object_or_404(Course, slug=course_slug)
-
-    # عملیات تغییردهنده فقط با POST (جلوگیری از CSRF/ثبت‌نام ناخواسته)
     if request.method != "POST":
         return redirect("courses:course_detail", slug=course_slug)
 
-    # بررسی اینکه دوره منتشر شده باشد
-    if course.status != "published":
-        messages.error(request, "این دوره در دسترس نیست.")
-        return redirect("courses:course_detail", slug=course_slug)
-
-    # بررسی مهلت ثبت‌نام
-    if course.enrollment_deadline and course.enrollment_deadline < timezone.now():
-        messages.error(request, "مهلت ثبت‌نام این دوره به پایان رسیده است.")
-        return redirect("courses:course_detail", slug=course_slug)
-
-    # ✅ فیکس: کنترل «ثبت‌نام تکراری» و «ظرفیت» هر دو داخل یک تراکنش اتمیک + قفل ردیف دوره
-    # تا دو درخواست همزمان نه رکورد تکراری بسازند و نه از ظرفیت رد شوند.
     try:
-        with transaction.atomic():
-            locked = Course.objects.select_for_update().get(id=course.id)
-
-            existing = Enrollment.objects.filter(
-                student=request.user, course=locked
-            ).first()
-
-            # اگر ثبت‌نام فعال یا تکمیل‌شده دارد → تکراری است
-            if existing and existing.status != "cancelled":
-                messages.info(request, "شما قبلاً در این دوره ثبت‌نام کرده‌اید.")
-                return redirect("courses:course_detail", slug=course_slug)
-
-            # کنترل ظرفیت (لغوشده‌ها حساب نمی‌شوند)
-            if locked.capacity:
-                current = locked.enrollments.exclude(status="cancelled").count()
-                if current >= locked.capacity:
-                    messages.error(request, "ظرفیت این دوره تکمیل شده است.")
-                    return redirect("courses:course_detail", slug=course_slug)
-
-            payment_status = "free" if locked.is_free else "paid"
-            price_paid = 0 if locked.is_free else locked.final_price
-
-            if existing:
-                # ✅ فیکس: ثبت‌نامِ «لغوشده» دوباره فعال می‌شود
-                # (قبلاً به‌خاطر unique_together، کاربر لغوکرده هیچ‌وقت نمی‌توانست دوباره ثبت‌نام کند)
-                existing.status = "active"
-                existing.payment_status = payment_status
-                existing.price_paid = price_paid
-                existing.progress_percentage = 0
-                existing.completed_at = None
-                existing.save(
-                    update_fields=[
-                        "status",
-                        "payment_status",
-                        "price_paid",
-                        "progress_percentage",
-                        "completed_at",
-                    ]
-                )
-            else:
-                # تا راه‌اندازی درگاه پرداخت، همه‌ی ثبت‌نام‌ها فوری فعال می‌شوند (TODO: پرداخت)
-                Enrollment.objects.create(
-                    student=request.user,
-                    course=locked,
-                    status="active",
-                    payment_status=payment_status,
-                    price_paid=price_paid,
-                )
-    except IntegrityError:
-        # ✅ فیکس: اگر دو درخواست کاملاً همزمان بودند، unique_together جلوی رکورد دوم را
-        # می‌گیرد؛ به جای خطای 500 پیام مناسب نشان می‌دهیم.
-        messages.info(request, "شما قبلاً در این دوره ثبت‌نام کرده‌اید.")
-        return redirect("courses:course_detail", slug=course_slug)
-    # enroll_count و is_full توسط signal اپ Enrollment خودکار به‌روز می‌شود
-
-    # اعلان خوش‌آمد خودکار
-    try:
-        from django.urls import reverse as _reverse
-        Notification.objects.create(
-            user=request.user,
-            title=f"ثبت‌نام در «{course.title}»",
-            message="به دوره خوش اومدی! جلسه‌ی اول رو شروع کن.",
-            link=_reverse("courses:course_detail", args=[course.slug]),
-        )
-    except Exception:
-        pass
-
-    if course.is_free:
-        messages.success(request, "با موفقیت در دوره ثبت‌نام شدید ✅")
+        result = enroll_student(student=request.user, course=course)
+    except CourseServiceError as exc:
+        messages.error(request, str(exc))
     else:
-        messages.success(
-            request,
-            "ثبت‌نام شما با موفقیت انجام شد ✅ "
-            "(درگاه پرداخت به‌زودی اضافه می‌شه — فعلاً دسترسیات به جلسات باز شد).",
-        )
-
+        if result.access_granted:
+            messages.success(request, "ثبت‌نام انجام شد و دسترسی دوره فعال است ✅")
+        else:
+            messages.info(
+                request,
+                "ثبت‌نام اولیه انجام شد؛ دسترسی دورهٔ پولی پس از پرداخت فعال می‌شود.",
+            )
     return redirect("courses:course_detail", slug=course_slug)
 
 
 @login_required
 def mark_lesson_complete(request, lesson_id):
-    """
-    علامت زدن جلسه به عنوان دیده شده (با POST ساده)
-    """
+    """پس از کنترل دسترسی، تکمیل جلسه را به سرویس پیشرفت واگذار می‌کند."""
     if request.method != "POST":
         return redirect("courses:course_list")
 
-    lesson = get_object_or_404(Lesson, id=lesson_id)
+    lesson = get_object_or_404(Lesson.objects.select_related("course"), id=lesson_id)
     course = lesson.course
-
-    # بررسی دسترسی
     if not _has_course_access(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
 
-    # گرفتن یا ساخت پیشرفت
-    progress, created = LessonProgress.objects.get_or_create(
-        lesson=lesson, user=request.user
-    )
-
-    # علامت زدن به عنوان کامل
-    if not progress.is_completed:
-        progress.is_completed = True
-        progress.completion_percentage = 100  # فیلد اضافه شده به مدل
-        progress.completed_at = timezone.now()
-        progress.save()
-
-    # رفتن به جلسه بعدی اگر وجود دارد
-    next_lesson = (
-        course.lessons.filter(order__gt=lesson.order).order_by("order").first()
-    )
-
+    mark_lesson_completed(user=request.user, lesson=lesson)
+    next_lesson = course.lessons.filter(order__gt=lesson.order).order_by("order").first()
     if next_lesson:
         return redirect(
             "courses:lesson_detail",
             course_slug=course.slug,
             lesson_slug=next_lesson.slug,
         )
-    else:
-        return redirect("courses:course_detail", slug=course.slug)
+    return redirect("courses:course_detail", slug=course.slug)
 
 
 @login_required
 def add_rating(request, course_slug):
-    """
-    افزودن امتیاز و نظر برای دوره (با فرم ساده POST)
-    """
+    """مجوز امتیازدهی را بررسی و ثبت امتیاز را به سرویس دامنه واگذار می‌کند."""
     course = get_object_or_404(Course, slug=course_slug, status="published")
-
-    # ✅ فیکس: فقط کسی که در دوره ثبت‌نام کرده می‌تواند امتیاز بدهد
-    # (قبلاً هر کاربر لاگین‌شده‌ای می‌توانست به هر دوره‌ای امتیاز بدهد)
-    if not Enrollment.objects.filter(
-        student=request.user, course=course
-    ).exclude(status="cancelled").exists():
-        messages.error(request, "برای امتیاز دادن باید در این دوره ثبت‌نام کرده باشید.")
+    if not can_rate_course(request.user, course):
+        messages.error(request, "برای امتیاز دادن باید ثبت‌نام فعال داشته باشید.")
+        return redirect("courses:course_detail", slug=course_slug)
+    if request.method != "POST":
         return redirect("courses:course_detail", slug=course_slug)
 
-    if request.method == "POST":
-        score = request.POST.get("score")
-        comment = request.POST.get("comment", "")
-
-        # ✅ فیکس: قبلاً امتیاز نامعتبر بی‌صدا رد می‌شد و کاربر هیچ بازخوردی نمی‌گرفت
-        if score:
-            try:
-                score = int(score)
-                if 1 <= score <= 5:
-                    # به‌روزرسانی یا ایجاد امتیاز
-                    rating, created = CourseRating.objects.update_or_create(
-                        course=course,
-                        user=request.user,
-                        defaults={"score": score, "comment": comment},
-                    )
-                    # به‌روزرسانی میانگین و تعداد امتیازها
-                    rating_summary = course.ratings.aggregate(
-                        average_score=Avg("score")
-                    )
-                    course.rating_avg = round(
-                        rating_summary["average_score"] or 0,
-                        2,
-                    )
-                    course.rating_count = course.ratings.count()
-                    course.save(update_fields=["rating_avg", "rating_count"])
-                    if created:
-                        messages.success(request, "امتیازت ثبت شد. ممنون از بازخوردت!")
-                    else:
-                        messages.success(request, "امتیاز قبلی‌ات به‌روز شد.")
-                else:
-                    messages.error(request, "امتیاز باید بین ۱ تا ۵ باشد.")
-            except ValueError:
-                messages.error(request, "امتیاز نامعتبر است.")
-        else:
-            messages.error(request, "برای ثبت نظر، انتخاب ستاره الزامی است.")
-
+    try:
+        _rating, created = set_course_rating(
+            user=request.user,
+            course=course,
+            score=request.POST.get("score"),
+            comment=request.POST.get("comment", ""),
+        )
+    except CourseServiceError as exc:
+        messages.error(request, str(exc))
+    else:
+        action = "ثبت" if created else "به‌روزرسانی"
+        messages.success(request, f"امتیازت با موفقیت {action} شد.")
     return redirect("courses:course_detail", slug=course_slug)
 
 
 @login_required
 def add_comment(request, lesson_id):
-    """
-    افزودن نظر برای جلسه (با فرم ساده POST)
-    """
+    """پس از کنترل دسترسی، ساخت نظر و شمارنده را به سرویس واگذار می‌کند."""
     if request.method != "POST":
         return redirect("courses:course_list")
 
-    lesson = get_object_or_404(Lesson, id=lesson_id)
+    lesson = get_object_or_404(Lesson.objects.select_related("course"), id=lesson_id)
     course = lesson.course
-
-    # بررسی دسترسی
     if not lesson.is_free_preview and not _has_course_access(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
 
-    comment_text = request.POST.get("comment", "").strip()
-
-    if comment_text:
-        # تصحیح شده: استفاده از text به جای comment
-        comment = LessonComment.objects.create(
-            lesson=lesson, user=request.user, text=comment_text
+    try:
+        add_lesson_comment(
+            user=request.user,
+            lesson=lesson,
+            text=request.POST.get("comment", ""),
         )
-        comment.is_approved = True
-        comment.save()
-
-        # به‌روزرسانی تعداد نظرات (فیلد comment_count اضافه شده به مدل Lesson)
-        lesson.comment_count = lesson.comments.filter(is_approved=True).count()
-        lesson.save(update_fields=["comment_count"])
-
+    except CourseServiceError as exc:
+        messages.error(request, str(exc))
     return redirect(
-        "courses:lesson_detail", course_slug=course.slug, lesson_slug=lesson.slug
+        "courses:lesson_detail",
+        course_slug=course.slug,
+        lesson_slug=lesson.slug,
     )
 
 

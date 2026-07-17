@@ -1,11 +1,13 @@
 """مدل‌های دسته‌بندی، دوره، جلسه، پیشرفت، امتیاز، ضمیمه، لایک و نظر را تعریف می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
+from django.utils import timezone
+from django.utils.text import slugify
 from accounts.models import User  # برای ارتباط با مدل User
 
 
@@ -197,9 +199,39 @@ class Course(models.Model):
         ordering = ["-created_at"]  # جدیدترین اول
         indexes = [
             models.Index(fields=["title"]),  # برای جستجوی سریع
-            models.Index(fields=["slug"]),  # برای URL
             models.Index(fields=["status", "created_at"]),  # فیلتر ترکیبی
         ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(discount_percent__gte=0, discount_percent__lte=100),
+                name="course_discount_0_100",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price__gte=0),
+                name="course_price_nonnegative",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        """slug و زمان اولین انتشار را به‌عنوان invariant خود مدل تنظیم می‌کند."""
+        changed_fields = set()
+        if not self.slug:
+            base_slug = slugify(self.title, allow_unicode=True) or "course"
+            candidate = base_slug
+            suffix = 2
+            while Course.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate = f"{base_slug}-{suffix}"
+                suffix += 1
+            self.slug = candidate
+            changed_fields.add("slug")
+        if self.status == "published" and not self.published_at:
+            self.published_at = timezone.now()
+            changed_fields.add("published_at")
+
+        # اگر فراخواننده update_fields داده باشد، invariantهای تازه نیز باید ذخیره شوند.
+        if kwargs.get("update_fields") is not None and changed_fields:
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | changed_fields
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
@@ -302,7 +334,16 @@ class Lesson(models.Model):
         verbose_name = "جلسه"
         verbose_name_plural = "جلسات"
         ordering = ["order"]
-        unique_together = ["course", "order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["course", "order"],
+                name="lesson_course_order_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["course", "slug"],
+                name="lesson_course_slug_unique",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
@@ -311,9 +352,19 @@ class Lesson(models.Model):
     def save(self, *args, **kwargs):
         """دادهٔ اعتبارسنجی‌شده را با اعمال قواعد تکمیلی مدل ذخیره می‌کند."""
         if not self.slug:
-            from django.utils.text import slugify
-
-            self.slug = slugify(self.title) or f"lesson-{self.order or 1}"
+            base_slug = (
+                slugify(self.title, allow_unicode=True)
+                or f"lesson-{self.order or 1}"
+            )
+            candidate = base_slug
+            suffix = 2
+            while Lesson.objects.filter(
+                course=self.course,
+                slug=candidate,
+            ).exclude(pk=self.pk).exists():
+                candidate = f"{base_slug}-{suffix}"
+                suffix += 1
+            self.slug = candidate
         super().save(*args, **kwargs)
 
     def get_video(self):
@@ -344,7 +395,25 @@ class LessonProgress(models.Model):
         """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "پیشرفت جلسه"
         verbose_name_plural = "پیشرفت جلسات"
-        unique_together = ["lesson", "user"]
+        indexes = [
+            models.Index(
+                fields=["user", "is_completed", "lesson"],
+                name="lesson_prog_user_done_idx",
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["lesson", "user"],
+                name="lesson_progress_user_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(
+                    completion_percentage__gte=0,
+                    completion_percentage__lte=100,
+                ),
+                name="lesson_progress_pct_0_100",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
@@ -363,9 +432,18 @@ class CourseRating(models.Model):
 
     class Meta:
         """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
-        unique_together = ["course", "user"]
         verbose_name = "امتیاز"
         verbose_name_plural = "امتیازها"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["course", "user"],
+                name="course_rating_user_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(score__gte=1, score__lte=5),
+                name="course_rating_score_1_5",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""

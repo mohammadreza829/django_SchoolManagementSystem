@@ -1,6 +1,6 @@
 """مدل کاربر سفارشی، مدیر کاربران، پروفایل‌های عمومی و تخصصی و اعلان‌ها را تعریف می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -242,6 +242,12 @@ class Notification(models.Model):
         verbose_name = "اعلان"
         verbose_name_plural = "اعلان‌ها"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(
+                fields=["user", "is_read", "-created_at"],
+                name="acct_notif_unread_idx",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""

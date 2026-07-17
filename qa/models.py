@@ -1,6 +1,6 @@
 """مدل تاریخچهٔ سؤال، پاسخ، وضعیت، مدل استفاده‌شده و زمان پاسخ سرویس هوش مصنوعی را تعریف می‌کند.
 
- 
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
 
 from django.conf import settings
@@ -52,7 +52,13 @@ class AiQuestion(models.Model):
         verbose_name = "پرسش هوشمند"
         verbose_name_plural = "پرسش‌های هوشمند"
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["user", "created_at"])]
+        indexes = [
+            models.Index(fields=["user", "created_at"]),
+            models.Index(
+                fields=["user", "status", "created_at"],
+                name="qa_user_status_date_idx",
+            ),
+        ]
 
     def __str__(self):
         """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
