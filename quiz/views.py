@@ -206,9 +206,13 @@ def _sweep_expired_attempts(user):
     in_progress = QuizAttempt.objects.filter(
         student=user, status=QuizAttempt.IN_PROGRESS
     ).select_related("quiz")
-    for att in in_progress:
-        if att.is_expired:
-            _finalize_attempt(att, None, att.quiz.get_questions())
+    for expired_attempt in in_progress:
+        if expired_attempt.is_expired:
+            _finalize_attempt(
+                expired_attempt,
+                None,
+                expired_attempt.quiz.get_questions(),
+            )
 
 
 @login_required

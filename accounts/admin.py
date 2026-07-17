@@ -1,3 +1,8 @@
+"""نحوهٔ نمایش و مدیریت کاربران، پروفایل‌ها و اعلان‌ها را در Django Admin تعریف می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.safestring import mark_safe
@@ -7,6 +12,7 @@ from .models import User, Profile, TeacherProfile, StudentProfile, Notification
 # ==================== ۱. مدیریت کاربر ====================
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر CustomUser را در پنل مدیریت تنظیم می‌کند."""
     list_display = ('username', 'full_name', 'role', 'email', 'phone', 'national_code', 'is_active', 'date_joined')
     list_filter = ('role', 'is_active', 'is_staff', 'is_superuser', 'date_joined')
     search_fields = ('username', 'first_name', 'last_name', 'email', 'phone', 'national_code')
@@ -36,6 +42,7 @@ class CustomUserAdmin(UserAdmin):
     )
     
     def full_name(self, obj):
+        """نام کامل کاربر مرتبط را برای نمایش در پنل مدیریت برمی‌گرداند."""
         return obj.get_full_name() or obj.username
     full_name.short_description = 'نام کامل'
     full_name.admin_order_field = 'first_name'
@@ -44,6 +51,7 @@ class CustomUserAdmin(UserAdmin):
 # ==================== ۲. مدیریت پروفایل عمومی ====================
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر Profile را در پنل مدیریت تنظیم می‌کند."""
     list_display = (
         'user', 'get_full_name', 'gender', 'location',
         'posts_count', 'comments_count', 'last_seen'
@@ -72,6 +80,7 @@ class ProfileAdmin(admin.ModelAdmin):
     )
     
     def get_full_name(self, obj):
+        """نام کامل کاربر مرتبط را برای نمایش در پنل مدیریت برمی‌گرداند."""
         return obj.user.get_full_name() or obj.user.username
     get_full_name.short_description = 'نام کامل'
 
@@ -79,6 +88,7 @@ class ProfileAdmin(admin.ModelAdmin):
 # ==================== ۳. مدیریت پروفایل استاد ====================
 @admin.register(TeacherProfile)
 class TeacherProfileAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر TeacherProfile را در پنل مدیریت تنظیم می‌کند."""
     list_display = ('user', 'full_name', 'specialty', 'degree')
     list_filter = ('specialty', 'degree')
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'specialty')
@@ -90,6 +100,7 @@ class TeacherProfileAdmin(admin.ModelAdmin):
     )
     
     def full_name(self, obj):
+        """نام کامل کاربر مرتبط را برای نمایش در پنل مدیریت برمی‌گرداند."""
         return obj.user.get_full_name() or obj.user.username
     full_name.short_description = 'نام کامل'
 
@@ -97,6 +108,7 @@ class TeacherProfileAdmin(admin.ModelAdmin):
 # ==================== ۴. مدیریت پروفایل دانش‌آموز ====================
 @admin.register(StudentProfile)
 class StudentProfileAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر StudentProfile را در پنل مدیریت تنظیم می‌کند."""
     list_display = ('user', 'full_name', 'student_id', 'entry_year')
     list_filter = ('entry_year',)
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'student_id')
@@ -109,6 +121,7 @@ class StudentProfileAdmin(admin.ModelAdmin):
     )
     
     def full_name(self, obj):
+        """نام کامل کاربر مرتبط را برای نمایش در پنل مدیریت برمی‌گرداند."""
         return obj.user.get_full_name() or obj.user.username
     full_name.short_description = 'نام کامل'
 
@@ -116,6 +129,7 @@ class StudentProfileAdmin(admin.ModelAdmin):
 # ==================== ۵. مدیریت اعلان‌ها ====================
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر Notification را در پنل مدیریت تنظیم می‌کند."""
     list_display = ('user', 'full_name', 'message', 'is_read', 'created_at')
     list_filter = ('is_read', 'created_at')
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'message')
@@ -130,6 +144,7 @@ class NotificationAdmin(admin.ModelAdmin):
     )
     
     def full_name(self, obj):
+        """نام کامل کاربر مرتبط را برای نمایش در پنل مدیریت برمی‌گرداند."""
         return obj.user.get_full_name() or obj.user.username
     full_name.short_description = 'نام کاربر'
     

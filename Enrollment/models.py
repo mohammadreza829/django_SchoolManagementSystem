@@ -1,3 +1,8 @@
+"""مدل ثبت‌نام دانش‌آموز در دوره، وضعیت پرداخت، پیشرفت و قوانین ظرفیت را تعریف می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -13,6 +18,7 @@ class Enrollment(models.Model):
     ولی علاوه بر آن تاریخ، وضعیت پرداخت و پیشرفت را هم نگه می‌دارد.
     """
 
+    # وضعیت عضویت از وضعیت پرداخت جداست تا لغو یا تکمیل دوره مستقل مدیریت شود.
     STATUS_CHOICES = (
         ("active", "فعال"),
         ("completed", "تکمیل شده"),
@@ -26,6 +32,7 @@ class Enrollment(models.Model):
         ("failed", "ناموفق"),
     )
 
+    # هر رکورد، رابطهٔ واقعی میان یک دانش‌آموز و یک دوره را نمایش می‌دهد.
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -39,6 +46,7 @@ class Enrollment(models.Model):
         verbose_name="دوره",
     )
 
+    # داده‌های عملیاتی ثبت‌نام برای گزارش مالی و پیگیری پیشرفت نگه‌داری می‌شوند.
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -65,6 +73,7 @@ class Enrollment(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True, verbose_name="تاریخ تکمیل")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "ثبت‌نام"
         verbose_name_plural = "ثبت‌نام‌ها"
         unique_together = ["student", "course"]
@@ -75,6 +84,7 @@ class Enrollment(models.Model):
         ]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.student} ← {self.course.title}"
 
     def clean(self):
@@ -83,14 +93,15 @@ class Enrollment(models.Model):
         if self.course_id and self.status != "cancelled":
             course = self.course
             if course.capacity:
-                qs = course.enrollments.exclude(status="cancelled")
+                active_enrollments = course.enrollments.exclude(status="cancelled")
                 if self.pk:
-                    qs = qs.exclude(pk=self.pk)
-                if qs.count() >= course.capacity:
+                    active_enrollments = active_enrollments.exclude(pk=self.pk)
+                if active_enrollments.count() >= course.capacity:
                     raise ValidationError("ظرفیت این دوره تکمیل شده است.")
 
     @property
     def is_completed(self):
+        """مشخص می‌کند این فرایند در وضعیت تکمیل‌شده قرار دارد یا نه."""
         return self.status == "completed"
 
     def mark_completed(self):

@@ -1,3 +1,8 @@
+"""دسته‌بندی‌های فعال و شمار دوره‌های منتشرشده را برای استفادهٔ سراسری در قالب‌ها آماده می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.db.models import Count, Q
 from .models import Category
 
@@ -6,20 +11,24 @@ def categories_processor(request):
     """
     دسته‌بندی‌ها را به همراه تعداد دوره (خود + زیردسته‌ها) برمی‌گرداند.
     """
-    qs = Category.objects.filter(is_active=True).annotate(
-        own_count=Count("courses", filter=Q(courses__status="published"), distinct=True),
+    categories_queryset = Category.objects.filter(is_active=True).annotate(
+        own_count=Count(
+            "courses",
+            filter=Q(courses__status="published"),
+            distinct=True,
+        ),
     ).order_by("order")
 
-    cats = list(qs)
-    by_id = {c.id: c for c in cats}
+    categories = list(categories_queryset)
+    categories_by_id = {category.id: category for category in categories}
 
-    # مقداردهی اولیه
-    for c in cats:
-        c.total_courses_count = c.own_count
+    # ابتدا شمار مستقیم هر دسته ثبت می‌شود؛ سپس شمار زیردسته به والد افزوده می‌شود.
+    for category in categories:
+        category.total_courses_count = category.own_count
 
-    # جمع تعداد دوره‌های هر زیردسته رو به پدرش اضافه کن
-    for c in cats:
-        if c.parent_id and c.parent_id in by_id:
-            by_id[c.parent_id].total_courses_count += c.own_count
+    for category in categories:
+        parent = categories_by_id.get(category.parent_id)
+        if parent is not None:
+            parent.total_courses_count += category.own_count
 
-    return {"all_categories": cats}
+    return {"all_categories": categories}

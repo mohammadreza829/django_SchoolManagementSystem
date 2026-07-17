@@ -1,3 +1,8 @@
+"""صفحات دوره و جلسه و عملیات ثبت‌نام، پیشرفت، امتیاز، نظر، دانلود و جست‌وجو را مدیریت می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 # courses/views.py (نسخه ساده - بدون AJAX و API)
 
 from django.core.paginator import Paginator
@@ -391,8 +396,13 @@ def add_rating(request, course_slug):
                         defaults={"score": score, "comment": comment},
                     )
                     # به‌روزرسانی میانگین و تعداد امتیازها
-                    agg = course.ratings.aggregate(avg=Avg("score"))
-                    course.rating_avg = round(agg["avg"] or 0, 2)
+                    rating_summary = course.ratings.aggregate(
+                        average_score=Avg("score")
+                    )
+                    course.rating_avg = round(
+                        rating_summary["average_score"] or 0,
+                        2,
+                    )
                     course.rating_count = course.ratings.count()
                     course.save(update_fields=["rating_avg", "rating_count"])
                     if created:

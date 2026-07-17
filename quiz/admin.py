@@ -26,6 +26,7 @@ class ChoiceInline(admin.TabularInline):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر Topic را در پنل مدیریت تنظیم می‌کند."""
     list_display = ("name", "parent", "order")
     list_filter = ("parent",)
     search_fields = ("name",)
@@ -34,6 +35,7 @@ class TopicAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر Question را در پنل مدیریت تنظیم می‌کند."""
     list_display = ("short_text", "topic", "question_type", "difficulty", "points", "is_active")
     list_filter = ("question_type", "difficulty", "is_active", "topic")
     search_fields = ("text",)
@@ -42,6 +44,7 @@ class QuestionAdmin(admin.ModelAdmin):
     autocomplete_fields = ("topic",)
 
     def short_text(self, obj):
+        """نسخهٔ کوتاه متن را برای ستون فهرست پنل مدیریت برمی‌گرداند."""
         return obj.text[:60]
 
     short_text.short_description = "متن سوال"
@@ -57,6 +60,7 @@ class QuizQuestionInline(admin.TabularInline):
 
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر Quiz را در پنل مدیریت تنظیم می‌کند."""
     list_display = ("title", "course", "question_count", "total_points", "pass_mark", "is_published")
     list_filter = ("is_published", "course")
     search_fields = ("title",)
@@ -66,6 +70,7 @@ class QuizAdmin(admin.ModelAdmin):
 
 
 class AttemptAnswerInline(admin.TabularInline):
+    """نمایش و ویرایش رکوردهای مرتبط را به‌صورت درون‌خطی در پنل مدیریت فراهم می‌کند."""
     model = AttemptAnswer
     extra = 0
     readonly_fields = ("question", "answer_text", "is_correct", "points_earned")
@@ -74,6 +79,7 @@ class AttemptAnswerInline(admin.TabularInline):
 
 @admin.register(QuizAttempt)
 class QuizAttemptAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر QuizAttempt را در پنل مدیریت تنظیم می‌کند."""
     list_display = ("student", "quiz", "percentage", "is_passed", "status", "started_at")
     list_filter = ("status", "is_passed", "quiz")
     search_fields = ("student__username", "quiz__title")

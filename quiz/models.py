@@ -52,16 +52,19 @@ class Topic(models.Model):
     order = models.PositiveSmallIntegerField(default=0, verbose_name="ترتیب")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "موضوع"
         verbose_name_plural = "موضوعات"
         ordering = ["order", "name"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         if self.parent:
             return f"{self.parent.name} > {self.name}"
         return self.name
 
     def save(self, *args, **kwargs):
+        """دادهٔ اعتبارسنجی‌شده را با اعمال قواعد تکمیلی مدل ذخیره می‌کند."""
         if not self.slug:
             # allow_unicode=True تا slug فارسی هم درست ساخته بشه
             self.slug = slugify(self.name, allow_unicode=True)
@@ -152,6 +155,7 @@ class Question(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "سوال"
         verbose_name_plural = "بانک سوالات"
         ordering = ["-created_at"]
@@ -161,6 +165,7 @@ class Question(models.Model):
         ]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"[{self.get_difficulty_display()}] {self.text[:50]}"
 
     @property
@@ -186,11 +191,13 @@ class Choice(models.Model):
     order = models.PositiveSmallIntegerField(default=0, verbose_name="ترتیب")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "گزینه"
         verbose_name_plural = "گزینه‌ها"
         ordering = ["order", "id"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         mark = "✓" if self.is_correct else "✗"
         return f"{mark} {self.text[:40]}"
 
@@ -277,38 +284,46 @@ class Quiz(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "آزمون"
         verbose_name_plural = "آزمون‌ها"
         ordering = ["-created_at"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return self.title
 
     def save(self, *args, **kwargs):
+        """دادهٔ اعتبارسنجی‌شده را با اعمال قواعد تکمیلی مدل ذخیره می‌کند."""
         if not self.slug:
             self.slug = slugify(self.title, allow_unicode=True)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
+        """نشانی استاندارد صفحهٔ جزئیات این شیء را برمی‌گرداند."""
         return reverse("quiz:quiz_detail", kwargs={"slug": self.slug})
 
     def get_questions(self):
         """سوالات به ترتیب تعریف‌شده در QuizQuestion."""
-        qs = self.quiz_questions.select_related("question").prefetch_related(
-            "question__choices"
-        )
+        quiz_questions_queryset = self.quiz_questions.select_related(
+            "question"
+        ).prefetch_related("question__choices")
         if self.shuffle_questions:
-            qs = qs.order_by("?")
-        return [qq.question for qq in qs]
+            quiz_questions_queryset = quiz_questions_queryset.order_by("?")
+        return [
+            quiz_question_link.question
+            for quiz_question_link in quiz_questions_queryset
+        ]
 
     @property
     def total_points(self):
         """مجموع بارم همه سوالات آزمون."""
-        agg = self.questions.aggregate(total=models.Sum("points"))
-        return agg["total"] or 0
+        points_summary = self.questions.aggregate(total=models.Sum("points"))
+        return points_summary["total"] or 0
 
     @property
     def question_count(self):
+        """تعداد سؤال‌های متصل به آزمون را برمی‌گرداند."""
         return self.questions.count()
 
     @property
@@ -347,12 +362,14 @@ class QuizQuestion(models.Model):
     order = models.PositiveSmallIntegerField(default=0, verbose_name="ترتیب")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "سوال آزمون"
         verbose_name_plural = "سوالات آزمون"
         ordering = ["order", "id"]
         unique_together = ["quiz", "question"]  # یک سوال دوبار در یک آزمون نیاد
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.quiz.title} → سوال {self.order}"
 
 
@@ -387,12 +404,14 @@ class QuizAttempt(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True, verbose_name="پایان")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "تلاش آزمون"
         verbose_name_plural = "تلاش‌های آزمون"
         ordering = ["-started_at"]
         indexes = [models.Index(fields=["student", "quiz"])]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.student} → {self.quiz.title} ({self.percentage}%)"
 
     @property
@@ -456,11 +475,13 @@ class AttemptAnswer(models.Model):
     points_earned = models.FloatField(default=0, verbose_name="نمره کسب‌شده")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "پاسخ"
         verbose_name_plural = "پاسخ‌ها"
         unique_together = ["attempt", "question"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.attempt.student} → سوال {self.question_id}"
 
     def grade(self):

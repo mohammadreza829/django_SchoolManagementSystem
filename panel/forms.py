@@ -1,3 +1,8 @@
+"""فرم‌های مدیریت دوره، آزمون، سؤال و گزینه‌ها را همراه با ظاهر مشترک تعریف می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 # panel/forms.py
 from django import forms
 from django.forms import inlineformset_factory
@@ -15,6 +20,7 @@ class StyleMixin:
     """به همه‌ی ویدجت‌ها کلاس Tailwind اضافه می‌کند تا قالب تمیز بماند."""
 
     def __init__(self, *args, **kwargs):
+        """شیء را مقداردهی اولیه می‌کند و تنظیمات لازم را روی فیلدها اعمال می‌کند."""
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             widget = field.widget
@@ -30,7 +36,9 @@ class StyleMixin:
 
 
 class CourseForm(StyleMixin, forms.ModelForm):
+    """ورودی ساخت یا ویرایش دوره را دریافت و اعتبارسنجی می‌کند."""
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         model = Course
         fields = [
             "title",
@@ -48,7 +56,9 @@ class CourseForm(StyleMixin, forms.ModelForm):
 
 
 class QuizForm(StyleMixin, forms.ModelForm):
+    """ورودی ساخت یا ویرایش آزمون و محدودیت‌های زمانی آن را اعتبارسنجی می‌کند."""
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         model = Quiz
         fields = [
             "title",
@@ -73,6 +83,7 @@ class QuizForm(StyleMixin, forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """شیء را مقداردهی اولیه می‌کند و تنظیمات لازم را روی فیلدها اعمال می‌کند."""
         super().__init__(*args, **kwargs)
         # پذیرفتن مقدار ورودیِ <input type="datetime-local">
         for name in ("available_from", "available_until"):
@@ -86,7 +97,9 @@ class QuizForm(StyleMixin, forms.ModelForm):
 
 
 class QuestionForm(StyleMixin, forms.ModelForm):
+    """اطلاعات سؤال و پاسخ صحیح متناسب با نوع سؤال را دریافت می‌کند."""
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         model = Question
         fields = [
             "topic",
@@ -103,7 +116,9 @@ class QuestionForm(StyleMixin, forms.ModelForm):
 
 
 class ChoiceForm(StyleMixin, forms.ModelForm):
+    """متن، صحت و ترتیب یک گزینهٔ سؤال را دریافت می‌کند."""
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         model = Choice
         fields = ["text", "is_correct", "order"]
 

@@ -1,3 +1,8 @@
+"""مدل کاربر سفارشی، مدیر کاربران، پروفایل‌های عمومی و تخصصی و اعلان‌ها را تعریف می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.urls import reverse
@@ -6,7 +11,9 @@ from datetime import date
 
 # ==================== مدیر کاربران ====================
 class UserManager(BaseUserManager):
+    """ساخت کاربران عادی و مدیران ارشد مدل کاربر سفارشی را مدیریت می‌کند."""
     def create_user(self, username, email=None, password=None, **extra_fields):
+        """یک کاربر عادی را پس از اعتبارسنجی ورودی و هش‌کردن رمز عبور ایجاد می‌کند."""
         if not username:
             raise ValueError("نام کاربری باید تنظیم شود")
         user = self.model(username=username, email=email, **extra_fields)
@@ -15,6 +22,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, username, email=None, password=None, **extra_fields):
+        """یک مدیر ارشد با مجوزهای staff و superuser ایجاد می‌کند."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("role", "admin")
@@ -29,6 +37,7 @@ class UserManager(BaseUserManager):
 
 # ==================== مدل کاربر اختصاصی ====================
 class User(AbstractUser):
+    """کاربر سامانه را همراه با نقش، اطلاعات تماس و شناسه‌های یکتا نمایش می‌دهد."""
     ROLE_CHOICES = (
         ("admin", "مدیر"),
         ("teacher", "استاد"),
@@ -45,24 +54,29 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["national_code", 'email'] 
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         ordering = ["date_joined"]
         verbose_name = "کاربر"
         verbose_name_plural = "کاربران"
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.get_full_name() or self.username} ({self.get_role_display()})"
 
     @property
     def is_teacher(self):
+        """مشخص می‌کند نقش کاربر استاد است یا نه."""
         return self.role == "teacher"
 
     @property
     def is_student(self):
+        """مشخص می‌کند نقش کاربر دانش‌آموز است یا نه."""
         return self.role == "student"
 
 
 # ==================== مدل پروفایل عمومی (برای همه نقش‌ها) ====================
 class Profile(models.Model):
+    """اطلاعات عمومی و اختیاری پروفایل هر کاربر را نگه‌داری می‌کند."""
     GENDER_CHOICES = (
         ('male', 'مرد'),
         ('female', 'زن'),
@@ -127,6 +141,7 @@ class Profile(models.Model):
     comments_count = models.PositiveIntegerField(default=0, verbose_name='تعداد نظرات')
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = 'پروفایل عمومی'
         verbose_name_plural = 'پروفایل‌های عمومی'
         indexes = [
@@ -136,12 +151,15 @@ class Profile(models.Model):
         ]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f'پروفایل عمومی {self.user.username}'
 
     def get_absolute_url(self):
+        """نشانی استاندارد صفحهٔ جزئیات این شیء را برمی‌گرداند."""
         return reverse('accounts:profile_detail', kwargs={'username': self.user.username})
 
     def get_age(self):
+        """سن کاربر را بر اساس تاریخ تولد و تاریخ امروز محاسبه می‌کند."""
         if self.birth_date:
             today = date.today()
             return today.year - self.birth_date.year - (
@@ -150,17 +168,20 @@ class Profile(models.Model):
         return None
 
     def is_birthday(self):
+        """مشخص می‌کند امروز با روز و ماه تولد کاربر برابر است یا نه."""
         if self.birth_date:
             today = date.today()
             return today.month == self.birth_date.month and today.day == self.birth_date.day
         return False
 
     def get_avatar_url(self):
+        """نشانی تصویر پروفایل یا تصویر پیش‌فرض را برمی‌گرداند."""
         if self.avatar:
             return self.avatar.url
         return f'{settings.STATIC_URL}images/default-avatar.png'
 
     def get_cover_url(self):
+        """نشانی تصویر کاور یا تصویر پیش‌فرض را برمی‌گرداند."""
         if self.cover_image:
             return self.cover_image.url
         return f'{settings.STATIC_URL}images/default-cover.jpg'
@@ -168,6 +189,7 @@ class Profile(models.Model):
 
 # ==================== مدل پروفایل اختصاصی استاد ====================
 class TeacherProfile(models.Model):
+    """اطلاعات تخصصی و تحصیلی مربوط به یک استاد را نگه‌داری می‌کند."""
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="teacher_profile", verbose_name="کاربر"
     )
@@ -175,15 +197,18 @@ class TeacherProfile(models.Model):
     degree = models.CharField(max_length=50, blank=True, null=True, verbose_name="مدرک تحصیلی")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "پروفایل استاد"
         verbose_name_plural = "پروفایل‌های اساتید"
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"استاد: {self.user.get_full_name() or self.user.username}"
 
 
 # ==================== مدل پروفایل اختصاصی دانش‌آموز ====================
 class StudentProfile(models.Model):
+    """شمارهٔ دانش‌آموزی و سال ورود دانش‌آموز را نگه‌داری می‌کند."""
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="student_profile", verbose_name="کاربر"
     )
@@ -191,15 +216,18 @@ class StudentProfile(models.Model):
     entry_year = models.IntegerField(default=1403, verbose_name="سال ورود")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "پروفایل دانش‌آموز"
         verbose_name_plural = "پروفایل‌های دانش‌آموزان"
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"دانش‌آموز: {self.user.get_full_name() or self.user.username}"
 
 
 # ==================== مدل اعلان‌ها (Notifications) ====================
 class Notification(models.Model):
+    """یک اعلان قابل نمایش برای کاربر را همراه با لینک و وضعیت خواندن نگه‌داری می‌کند."""
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='notifications', verbose_name="کاربر"
     )
@@ -210,9 +238,11 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "اعلان"
         verbose_name_plural = "اعلان‌ها"
         ordering = ['-created_at']
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.user.username} - {self.message}"

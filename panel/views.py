@@ -1,3 +1,8 @@
+"""داشبورد و عملیات مدیریتی دوره، آزمون، سؤال و نتایج را با کنترل دسترسی سطح شیء مدیریت می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 # panel/views.py
 import csv
 import json
@@ -20,7 +25,8 @@ from .forms import CourseForm, QuizForm, QuestionForm, ChoiceFormSet
 
 
 # ============================ دسترسی و کمکی ============================
-def is_admin(user):
+def _is_platform_admin(user):
+    """مشخص می‌کند کاربر مدیر سامانه یا superuser است یا نه."""
     return bool(user.is_superuser or getattr(user, "role", None) == "admin")
 
 
@@ -30,45 +36,53 @@ def staff_required(view):
     @wraps(view)
     @login_required
     def _wrapped(request, *args, **kwargs):
+        """منطق مربوط به عملیات «_wrapped» را اجرا می‌کند."""
         user = request.user
-        if is_admin(user) or getattr(user, "role", None) == "teacher":
+        if _is_platform_admin(user) or getattr(user, "role", None) == "teacher":
             return view(request, *args, **kwargs)
         raise PermissionDenied("شما به پنل مدیریت دسترسی ندارید.")
 
     return _wrapped
 
 
-def my_courses(user):
-    qs = Course.objects.all()
-    if not is_admin(user):
-        qs = qs.filter(teachers=user)
-    return qs.distinct()
+def _get_manageable_courses(user):
+    """دوره‌هایی را برمی‌گرداند که کاربر اجازهٔ مدیریتشان را دارد."""
+    courses_queryset = Course.objects.all()
+    if not _is_platform_admin(user):
+        courses_queryset = courses_queryset.filter(teachers=user)
+    return courses_queryset.distinct()
 
 
-def my_quizzes(user):
-    qs = Quiz.objects.all()
-    if not is_admin(user):
-        qs = qs.filter(Q(created_by=user) | Q(course__teachers=user))
-    return qs.distinct()
+def _get_manageable_quizzes(user):
+    """آزمون‌هایی را برمی‌گرداند که کاربر اجازهٔ مدیریتشان را دارد."""
+    quizzes_queryset = Quiz.objects.all()
+    if not _is_platform_admin(user):
+        quizzes_queryset = quizzes_queryset.filter(
+            Q(created_by=user) | Q(course__teachers=user)
+        )
+    return quizzes_queryset.distinct()
 
 
 def get_course_or_403(request, pk):
+    """دوره را دریافت می‌کند و در صورت نداشتن مجوز، خطای دسترسی می‌دهد."""
     course = get_object_or_404(Course, pk=pk)
-    if not (is_admin(request.user) or course.teachers.filter(id=request.user.id).exists()):
+    if not (_is_platform_admin(request.user) or course.teachers.filter(id=request.user.id).exists()):
         raise PermissionDenied("به این دوره دسترسی ندارید.")
     return course
 
 
 def get_quiz_or_403(request, pk):
+    """آزمون را دریافت می‌کند و در صورت نداشتن مجوز، خطای دسترسی می‌دهد."""
     quiz = get_object_or_404(Quiz, pk=pk)
     owner = quiz.created_by_id == request.user.id
     teaches = bool(quiz.course_id) and quiz.course.teachers.filter(id=request.user.id).exists()
-    if not (is_admin(request.user) or owner or teaches):
+    if not (_is_platform_admin(request.user) or owner or teaches):
         raise PermissionDenied("به این آزمون دسترسی ندارید.")
     return quiz
 
 
 def _unique_slug(model, title, fallback):
+    """بر اساس عنوان، یک slug آزاد و یکتا برای مدل مورد نظر می‌سازد."""
     base = slugify(title, allow_unicode=True) or fallback
     slug = base
     i = 2
@@ -81,8 +95,9 @@ def _unique_slug(model, title, fallback):
 # ============================ داشبورد ============================
 @staff_required
 def dashboard(request):
-    courses = my_courses(request.user)
-    quizzes = my_quizzes(request.user)
+    """آمار کلیدی و نمودارهای پنل را برای دوره‌ها و آزمون‌های مجاز آماده می‌کند."""
+    courses = _get_manageable_courses(request.user)
+    quizzes = _get_manageable_quizzes(request.user)
     attempts = QuizAttempt.objects.filter(quiz__in=quizzes, status="completed")
 
     kpis = {
@@ -95,25 +110,34 @@ def dashboard(request):
     # روند شرکت در ۱۴ روز اخیر
     today = timezone.localdate()
     start = today - timedelta(days=13)
-    daily_map = {}
-    for att in attempts.filter(completed_at__date__gte=start):
-        if att.completed_at:
-            d = timezone.localtime(att.completed_at).date()
-            daily_map[d] = daily_map.get(d, 0) + 1
-    daily_labels, daily_values = [], []
-    for i in range(14):
-        d = start + timedelta(days=i)
-        daily_labels.append(d.strftime("%m/%d"))
-        daily_values.append(daily_map.get(d, 0))
+    attempts_per_day = {}
+    recent_attempts = attempts.filter(completed_at__date__gte=start)
+    for attempt in recent_attempts:
+        if attempt.completed_at:
+            completion_date = timezone.localtime(attempt.completed_at).date()
+            attempts_per_day[completion_date] = attempts_per_day.get(completion_date, 0) + 1
 
-    # میانگین درصد به تفکیک آزمون (پربازدیدترین‌ها)
-    per_quiz = (
+    # محور افقی نمودار همیشه شامل چهارده روز کامل، حتی روزهای بدون آزمون، است.
+    daily_labels, daily_values = [], []
+    for day_offset in range(14):
+        current_date = start + timedelta(days=day_offset)
+        daily_labels.append(current_date.strftime("%m/%d"))
+        daily_values.append(attempts_per_day.get(current_date, 0))
+
+    # آزمون‌های پرتکرار برای جلوگیری از شلوغی نمودار به هشت مورد محدود می‌شوند.
+    quiz_statistics = (
         attempts.values("quiz__title")
-        .annotate(avg=Avg("percentage"), c=Count("id"))
-        .order_by("-c")[:8]
+        .annotate(
+            average_percentage=Avg("percentage"),
+            attempt_count=Count("id"),
+        )
+        .order_by("-attempt_count")[:8]
     )
-    quiz_labels = [row["quiz__title"] for row in per_quiz]
-    quiz_avg = [round(row["avg"] or 0, 1) for row in per_quiz]
+    quiz_labels = [row["quiz__title"] for row in quiz_statistics]
+    quiz_avg = [
+        round(row["average_percentage"] or 0, 1)
+        for row in quiz_statistics
+    ]
 
     passed = attempts.filter(is_passed=True).count()
     failed = attempts.count() - passed
@@ -135,8 +159,9 @@ def dashboard(request):
 # ============================ دوره‌ها ============================
 @staff_required
 def course_list(request):
+    """فهرست دوره‌های مجاز را با فیلتر و مرتب‌سازی مناسب نمایش می‌دهد."""
     q = request.GET.get("q", "").strip()
-    courses = my_courses(request.user).order_by("-created_at")
+    courses = _get_manageable_courses(request.user).order_by("-created_at")
     if q:
         courses = courses.filter(title__icontains=q)
     return render(request, "panel/course_list.html", {"courses": courses, "q": q})
@@ -144,6 +169,7 @@ def course_list(request):
 
 @staff_required
 def course_create(request):
+    """فرم ساخت دوره را پردازش و مالکیت استاد را ثبت می‌کند."""
     if request.method == "POST":
         form = CourseForm(request.POST, request.FILES)
         if form.is_valid():
@@ -152,7 +178,7 @@ def course_create(request):
                 course.slug = _unique_slug(Course, course.title, "course")
             course.save()
             form.save_m2m()
-            if not is_admin(request.user):
+            if not _is_platform_admin(request.user):
                 course.teachers.add(request.user)
             messages.success(request, "دوره با موفقیت ساخته شد.")
             return redirect("panel:course_list")
@@ -163,6 +189,7 @@ def course_create(request):
 
 @staff_required
 def course_edit(request, pk):
+    """دورهٔ مجاز را دریافت و تغییرات فرم را ذخیره می‌کند."""
     course = get_course_or_403(request, pk)
     if request.method == "POST":
         form = CourseForm(request.POST, request.FILES, instance=course)
@@ -177,6 +204,7 @@ def course_edit(request, pk):
 
 @staff_required
 def course_delete(request, pk):
+    """پس از بررسی مجوز و روش درخواست، دوره را حذف می‌کند."""
     course = get_course_or_403(request, pk)
     if request.method == "POST":
         course.delete()
@@ -186,6 +214,7 @@ def course_delete(request, pk):
 
 @staff_required
 def course_toggle_publish(request, pk):
+    """وضعیت انتشار دوره را بین پیش‌نویس و منتشرشده تغییر می‌دهد."""
     course = get_course_or_403(request, pk)
     if request.method == "POST":
         course.status = "draft" if course.status == "published" else "published"
@@ -197,12 +226,14 @@ def course_toggle_publish(request, pk):
 # ============================ آزمون‌ها ============================
 @staff_required
 def quiz_list(request):
-    quizzes = my_quizzes(request.user).select_related("course").order_by("-created_at")
+    """فهرست آزمون‌های قابل مشاهده یا مدیریت کاربر را نمایش می‌دهد."""
+    quizzes = _get_manageable_quizzes(request.user).select_related("course").order_by("-created_at")
     return render(request, "panel/quiz_list.html", {"quizzes": quizzes})
 
 
 @staff_required
 def quiz_create(request):
+    """فرم ساخت آزمون را پردازش و سازندهٔ آن را ثبت می‌کند."""
     if request.method == "POST":
         form = QuizForm(request.POST)
         if form.is_valid():
@@ -219,6 +250,7 @@ def quiz_create(request):
 
 @staff_required
 def quiz_edit(request, pk):
+    """آزمون مجاز را دریافت و تغییرات فرم را ذخیره می‌کند."""
     quiz = get_quiz_or_403(request, pk)
     if request.method == "POST":
         form = QuizForm(request.POST, instance=quiz)
@@ -233,6 +265,7 @@ def quiz_edit(request, pk):
 
 @staff_required
 def quiz_delete(request, pk):
+    """پس از بررسی مجوز و روش درخواست، آزمون را حذف می‌کند."""
     quiz = get_quiz_or_403(request, pk)
     if request.method == "POST":
         quiz.delete()
@@ -242,6 +275,7 @@ def quiz_delete(request, pk):
 
 @staff_required
 def quiz_toggle_publish(request, pk):
+    """وضعیت انتشار آزمون را تغییر می‌دهد."""
     quiz = get_quiz_or_403(request, pk)
     if request.method == "POST":
         quiz.is_published = not quiz.is_published
@@ -252,13 +286,21 @@ def quiz_toggle_publish(request, pk):
 
 @staff_required
 def quiz_questions(request, pk):
+    """سؤال‌های متصل به آزمون را به ترتیب برای مدیریت نمایش می‌دهد."""
     quiz = get_quiz_or_403(request, pk)
-    qqs = quiz.quiz_questions.select_related("question").order_by("order", "id")
-    return render(request, "panel/quiz_questions.html", {"quiz": quiz, "quiz_questions": qqs})
+    quiz_questions_queryset = quiz.quiz_questions.select_related(
+        "question"
+    ).order_by("order", "id")
+    return render(
+        request,
+        "panel/quiz_questions.html",
+        {"quiz": quiz, "quiz_questions": quiz_questions_queryset},
+    )
 
 
 @staff_required
 def question_add(request, pk):
+    """سؤال و گزینه‌های آن را ساخته و به آزمون متصل می‌کند."""
     quiz = get_quiz_or_403(request, pk)
     if request.method == "POST":
         form = QuestionForm(request.POST, request.FILES)
@@ -285,6 +327,7 @@ def question_add(request, pk):
 
 @staff_required
 def question_remove(request, pk, qq_id):
+    """ارتباط سؤال انتخاب‌شده با آزمون را حذف می‌کند."""
     quiz = get_quiz_or_403(request, pk)
     if request.method == "POST":
         QuizQuestion.objects.filter(id=qq_id, quiz=quiz).delete()
@@ -295,8 +338,9 @@ def question_remove(request, pk, qq_id):
 # ============================ نتایج و نمرات ============================
 @staff_required
 def results(request):
+    """خلاصهٔ آمار نتایج آزمون‌های مجاز را نمایش می‌دهد."""
     quizzes = (
-        my_quizzes(request.user)
+        _get_manageable_quizzes(request.user)
         .annotate(
             attempt_count=Count("attempts", filter=Q(attempts__status="completed")),
             avg_score=Avg("attempts__percentage", filter=Q(attempts__status="completed")),
@@ -307,21 +351,25 @@ def results(request):
 
 
 def _quiz_attempts(quiz):
+    """تلاش‌های تکمیل‌شدهٔ آزمون را همراه با اطلاعات دانش‌آموز برمی‌گرداند."""
     return quiz.attempts.filter(status="completed").select_related("student")
 
 
 @staff_required
 def quiz_results(request, pk):
+    """نتایج و آمار قبولی یک آزمون را نمایش می‌دهد."""
     quiz = get_quiz_or_403(request, pk)
     attempts = _quiz_attempts(quiz).order_by("-percentage")
     total = attempts.count()
     passed = attempts.filter(is_passed=True).count()
-    agg = attempts.aggregate(a=Avg("percentage"))
+    percentage_summary = attempts.aggregate(
+        average_percentage=Avg("percentage")
+    )
     stats = {
         "count": total,
         "passed": passed,
         "failed": total - passed,
-        "avg": agg["a"] or 0,
+        "avg": percentage_summary["average_percentage"] or 0,
     }
     return render(
         request,
@@ -332,6 +380,7 @@ def quiz_results(request, pk):
 
 @staff_required
 def quiz_results_csv(request, pk):
+    """نتایج آزمون را در قالب فایل CSV فارسی تولید می‌کند."""
     quiz = get_quiz_or_403(request, pk)
     attempts = _quiz_attempts(quiz).order_by("-percentage")
 
@@ -360,6 +409,7 @@ def quiz_results_csv(request, pk):
 
 @staff_required
 def attempt_detail(request, attempt_id):
+    """جزئیات پاسخ‌ها و نمرهٔ یک تلاش آزمون را نمایش می‌دهد."""
     attempt = get_object_or_404(
         QuizAttempt.objects.select_related("student", "quiz"), pk=attempt_id
     )

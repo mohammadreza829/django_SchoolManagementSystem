@@ -9,7 +9,8 @@ Context processor‌های اپ accounts.
 _PERSIAN_DIGITS = str.maketrans("0123456789", "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9")
 
 
-def _to_persian(value):
+def _convert_digits_to_persian(value):
+    """ارقام لاتین مقدار ورودی را برای نمایش رابط کاربری به ارقام فارسی تبدیل می‌کند."""
     return str(value).translate(_PERSIAN_DIGITS)
 
 
@@ -29,7 +30,7 @@ def notifications_processor(request):
     if count > 99:
         display = "\u06f9\u06f9+"  # ۹۹+
     else:
-        display = _to_persian(count)
+        display = _convert_digits_to_persian(count)
 
     return {
         "unread_notifications_count": count,

@@ -1,3 +1,8 @@
+"""مبدل slug فارسی و مسیرهای فهرست، جزئیات، شرکت، نتیجه و پیشرفت آزمون را تعریف می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 # quiz/urls.py
 from django.urls import path, register_converter
 from . import views
@@ -9,9 +14,11 @@ class UnicodeSlugConverter:
     regex = r"[-\w]+"
 
     def to_python(self, value):
+        """مقدار slug دریافت‌شده از URL را بدون تغییر به view تحویل می‌دهد."""
         return value
 
     def to_url(self, value):
+        """مقدار slug را برای ساخت URL به رشتهٔ قابل استفاده تبدیل می‌کند."""
         return value
 
 

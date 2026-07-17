@@ -1,3 +1,8 @@
+"""پس از ایجاد، ویرایش یا حذف ثبت‌نام، شمارنده و وضعیت ظرفیت دوره را همگام می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from .models import Enrollment
@@ -14,10 +19,12 @@ def _update_enroll_count(course):
 
 @receiver(post_save, sender=Enrollment)
 def enrollment_saved(sender, instance, **kwargs):
+    """پس از ذخیرهٔ ثبت‌نام، آمار و وضعیت ظرفیت دوره را به‌روزرسانی می‌کند."""
     if kwargs.get("raw", False):
         return
     _update_enroll_count(instance.course)
 
 @receiver(post_delete, sender=Enrollment)
 def enrollment_deleted(sender, instance, **kwargs):
+    """پس از حذف ثبت‌نام، آمار و وضعیت ظرفیت دوره را دوباره محاسبه می‌کند."""
     _update_enroll_count(instance.course)

@@ -1,3 +1,8 @@
+"""مدل‌های دسته‌بندی، دوره، جلسه، پیشرفت، امتیاز، ضمیمه، لایک و نظر را تعریف می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
@@ -22,11 +27,13 @@ class Category(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="فعال")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "دسته‌بندی"
         verbose_name_plural = "دسته‌بندی‌ها"
         ordering = ["order", "name"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         if self.parent:
             return f"{self.parent.name} > {self.name}"
         return self.name
@@ -184,6 +191,7 @@ class Course(models.Model):
 
     # ========== متادیتا ==========
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "دوره"
         verbose_name_plural = "دوره‌ها"
         ordering = ["-created_at"]  # جدیدترین اول
@@ -194,6 +202,7 @@ class Course(models.Model):
         ]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.title} - {self.get_teachers_names()}"
 
     def get_teachers_names(self):
@@ -242,6 +251,7 @@ class Course(models.Model):
         return full
 
     def get_absolute_url(self):
+        """نشانی استاندارد صفحهٔ جزئیات این شیء را برمی‌گرداند."""
         return reverse("courses:course_detail", kwargs={"slug": self.slug})
 
 
@@ -288,15 +298,18 @@ class Lesson(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "جلسه"
         verbose_name_plural = "جلسات"
         ordering = ["order"]
         unique_together = ["course", "order"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.course.title} - جلسه {self.order}: {self.title}"
 
     def save(self, *args, **kwargs):
+        """دادهٔ اعتبارسنجی‌شده را با اعمال قواعد تکمیلی مدل ذخیره می‌کند."""
         if not self.slug:
             from django.utils.text import slugify
 
@@ -328,15 +341,18 @@ class LessonProgress(models.Model):
     watch_count = models.PositiveIntegerField(default=0, verbose_name="تعداد بازدید")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "پیشرفت جلسه"
         verbose_name_plural = "پیشرفت جلسات"
         unique_together = ["lesson", "user"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.user.username} - {self.lesson.title}: {'✓' if self.is_completed else '○'}"
 
 
 class CourseRating(models.Model):
+    """امتیاز و نظر یکتای یک کاربر برای یک دوره را نگه‌داری می‌کند."""
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="ratings")
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="course_ratings"
@@ -346,11 +362,13 @@ class CourseRating(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         unique_together = ["course", "user"]
         verbose_name = "امتیاز"
         verbose_name_plural = "امتیازها"
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.user.username} → {self.course.title}: {self.score}⭐"
 
 
@@ -367,10 +385,12 @@ class LessonAttachment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "ضمیمه"
         verbose_name_plural = "ضمیمه‌ها"
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.lesson.title} - {self.title}"
 
 
@@ -387,11 +407,13 @@ class LessonLike(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         unique_together = ["lesson", "user"]
         verbose_name = "لایک جلسه"
         verbose_name_plural = "لایک‌های جلسات"
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.user.username} liked {self.lesson.title}"
 
 
@@ -421,9 +443,11 @@ class LessonComment(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخرین ویرایش")
 
     class Meta:
+        """تنظیمات متادیتا، ترتیب، نام نمایشی و محدودیت‌های این مدل یا فرم را تعریف می‌کند."""
         verbose_name = "نظر جلسه"
         verbose_name_plural = "نظرات جلسات"
         ordering = ["-created_at"]
 
     def __str__(self):
+        """نمایش خوانای این شیء را برای پنل مدیریت و گزارش‌ها برمی‌گرداند."""
         return f"{self.user.username} - {self.lesson.title}: {self.text[:30]}"

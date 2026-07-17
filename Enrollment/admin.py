@@ -1,9 +1,15 @@
+"""نمایش و مدیریت ثبت‌نام‌های دوره را در پنل مدیریت Django پیکربندی می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.contrib import admin
 from .models import Enrollment
 
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
+    """نحوهٔ نمایش، جست‌وجو و فیلتر Enrollment را در پنل مدیریت تنظیم می‌کند."""
     list_display = (
         "student",
         "course",

@@ -1,3 +1,8 @@
+"""پیش از ذخیره، slug و زمان انتشار را تنظیم می‌کند و آمار امتیاز دوره را همگام نگه می‌دارد.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 # courses/signals.py
 
 from django.db.models.signals import pre_save, post_save, m2m_changed
@@ -8,7 +13,8 @@ from .models import Course, Lesson, LessonProgress, CourseRating
 
 
 @receiver(pre_save, sender=Course)
-def course_pre_save(sender, instance, **kwargs):
+def prepare_course_before_save(sender, instance, **kwargs):
+    """پیش از ذخیرهٔ دوره، slug یکتا و زمان اولین انتشار را آماده می‌کند."""
     if not instance.slug:
         base_slug = slugify(instance.title) or "course"
         slug = base_slug
@@ -24,7 +30,8 @@ def course_pre_save(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=Lesson)
-def lesson_pre_save(sender, instance, **kwargs):
+def prepare_lesson_before_save(sender, instance, **kwargs):
+    """پیش از ذخیرهٔ جلسه، slug یکتا در محدودهٔ همان دوره را آماده می‌کند."""
     if not instance.slug:
         base_slug = slugify(instance.title) or f"lesson-{instance.order or 1}"
         slug = base_slug

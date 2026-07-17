@@ -1,3 +1,8 @@
+"""جریان‌های حساب کاربری شامل ثبت‌نام، فعال‌سازی ایمیل، ورود، پروفایل، اعلان و داشبورد را مدیریت می‌کند.
+
+این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+"""
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -124,6 +129,7 @@ class MaktabPasswordResetView(auth_views.PasswordResetView):
     success_url = reverse_lazy("accounts:password_reset_done")
 
     def form_valid(self, form):
+        """پس از معتبر بودن فرم، عملیات اصلی و داده‌های کمکی حالت توسعه را ثبت می‌کند."""
         response = super().form_valid(form)
         if django_settings.DEBUG and _email_is_console():
             email = form.cleaned_data["email"]
@@ -223,6 +229,7 @@ def user_logout(request):
 # ==================== ۳. مدیریت پروفایل ====================
 @login_required
 def profile_view(request, username=None):
+    """پروفایل کاربر و دوره‌های قابل نمایش او را آماده و رندر می‌کند."""
     if username:
         user_obj = get_object_or_404(User, username=username)
     else:
@@ -260,6 +267,7 @@ def profile_view(request, username=None):
 @login_required
 def edit_profile(request):
     # اگه profile وجود نداشت بساز
+    """فرم‌های اطلاعات حساب و پروفایل را اعتبارسنجی و ذخیره می‌کند."""
     if not hasattr(request.user, "profile"):
         Profile.objects.create(user=request.user)
 
@@ -307,12 +315,17 @@ def change_password(request):
 # ==================== ۴. مدیریت اعلان‌ها و لیست کاربران ====================
 @login_required
 def notifications_view(request):
-    qs = request.user.notifications.all()
-    # وضعیت خوانده/نخوانده را برای نمایش همین صفحه نگه می‌داریم (snapshot)
-    notes = list(qs)
-    # سپس همه‌ی اعلان‌های نخوانده را خوانده‌شده علامت می‌زنیم تا شمارنده‌ی زنگوله صفر شود
-    qs.filter(is_read=False).update(is_read=True)
-    return render(request, "accounts/notifications.html", {"notifications": notes})
+    """اعلان‌های کاربر را نمایش می‌دهد و موارد نخوانده را خوانده‌شده علامت می‌زند."""
+    notifications_queryset = request.user.notifications.all()
+    # snapshot قبل از update نگه داشته می‌شود تا وضعیت اولیه در همان صفحه قابل نمایش باشد.
+    notifications_snapshot = list(notifications_queryset)
+    # پس از تهیهٔ snapshot، شمارندهٔ زنگوله با یک update گروهی صفر می‌شود.
+    notifications_queryset.filter(is_read=False).update(is_read=True)
+    return render(
+        request,
+        "accounts/notifications.html",
+        {"notifications": notifications_snapshot},
+    )
 
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -340,6 +353,7 @@ def user_list(request):
 # ==================== ۵. داشبورد ====================
 @login_required
 def dashboard_view(request):
+    """آمار دوره، پیشرفت، زمان مطالعه و فعالیت‌های اخیر کاربر را برای داشبورد آماده می‌کند."""
     from django.db.models import Sum
 
     user = request.user
@@ -377,12 +391,16 @@ def dashboard_view(request):
             completed_lessons = LessonProgress.objects.filter(
                 lesson__course=course, user=user, is_completed=True
             ).count()
-            prog = int((completed_lessons / total_lessons) * 100) if total_lessons else 0
-            course.user_progress = prog
+            progress_percentage = (
+                int((completed_lessons / total_lessons) * 100)
+                if total_lessons
+                else 0
+            )
+            course.user_progress = progress_percentage
             course.completed_lessons = completed_lessons
             course.total_lessons_count = total_lessons
-            progress_sum += prog
-            if total_lessons > 0 and prog >= 100:
+            progress_sum += progress_percentage
+            if total_lessons > 0 and progress_percentage >= 100:
                 completed_courses.append(course)
             watched = (
                 LessonProgress.objects.filter(
@@ -405,11 +423,19 @@ def dashboard_view(request):
             .select_related("lesson", "lesson__course")
             .order_by("-last_watched")[:5]
         )
-        for lp in recent_progress:
+        for lesson_progress in recent_progress:
             recent_activities.append(
                 {
-                    "title": lp.lesson.course.title + " — " + lp.lesson.title,
-                    "date": "تکمیل شده" if lp.is_completed else "در حال مطالعه",
+                    "title": (
+                        lesson_progress.lesson.course.title
+                        + " — "
+                        + lesson_progress.lesson.title
+                    ),
+                    "date": (
+                        "تکمیل شده"
+                        if lesson_progress.is_completed
+                        else "در حال مطالعه"
+                    ),
                 }
             )
 

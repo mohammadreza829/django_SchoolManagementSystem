@@ -60,12 +60,12 @@ def _can_access_chat(user, course):
     ).exists()
 
 
-def _teacher_ids(course):
+def _get_course_teacher_ids(course):
     """آی‌دی استادهای دوره — فقط یک کوئری (رفع N+1 نسخه‌ی قبل)."""
     return set(course.teachers.values_list("id", flat=True))
 
 
-def _sender_is_teacher(sender, teacher_ids):
+def _is_sender_course_teacher(sender, teacher_ids):
     """چک استاد بودن فرستنده بدون کوئری اضافه."""
     return (
         sender.id in teacher_ids
@@ -75,22 +75,24 @@ def _sender_is_teacher(sender, teacher_ids):
     )
 
 
-def _serialize(msg, user, teacher_ids):
-    local = timezone.localtime(msg.created_at)
+def _serialize_chat_message(message, user, teacher_ids):
+    """پیام دیتابیس را به ساختار JSON مورد نیاز رابط چت تبدیل می‌کند."""
+    local_created_at = timezone.localtime(message.created_at)
     return {
-        "id": msg.id,
-        "text": msg.text,
-        "is_announcement": msg.is_announcement,
-        "sender": msg.sender.get_full_name() or msg.sender.username,
-        "is_teacher": _sender_is_teacher(msg.sender, teacher_ids),
-        "is_mine": msg.sender_id == user.id,
-        "time": local.strftime("%H:%M"),
-        "date": local.strftime("%Y/%m/%d"),
+        "id": message.id,
+        "text": message.text,
+        "is_announcement": message.is_announcement,
+        "sender": message.sender.get_full_name() or message.sender.username,
+        "is_teacher": _is_sender_course_teacher(message.sender, teacher_ids),
+        "is_mine": message.sender_id == user.id,
+        "time": local_created_at.strftime("%H:%M"),
+        "date": local_created_at.strftime("%Y/%m/%d"),
     }
 
 
 @login_required
 def course_chat(request, course_id):
+    """پس از بررسی دسترسی، صفحهٔ اتاق چت یک دوره را نمایش می‌دهد."""
     course = get_object_or_404(Course, id=course_id)
     if not _can_access_chat(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
@@ -113,31 +115,37 @@ def messages_json(request, course_id):
     if not _can_access_chat(request.user, course):
         return HttpResponseForbidden("no access")
 
-    teacher_ids = _teacher_ids(course)
-    base = course.messages.select_related("sender")
+    teacher_ids = _get_course_teacher_ids(course)
+    messages_queryset = course.messages.select_related("sender")
 
     after = request.GET.get("after")
     before = request.GET.get("before")
     has_more = False
 
     if after and after.isdigit():
-        msgs = list(base.filter(id__gt=int(after)).order_by("id")[:200])
+        messages = list(messages_queryset.filter(id__gt=int(after)).order_by("id")[:200])
     elif before and before.isdigit():
-        chunk = list(base.filter(id__lt=int(before)).order_by("-id")[: PAGE_SIZE + 1])
-        has_more = len(chunk) > PAGE_SIZE
-        msgs = list(reversed(chunk[:PAGE_SIZE]))
+        message_batch = list(
+            messages_queryset.filter(id__lt=int(before)).order_by("-id")[: PAGE_SIZE + 1]
+        )
+        has_more = len(message_batch) > PAGE_SIZE
+        messages = list(reversed(message_batch[:PAGE_SIZE]))
     else:
-        chunk = list(base.order_by("-id")[: PAGE_SIZE + 1])
-        has_more = len(chunk) > PAGE_SIZE
-        msgs = list(reversed(chunk[:PAGE_SIZE]))
+        message_batch = list(messages_queryset.order_by("-id")[: PAGE_SIZE + 1])
+        has_more = len(message_batch) > PAGE_SIZE
+        messages = list(reversed(message_batch[:PAGE_SIZE]))
 
-    data = [_serialize(m, request.user, teacher_ids) for m in msgs]
-    return JsonResponse({"messages": data, "has_more": has_more})
+    serialized_messages = [
+        _serialize_chat_message(message, request.user, teacher_ids)
+        for message in messages
+    ]
+    return JsonResponse({"messages": serialized_messages, "has_more": has_more})
 
 
 @login_required
 @require_POST
 def post_message(request, course_id):
+    """پیام جدید را پس از اعتبارسنجی و rate limit ذخیره و اعلان‌های لازم را ایجاد می‌کند."""
     course = get_object_or_404(Course, id=course_id)
     if not _can_access_chat(request.user, course):
         return HttpResponseForbidden("no access")
@@ -161,7 +169,7 @@ def post_message(request, course_id):
     is_teacher = _is_teacher_of(request.user, course)
     is_announcement = is_teacher and request.POST.get("is_announcement") == "1"
 
-    msg = CourseMessage.objects.create(
+    message = CourseMessage.objects.create(
         course=course,
         sender=request.user,
         text=text,
@@ -189,8 +197,17 @@ def post_message(request, course_id):
         if notifications:
             Notification.objects.bulk_create(notifications)
 
-    teacher_ids = _teacher_ids(course)
-    return JsonResponse({"ok": True, "message": _serialize(msg, request.user, teacher_ids)})
+    teacher_ids = _get_course_teacher_ids(course)
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": _serialize_chat_message(
+                message,
+                request.user,
+                teacher_ids,
+            ),
+        }
+    )
 
 
 @login_required

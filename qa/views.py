@@ -30,12 +30,13 @@ RATE_LIMIT_SECONDS = 15
 HISTORY_SIZE = 20
 
 
-def _daily_limit():
+def _get_daily_question_limit():
+    """سقف روزانهٔ پرسش‌های هر کاربر را از تنظیمات پروژه می‌خواند."""
     return getattr(settings, "AI_DAILY_LIMIT", 10)
 
 
-def _used_today(user):
-    """تعداد سوال‌های امروز کاربر (سوال‌های failed سهمیه مصرف نمی‌کنند)."""
+def _count_questions_used_today(user):
+    """تعداد پرسش‌های مصرف‌کنندهٔ سهمیهٔ امروز کاربر را محاسبه می‌کند."""
     today = timezone.localdate()
     return (
         AiQuestion.objects.filter(user=user, created_at__date=today)
@@ -44,8 +45,8 @@ def _used_today(user):
     )
 
 
-def _user_courses(user):
-    """دوره‌هایی که کاربر به آن‌ها دسترسی دارد (برای انتخاب اختیاری در فرم)."""
+def _get_accessible_courses(user):
+    """دوره‌های مجاز کاربر را برای انتخاب اختیاری در فرم سؤال برمی‌گرداند."""
     if user.is_superuser or getattr(user, "role", "") == "admin":
         return Course.objects.filter(status="published")
     if getattr(user, "is_teacher", False):
@@ -58,14 +59,15 @@ def _user_courses(user):
 
 @login_required
 def ask_page(request):
-    limit = _daily_limit()
+    """ورودی سؤال را اعتبارسنجی، سهمیه را کنترل، سرویس AI را فراخوانی و تاریخچه را نمایش می‌دهد."""
+    limit = _get_daily_question_limit()
 
     if request.method == "POST":
         question = (request.POST.get("question") or "").strip()
         course = None
         course_id = (request.POST.get("course") or "").strip()
         if course_id.isdigit():
-            course = _user_courses(request.user).filter(id=int(course_id)).first()
+            course = _get_accessible_courses(request.user).filter(id=int(course_id)).first()
 
         # --- اعتبارسنجی ---
         if len(question) < MIN_LENGTH:
@@ -76,7 +78,7 @@ def ask_page(request):
             return redirect("qa:ask")
 
         # --- سهمیه‌ی روزانه ---
-        if _used_today(request.user) >= limit:
+        if _count_questions_used_today(request.user) >= limit:
             messages.error(
                 request,
                 f"سهمیه‌ی امروزت ({limit} سوال) تمام شده. فردا دوباره سر بزن 🙂",
@@ -136,7 +138,7 @@ def ask_page(request):
             )
         return redirect("qa:ask")
 
-    used = _used_today(request.user)
+    used = _count_questions_used_today(request.user)
     history = (
         AiQuestion.objects.filter(user=request.user)
         .select_related("course")[:HISTORY_SIZE]
@@ -146,7 +148,7 @@ def ask_page(request):
         "used": used,
         "limit": limit,
         "remaining": max(limit - used, 0),
-        "courses": _user_courses(request.user),
+        "courses": _get_accessible_courses(request.user),
         "max_length": MAX_LENGTH,
     }
     return render(request, "qa/ask.html", context)
