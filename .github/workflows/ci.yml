@@ -10,15 +10,43 @@ jobs:
     name: Django tests
     runs-on: ubuntu-latest
 
+    # سرویس پستگرس در یک کانتینر کنار جاب بالا می‌آید و روی پورت 5432
+    # در دسترس است. کاربر ساخته‌شده توسط ایمیج رسمی superuser است، پس
+    # اجازهٔ ساخت دیتابیس تست (test_eduplatform) را دارد.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: eduplatform
+          POSTGRES_USER: eduplatform_admin
+          POSTGRES_PASSWORD: ci-postgres-password
+        ports:
+          - 5432:5432
+        # بدون health-check ممکن است تست‌ها قبل از آمادهٔ شدن دیتابیس
+        # اجرا شوند و با «connection refused» شکست بخورند.
+        options: >-
+          --health-cmd "pg_isready -U eduplatform_admin -d eduplatform"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       # این کلید فقط برای CI است و هیچ ارزش امنیتی واقعی ندارد
       DJANGO_SECRET_KEY: ci-only-not-a-real-secret
       # عمداً True: با DEBUG=False گزینهٔ SECURE_SSL_REDIRECT فعال می‌شود
       # و تست‌کلاینت جنگو به‌جای 200 پاسخ 301 می‌گیرد.
       DJANGO_DEBUG: "True"
-      # در CI سراغ پستگرس نمی‌رویم؛ اسکلایت کافی و سریع‌تر است
-      DJANGO_DB_ENGINE: sqlite
       DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,testserver"
+
+      # همان بک‌اندی که پروژه در واقعیت استفاده می‌کند.
+      # نام متغیرها باید مو‌به‌مو با آنچه settings.py می‌خواند یکی باشد.
+      DJANGO_DB_ENGINE: postgresql
+      DJANGO_DB_NAME: eduplatform
+      DJANGO_DB_USER: eduplatform_admin
+      # رمز فقط داخل کانتینر موقت CI معنا دارد و به هیچ محیط واقعی وصل نیست.
+      DJANGO_DB_PASSWORD: ci-postgres-password
+      DJANGO_DB_HOST: localhost
+      DJANGO_DB_PORT: "5432"
 
     steps:
       - name: Checkout
