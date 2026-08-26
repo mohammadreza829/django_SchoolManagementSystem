@@ -1,16 +1,26 @@
 """صفحات دوره و جلسه و عملیات ثبت‌نام، پیشرفت، امتیاز، نظر، دانلود و جست‌وجو را مدیریت می‌کند.
 
 این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
+قواعد کسب‌وکار در `services.py` و مجوزها در `policies.py` هستند؛ اینجا فقط
+ورودی HTTP، انتخاب داده برای تمپلیت و پیام کاربر مدیریت می‌شود.
 """
 
-# courses/views.py (نسخه ساده - بدون AJAX و API)
+import os
 
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, F
-from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Count, F, Q
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .models import (
+    Category,
+    Course,
+    Lesson,
+    LessonAttachment,
+    LessonProgress,
+)
 from .policies import can_rate_course, has_course_access as _has_course_access
 from .services import (
     CourseServiceError,
@@ -19,16 +29,8 @@ from .services import (
     mark_lesson_completed,
     set_course_rating,
 )
-from .models import (
-    Course,
-    Category,
-    Lesson,
-    LessonProgress,
-    LessonComment,
-    LessonLike,
-    LessonAttachment,
-    CourseRating,
-)
+
+COURSES_PER_PAGE = 9
 
 
 def course_list(request):
@@ -59,8 +61,8 @@ def course_list(request):
             | Q(teachers__last_name__icontains=search_query)
         ).distinct()
 
-    # پیش‌بارگیری اساتید برای کاهش تعداد کوئری‌ها
-    courses = courses.prefetch_related("teachers")
+    # پیش‌بارگیری اساتید و دسته برای کاهش تعداد کوئری‌ها
+    courses = courses.select_related("category").prefetch_related("teachers")
 
     # دسته‌بندی‌ها برای نمایش در فیلتر
     categories = Category.objects.filter(is_active=True)
@@ -68,7 +70,7 @@ def course_list(request):
     # ✅ فیکس: صفحه‌بندی واقعی + حفظ فیلترها در لینک صفحات
     # (قبلاً Paginator وجود نداشت و بلوک صفحه‌بندی تمپلیت هیچ‌وقت رندر نمی‌شد)
     courses = courses.order_by("-created_at")
-    paginator = Paginator(courses, 9)
+    paginator = Paginator(courses, COURSES_PER_PAGE)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     # پارامترهای فعلی (q, level, category) بدون page — برای لینک‌های صفحه‌بندی
@@ -95,27 +97,27 @@ def course_detail(request, slug):
     course = get_object_or_404(Course, slug=slug, status="published")
 
     # افزایش تعداد بازدید (با F برای جلوگیری از race condition)
-    course.view_count = F("view_count") + 1
-    course.save(update_fields=["view_count"])
+    Course.objects.filter(pk=course.pk).update(view_count=F("view_count") + 1)
     course.refresh_from_db(fields=["view_count"])
 
     # گرفتن همه جلسات دوره به ترتیب
     lessons = course.lessons.all().order_by("order")
 
-    # بررسی اینکه کاربر فعلی در این دوره ثبت‌نام کرده است یا نه
+    # بررسی اینکه کاربر فعلی به محتوای دوره دسترسی دارد یا نه
     is_enrolled = False
     lesson_progress = {}
 
     if request.user.is_authenticated:
         is_enrolled = _has_course_access(request.user, course)
 
-        # اگر ثبت‌نام کرده، پیشرفت هر جلسه را بگیر
+        # اگر دسترسی دارد، پیشرفت هر جلسه را یک‌جا بگیر (بدون کوئری در حلقه)
         if is_enrolled:
             progresses = LessonProgress.objects.filter(
-                lesson__in=lessons, user=request.user
+                lesson__course=course, user=request.user
             )
-            for progress in progresses:
-                lesson_progress[progress.lesson.id] = progress
+            lesson_progress = {
+                progress.lesson_id: progress for progress in progresses
+            }
 
     # جلسات پیش‌نمایش رایگان
     free_lessons = lessons.filter(is_free_preview=True)
@@ -148,40 +150,35 @@ def lesson_detail(request, course_slug, lesson_slug):
     lesson = get_object_or_404(Lesson, course=course, slug=lesson_slug)
 
     # بررسی دسترسی کاربر
-    can_access = False
-
-    if lesson.is_free_preview:
-        can_access = True
-    elif _has_course_access(request.user, course):
-        can_access = True
-
-    if not can_access:
+    if not lesson.is_free_preview and not _has_course_access(request.user, course):
         return redirect("courses:course_detail", slug=course_slug)
 
-    # جلسات قبلی و بعدی
-    all_lessons = list(course.lessons.all().order_by("order"))
-    current_index = all_lessons.index(lesson)
-
-    prev_lesson = all_lessons[current_index - 1] if current_index > 0 else None
+    # ✅ فیکس: جلسهٔ قبلی/بعدی با کوئری روی order محاسبه می‌شود.
+    # (قبلاً list.index استفاده می‌شد که برای جلسهٔ حذف‌شده از لیست ValueError می‌داد)
+    prev_lesson = (
+        course.lessons.filter(order__lt=lesson.order).order_by("-order").first()
+    )
     next_lesson = (
-        all_lessons[current_index + 1] if current_index < len(all_lessons) - 1 else None
+        course.lessons.filter(order__gt=lesson.order).order_by("order").first()
     )
 
     # گرفتن یا ساخت پیشرفت کاربر
     progress = None
     if request.user.is_authenticated:
         progress, created = LessonProgress.objects.get_or_create(
-            lesson=lesson, user=request.user
+            lesson=lesson,
+            user=request.user,
+            defaults={"watch_count": 1},
         )
-
-        # اگر کاربر برای اولین بار است، watch_count را افزایش بده
-        if created:
-            progress.watch_count = 1
-            progress.save()
+        # ✅ فیکس: watch_count در بازدیدهای بعدی هم بالا می‌رود (قبلاً فقط بار اول ۱ می‌شد)
+        if not created:
+            LessonProgress.objects.filter(pk=progress.pk).update(
+                watch_count=F("watch_count") + 1
+            )
+            progress.refresh_from_db(fields=["watch_count"])
 
     # افزایش تعداد بازدید جلسه (با F برای جلوگیری از race condition)
-    lesson.view_count = F("view_count") + 1
-    lesson.save(update_fields=["view_count"])
+    Lesson.objects.filter(pk=lesson.pk).update(view_count=F("view_count") + 1)
     lesson.refresh_from_db(fields=["view_count"])
 
     # ضمیمه‌های جلسه
@@ -304,27 +301,19 @@ def download_attachment(request, attachment_id):
     """
     دانلود فایل ضمیمه جلسه
     """
-    from django.http import FileResponse
-    import os
-
-    attachment = get_object_or_404(LessonAttachment, id=attachment_id)
-    lesson = attachment.lesson
-    course = lesson.course
+    attachment = get_object_or_404(
+        LessonAttachment.objects.select_related("lesson__course"), id=attachment_id
+    )
+    course = attachment.lesson.course
 
     # بررسی دسترسی
-    can_download = False
-
-    if attachment.is_free:
-        can_download = True
-    elif _has_course_access(request.user, course):
-        can_download = True
-
-    if not can_download:
+    if not attachment.is_free and not _has_course_access(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
 
     # افزایش آمار دانلود (با F برای جلوگیری از race condition)
-    attachment.download_count = F("download_count") + 1
-    attachment.save(update_fields=["download_count"])
+    LessonAttachment.objects.filter(pk=attachment.pk).update(
+        download_count=F("download_count") + 1
+    )
 
     # ✅ فیکس: استریم فایل به جای خواندن کامل در حافظه
     # (قبلاً فایل‌های حجیم مثل ویدیو/PDF کل RAM سرور را اشغال می‌کردند)
@@ -342,9 +331,11 @@ def category_detail(request, slug):
     # دوره‌های خود دسته + دوره‌های همه‌ی زیردسته‌ها
     subcategory_ids = list(category.subcategories.values_list("id", flat=True))
     category_ids = [category.id] + subcategory_ids
-    courses = Course.objects.filter(
-        category_id__in=category_ids, status="published"
-    ).prefetch_related("teachers").select_related("category")
+    courses = (
+        Course.objects.filter(category_id__in=category_ids, status="published")
+        .select_related("category")
+        .prefetch_related("teachers")
+    )
 
     # فیلتر بر اساس سطح
     level = request.GET.get("level")
@@ -361,9 +352,19 @@ def category_detail(request, slug):
     }
     courses = courses.order_by(sort_map.get(sort, "-created_at"))
 
+    # ✅ فیکس: این صفحه هم صفحه‌بندی می‌شود تا دسته‌های پرحجم کل دیتابیس را رندر نکنند
+    paginator = Paginator(courses, COURSES_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+
     context = {
         "category": category,
-        "courses": courses,
+        "courses": page_obj.object_list,
+        "page_obj": page_obj,
+        "is_paginated": page_obj.has_other_pages(),
+        "querystring": query_params.urlencode(),
         "selected_level": level,
         "sort": sort,
     }
@@ -389,36 +390,65 @@ def search_courses(request):
             )
             .filter(status="published")
             .distinct()
+            .select_related("category")
             .prefetch_related("teachers")
+            .order_by("-created_at")
         )
 
+    # ✅ فیکس: صفحه‌بندی نتایج جست‌وجو + شمارش با paginator
+    # (قبلاً هم کل نتایج رندر می‌شد و هم count یک کوئری اضافه می‌زد)
+    paginator = Paginator(courses, COURSES_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+
     context = {
-        "courses": courses,
+        "courses": page_obj.object_list,
+        "page_obj": page_obj,
+        "is_paginated": page_obj.has_other_pages(),
+        "querystring": query_params.urlencode(),
         "query": query,
-        "count": courses.count(),
+        "count": paginator.count,
     }
     return render(request, "courses/search_results.html", context)
 
 
-# courses/views.py
-
-
 @login_required
 def my_courses(request):
-    """دوره‌هایی که کاربر در آنها ثبت‌نام کرده"""
-    courses = request.user.courses_enrolled.all().prefetch_related("teachers")
-
-    # محاسبه پیشرفت هر دوره (اختیاری)
-    for course in courses:
-        total_lessons = course.lessons.count()
-        completed_lessons = LessonProgress.objects.filter(
-            lesson__course=course, user=request.user, is_completed=True
-        ).count()
-        course.progress_percentage = (
-            int((completed_lessons / total_lessons) * 100) if total_lessons > 0 else 0
+    """دوره‌هایی که کاربر در آن‌ها ثبت‌نام فعال دارد، همراه با درصد پیشرفت."""
+    # ✅ فیکس: حذف N+1 — قبلاً برای هر دوره دو کوئری جدا در حلقه زده می‌شد.
+    # اکنون همهٔ شمارش‌ها در یک کوئری با annotate انجام می‌شود و لغوشده‌ها هم
+    # دیگر در «دوره‌های من» نمایش داده نمی‌شوند.
+    courses = (
+        Course.objects.filter(
+            enrollments__student=request.user,
+            enrollments__status__in=("active", "completed"),
         )
-        course.completed_lessons = completed_lessons
-        course.total_lessons_count = total_lessons
+        .select_related("category")
+        .prefetch_related("teachers")
+        .annotate(
+            total_lessons_count=Count("lessons", distinct=True),
+            completed_lessons=Count(
+                "lessons__progresses",
+                distinct=True,
+                filter=Q(
+                    lessons__progresses__user=request.user,
+                    lessons__progresses__is_completed=True,
+                ),
+            ),
+        )
+        .distinct()
+        .order_by("-created_at")
+    )
 
-    context = {"courses": courses}
+    # محاسبهٔ درصد پیشرفت در پایتون؛ هیچ کوئری اضافه‌ای نمی‌زند.
+    course_list_with_progress = list(courses)
+    for course in course_list_with_progress:
+        total = course.total_lessons_count
+        course.progress_percentage = (
+            int(course.completed_lessons / total * 100) if total else 0
+        )
+
+    context = {"courses": course_list_with_progress}
     return render(request, "courses/my_courses.html", context)
