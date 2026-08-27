@@ -9,9 +9,10 @@ View های اپ کوییز (سبک function-based — هماهنگ با بقی�
   my_progress → نمودار پیشرفت دانش‌آموز در آزمون‌ها
 
 قانون دسترسی آزمون‌ها:
+  • کل بخش آزمون فقط برای کاربر لاگین‌شده دیده می‌شود
   • آزمون‌هایی که به دوره‌ای وصلند → فقط دانش‌آموزان ثبت‌نام‌شده
   • استادان دوره و ادمین/کارمندان بدون محدودیت
-  • آزمون بدون دوره (عمومی) → برای همه قابل دیدن
+  • آزمون بدون دوره (عمومی) → برای کاربران واردشده قابل دیدن
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -31,10 +32,7 @@ from .services import (
 from Enrollment.models import Enrollment
 
 
-# ============================================================
-# لیست آزمون‌ها
-# ============================================================
-
+@login_required
 def quiz_list(request):
     """فهرست آزمون‌های عمومی، ثبت‌نام‌شده یا متعلق به استاد را نمایش می‌دهد."""
     sweep_expired_attempts(request.user)
@@ -43,7 +41,7 @@ def quiz_list(request):
 
     if is_quiz_admin(user):
         quizzes = base_queryset
-    elif user.is_authenticated:
+    else:
         enrolled_course_ids = Enrollment.objects.filter(
             student=user,
             status="active",
@@ -54,8 +52,6 @@ def quiz_list(request):
             | Q(course_id__in=enrolled_course_ids)
             | Q(course__teachers=user)
         ).distinct()
-    else:
-        quizzes = base_queryset.filter(course__isnull=True)
 
     return render(
         request,
@@ -64,20 +60,13 @@ def quiz_list(request):
     )
 
 
-# ============================================================
-# جزئیات آزمون
-# ============================================================
-
+@login_required
 def quiz_detail(request, slug):
     """صفحه‌ی معرفی آزمون + سوابق تلاش‌های کاربر."""
     sweep_expired_attempts(request.user)
     quiz = get_object_or_404(Quiz, slug=slug, is_published=True)
 
-    # کنترل دسترسی: فقط ثبت‌نام‌شده‌های دوره + استاد دوره + ادمین
     if not can_access_quiz(request.user, quiz):
-        if not request.user.is_authenticated:
-            messages.warning(request, "برای دیدن این آزمون باید وارد حساب کاربریت بشی.")
-            return redirect("accounts:login")
         messages.error(
             request,
             "این آزمون فقط برای دانش‌آموزان ثبت‌نام‌شده در دوره‌ی مربوطه قابل دیدن است.",
@@ -86,15 +75,12 @@ def quiz_detail(request, slug):
             return redirect("courses:course_detail", slug=quiz.course.slug)
         return redirect("quiz:quiz_list")
 
-    user_attempts = []
+    user_attempts = QuizAttempt.objects.filter(
+        quiz=quiz, student=request.user, status=QuizAttempt.COMPLETED
+    )
     attempts_left = None
-    if request.user.is_authenticated:
-        user_attempts = QuizAttempt.objects.filter(
-            quiz=quiz, student=request.user, status=QuizAttempt.COMPLETED
-        )
-        if quiz.max_attempts > 0:
-            # ✅ فیکس: منفی نشدن تعداد تلاش‌های باقی‌مانده
-            attempts_left = max(quiz.max_attempts - user_attempts.count(), 0)
+    if quiz.max_attempts > 0:
+        attempts_left = max(quiz.max_attempts - user_attempts.count(), 0)
 
     context = {
         "quiz": quiz,
@@ -103,10 +89,6 @@ def quiz_detail(request, slug):
     }
     return render(request, "quiz/quiz_detail.html", context)
 
-
-# ============================================================
-# شرکت در آزمون
-# ============================================================
 
 @login_required
 def take_quiz(request, slug):
@@ -167,10 +149,6 @@ def take_quiz(request, slug):
         },
     )
 
-
-# ============================================================
-# نتیجه و پیشرفت
-# ============================================================
 
 @login_required
 def quiz_result(request, attempt_id):
