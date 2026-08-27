@@ -5,6 +5,14 @@
 
 {% block content %}
 
+<svg width="0" height="0" aria-hidden="true">
+  <defs>
+    <linearGradient id="nvGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+</svg>
+
 <section class="hero">
   <div class="container-x hero-grid">
     <div data-reveal>
@@ -36,16 +44,48 @@
       </ul>
     </div>
 
-    {% if featured_courses %}
-    {% with course=featured_courses.0 %}
     <div class="hero-visual" data-reveal>
-      <div class="hero-card">{% include "courses/_course_card.html" %}</div>
-      {% if course.rating_avg %}
-      <span class="hero-chip-float fa-num"><i data-lucide="star" class="w-4 h-4"></i> {{ course.rating_avg|floatformat:1 }} از ۵ · رضایت دانشجوها</span>
-      {% endif %}
+      <div class="classroom nv-float" data-tilt>
+        <div class="classroom-bar">
+          <span class="nv-dot bg-rose-400"></span>
+          <span class="nv-dot bg-amber-400"></span>
+          <span class="nv-dot bg-emerald-400"></span>
+          <span class="classroom-title"><i data-lucide="messages-square" class="w-3.5 h-3.5"></i> چت کلاس · جنگو پیشرفته</span>
+          <span class="classroom-live"><span class="classroom-live-dot"></span> آنلاین</span>
+        </div>
+        <div class="classroom-chat nv-chat" data-chat-demo>
+          <div class="nv-bub is-announce" style="--d:.2s">
+            <span class="nv-who">استاد · اعلان</span>
+            جلسه‌ی ۱۳ اضافه شد. تمرین کوئری‌ها را تا شنبه بفرستید.
+          </div>
+          <div class="nv-bub is-student" style="--d:.9s">
+            <span class="nv-who">سارا · دانشجو</span>
+            فرق select_related و prefetch_related دقیقاً چی بود؟
+          </div>
+          <div class="nv-bub is-ai" style="--d:1.7s">
+            <span class="nv-who">دستیار هوشمند</span>
+            اولی با JOIN در یک کوئری، دومی با کوئری جدا برای رابطه‌های چندتایی. جدول مقایسه را برایت مرتب کردم.
+          </div>
+        </div>
+      </div>
+
+      <div class="classroom-chip classroom-chip-score nv-float nv-delay">
+        <svg viewBox="0 0 36 36" class="nv-ring" style="--ring:80" aria-hidden="true">
+          <path class="nv-track" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"/>
+          <path class="nv-fill" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"/>
+        </svg>
+        <div>
+          <div class="classroom-chip-kicker">آزمون جلسه‌ی ۱۲</div>
+          <div class="classroom-chip-value fa-num">۱۶ از ۲۰</div>
+          <div class="classroom-chip-ok">کارنامه همان لحظه صادر شد</div>
+        </div>
+      </div>
+
+      <div class="classroom-chip classroom-chip-bell nv-float">
+        <i data-lucide="bell-ring" class="w-4 h-4"></i>
+        اعلان جدید: نمره‌ات ثبت شد
+      </div>
     </div>
-    {% endwith %}
-    {% endif %}
   </div>
 </section>
 

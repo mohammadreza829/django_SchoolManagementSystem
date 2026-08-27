@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}دوره‌های من{% endblock %}
+{% block title %}دوره‌های من | مکتب‌پلاس{% endblock %}
 {% block content %}
 <section class="py-10"><div class="container-x">
   <div data-reveal class="mb-8">
@@ -7,36 +7,50 @@
     <h1 class="section-title"><span class="grad-text">دوره‌های</span> من</h1>
   </div>
   <div x-data="{ tab: 'active' }">
-    <div class="flex gap-2 border-b border-white/10 mb-7" data-reveal>
+    <div class="flex gap-2 border-b border-slate-200 mb-7" data-reveal>
       <button @click="tab='active'" :class="tab==='active' && 'active'" class="tab">در حال یادگیری</button>
       <button @click="tab='completed'" :class="tab==='completed' && 'active'" class="tab">تکمیل‌شده</button>
       <button @click="tab='all'" :class="tab==='all' && 'active'" class="tab">همه</button>
     </div>
-    <div x-show="tab==='active' || tab==='all'" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>{% for course in courses %}{% if course.progress_percentage < 100 %}
-      <a data-item href="{{ course.get_absolute_url }}" class="course-card">
-        <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}</div>
-        <div class="card-body">
-          <h3 class="card-title">{{ course.title }}</h3>
-          <div class="flex items-center justify-between text-xs text-slate-400 mt-2">
-            <span>پیشرفت</span><b class="text-white">{{ course.progress_percentage|default:0 }}٪</b>
+    <div x-show="tab==='active' || tab==='all'" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
+      {% for course in courses %}{% if course.progress_percentage < 100 %}
+      <a data-item href="{{ course.get_absolute_url }}" class="cc-card">
+        <div class="cc-media">
+          {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+          {% else %}<span class="cc-placeholder"><i data-lucide="book-open-text"></i></span>{% endif %}
+        </div>
+        <div class="cc-body">
+          <h3 class="cc-title">{{ course.title }}</h3>
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>پیشرفت</span><b class="fa-num">{{ course.progress_percentage|default:0 }}٪</b>
           </div>
           <div class="progress mt-1"><span class="bar" style="width: {{ course.progress_percentage|default:0 }}%"></span></div>
-          <button class="btn btn-primary btn-sm mt-3 w-full"><i data-lucide="play" class="w-4 h-4"></i> ادامه</button>
+          <span class="btn btn-primary btn-sm mt-3 w-full"><i data-lucide="play" class="w-4 h-4"></i> ادامه</span>
         </div>
       </a>
-    {% endif %}{% empty %}<div class="col-span-full glass rounded-2xl p-14 text-center">
-      <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-white/5 grid place-items-center"><i data-lucide="book-open" class="w-10 h-10 text-slate-500"></i></div>
-      <h3 class="font-bold mb-2">هنوز دوره‌ای فعال نداری</h3>
-      <p class="text-slate-400 text-sm mb-5">یکی رو بردار و سفرت رو شروع کن.</p>
-      <a href="{% url 'courses:course_list' %}" class="btn btn-primary">مرور دوره‌ها</a>
-    </div>{% endfor %}</div>
-    <div x-show="tab==='completed'" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>{% for course in courses %}{% if course.progress_percentage >= 100 %}
-      <a data-item href="{{ course.get_absolute_url }}" class="course-card">
-        <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}">{% endif %}<div class="absolute top-3 right-3"><span class="badge badge-green"><i data-lucide="check" class="w-3 h-3"></i> تکمیل</span></div></div>
-        <div class="card-body"><h3 class="card-title">{{ course.title }}</h3>
-          <a href="#" class="btn btn-gold btn-sm mt-3 w-full"><i data-lucide="award" class="w-4 h-4"></i> دریافت گواهی</a></div>
+      {% endif %}{% empty %}
+      <div class="col-span-full empty-state">
+        <div class="es-ic"><i data-lucide="book-open" class="w-8 h-8"></i></div>
+        <h3>هنوز دوره‌ای فعال نداری</h3>
+        <p>یکی را بردار و مسیر را شروع کن.</p>
+        <a href="{% url 'courses:course_list' %}" class="btn btn-primary">مرور دوره‌ها</a>
+      </div>
+      {% endfor %}
+    </div>
+    <div x-show="tab==='completed'" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
+      {% for course in courses %}{% if course.progress_percentage >= 100 %}
+      <a data-item href="{{ course.get_absolute_url }}" class="cc-card">
+        <div class="cc-media">
+          {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">{% endif %}
+          <div class="cc-chips"><span class="cc-chip cc-chip-free">تکمیل</span></div>
+        </div>
+        <div class="cc-body">
+          <h3 class="cc-title">{{ course.title }}</h3>
+          <span class="btn btn-gold btn-sm mt-3 w-full"><i data-lucide="award" class="w-4 h-4"></i> دریافت گواهی</span>
+        </div>
       </a>
-    {% endif %}{% endfor %}</div>
+      {% endif %}{% endfor %}
+    </div>
   </div>
 </div></section>
 {% endblock %}

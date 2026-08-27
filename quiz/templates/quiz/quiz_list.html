@@ -1,47 +1,49 @@
-{% extends 'accounts/base.html' %}
-{% block title %}آزمون‌ها{% endblock %}
+{% extends 'base.html' %}
+{% block title %}آزمون‌ها | مکتب‌پلاس{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-            <i class="fas fa-clipboard-question text-2xl text-primary"></i>
-            <h1 class="text-2xl font-bold">آزمون‌ها</h1>
-        </div>
-        {% if user.is_authenticated %}
-        <a href="{% url 'quiz:my_progress' %}"
-           class="inline-flex items-center gap-2 bg-elevated hover:bg-hovered text-sm font-semibold px-4 py-2 rounded-xl transition">
-            <i class="fas fa-chart-line text-indigo-400"></i> پیشرفت من
-        </a>
-        {% endif %}
+<div class="container-x qz-wrap">
+  <div class="qz-head" data-reveal>
+    <div>
+      <span class="section-eyebrow">آزمون‌ها</span>
+      <h1 class="section-title mt-3">آزمون‌های تو</h1>
+      <p class="section-subtitle mt-2">فقط آزمون‌هایی که بهشان دسترسی داری اینجا می‌آیند.</p>
     </div>
+    <a href="{% url 'quiz:my_progress' %}" class="btn btn-ghost btn-sm">
+      <i data-lucide="chart-line" class="w-4 h-4"></i> پیشرفت من
+    </a>
+  </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for quiz in quizzes %}
-        <a href="{% url 'quiz:quiz_detail' quiz.slug %}"
-           class="block bg-surface border border-white/10 rounded-2xl p-5 hover:border-primary/50 hover:shadow-glow-sm transition">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-semibold px-2 py-1 rounded-lg bg-primary/15 text-indigo-300">
-                    {{ quiz.question_count }} سوال
-                </span>
-                {% if quiz.time_limit_minutes %}
-                <span class="text-xs text-gray-400"><i class="far fa-clock ml-1"></i>{{ quiz.time_limit_minutes }} دقیقه</span>
-                {% endif %}
-            </div>
-            {% if not quiz.is_open_now %}
-            <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-md {% if quiz.availability_status == 'upcoming' %}bg-blue-500/15 text-blue-700{% else %}bg-red-500/15 text-red-600{% endif %} mb-2">
-                {% if quiz.availability_status == 'upcoming' %}به‌زودی{% else %}بسته شده{% endif %}
-            </span>
-            {% endif %}
-            <h3 class="font-bold text-lg mb-1">{{ quiz.title }}</h3>
-            <p class="text-sm text-gray-400 line-clamp-2">{{ quiz.description }}</p>
-            {% if quiz.course %}
-            <p class="text-xs text-gray-500 mt-3"><i class="fas fa-graduation-cap ml-1"></i>{{ quiz.course.title }}</p>
-            {% endif %}
-        </a>
-        {% empty %}
-        <p class="text-gray-400 col-span-full text-center py-12">هنوز آزمونی منتشر نشده است.</p>
-        {% endfor %}
+  <div class="qz-grid" data-stagger>
+    {% for quiz in quizzes %}
+    <a href="{% url 'quiz:quiz_detail' quiz.slug %}" class="qz-card" data-item>
+      <div class="qz-meta">
+        <span class="badge badge-violet fa-num">{{ quiz.question_count }} سوال</span>
+        {% if quiz.time_limit_minutes %}
+        <span class="badge badge-slate fa-num"><i data-lucide="clock" class="w-3 h-3"></i> {{ quiz.time_limit_minutes }} دقیقه</span>
+        {% endif %}
+        {% if not quiz.is_open_now %}
+          {% if quiz.availability_status == 'upcoming' %}
+          <span class="badge badge-blue">به‌زودی</span>
+          {% else %}
+          <span class="badge badge-rose">بسته شده</span>
+          {% endif %}
+        {% endif %}
+      </div>
+      <h3>{{ quiz.title }}</h3>
+      <p>{{ quiz.description|truncatechars:110 }}</p>
+      {% if quiz.course %}
+      <span class="text-xs text-slate-500 mt-auto">{{ quiz.course.title }}</span>
+      {% endif %}
+    </a>
+    {% empty %}
+    <div class="col-span-full empty-state">
+      <div class="es-ic"><i data-lucide="clipboard-check" class="w-8 h-8"></i></div>
+      <h3>آزمونی برای تو نیست</h3>
+      <p>با ثبت‌نام در دوره، آزمون‌های همان کلاس اینجا ظاهر می‌شوند.</p>
+      <a href="{% url 'courses:course_list' %}" class="btn btn-primary btn-sm">مرور دوره‌ها</a>
     </div>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

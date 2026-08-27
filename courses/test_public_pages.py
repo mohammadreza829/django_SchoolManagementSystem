@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .models import Category
-from .tests import create_course, create_user
+from .tests import TEST_PASSWORD, create_course, create_user
 
 
 class PublicPagesRenderTests(TestCase):
@@ -42,6 +42,33 @@ class PublicPagesRenderTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "دورهٔ جنگو ویژه")
         self.assertContains(response, "هر چیزی که")
+
+    def test_home_always_shows_classroom_mockup(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "چت کلاس")
+        self.assertContains(response, "classroom")
+
+    def test_anonymous_home_hides_quiz_nav(self):
+        response = self.client.get(reverse("home"))
+        quiz_url = reverse("quiz:quiz_list")
+
+        self.assertNotContains(response, f'href="{quiz_url}"')
+
+    def test_logged_in_home_shows_quiz_nav(self):
+        student = create_user("nav_student")
+        self.client.login(username=student.username, password=TEST_PASSWORD)
+        response = self.client.get(reverse("home"))
+        quiz_url = reverse("quiz:quiz_list")
+
+        self.assertContains(response, f'href="{quiz_url}"')
+
+    def test_anonymous_quiz_list_redirects_to_login(self):
+        response = self.client.get(reverse("quiz:quiz_list"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("accounts:login"), response.url)
 
     def test_course_list_page_renders(self):
         response = self.client.get(reverse("courses:course_list"))

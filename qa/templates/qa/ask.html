@@ -1,178 +1,67 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>پرسش‌ها — دستیار هوشمند</title>
-<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% extends 'base.html' %}
+{% block title %}دستیار هوشمند | مکتب‌پلاس{% endblock %}
+
+{% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: #f3f5f9; color: #1f2937;
-    font-family: Vazirmatn, Tahoma, sans-serif;
-  }
-  .topbar {
-    background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.06);
-    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
-    position: sticky; top: 0; z-index: 10;
-  }
-  .topbar a.back { color: #6b7280; text-decoration: none; font-size: 18px; }
-  .topbar h1 { font-size: 17px; margin: 0; display: flex; align-items: center; gap: 8px; }
-  .topbar h1 i { color: #7c3aed; }
-  .quota {
-    margin-inline-start: auto; background: #ede9fe; color: #6d28d9;
-    border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
-  }
-  .wrap { max-width: 860px; margin: 24px auto; padding: 0 16px; }
-  .alert { border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; }
-  .alert.error   { background: #fee2e2; color: #b91c1c; }
-  .alert.warning { background: #fef3c7; color: #92400e; }
-  .alert.success { background: #dcfce7; color: #166534; }
-  .card {
-    background: #fff; border-radius: 16px; padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.05); margin-bottom: 18px;
-  }
-  textarea {
-    width: 100%; min-height: 110px; resize: vertical;
-    border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 12px 14px;
-    font: inherit; font-size: 14px; outline: none; background: #fafafa;
-  }
-  textarea:focus { border-color: #a855f7; background: #fff; }
-  .form-row { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
-  select {
-    border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 12px;
-    font: inherit; font-size: 13px; background: #fff; min-width: 220px;
-  }
-  button.primary {
-    border: none; cursor: pointer; color: #fff; font: inherit; font-weight: 700;
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    border-radius: 12px; padding: 11px 26px; font-size: 14px;
-    display: inline-flex; align-items: center; gap: 8px;
-  }
-  button.primary:disabled { opacity: .6; cursor: wait; }
-  .hint { color: #9ca3af; font-size: 12.5px; margin-top: 10px; }
-  h2.section { font-size: 16px; margin: 26px 0 14px; display: flex; align-items: center; gap: 8px; }
-  .qa-item .q {
-    font-weight: 700; font-size: 14.5px; margin-bottom: 10px;
-    display: flex; gap: 8px; align-items: flex-start;
-  }
-  .qa-item .q i { color: #7c3aed; margin-top: 3px; }
-  .a {
-    background: #fbfaff; border: 1px solid #f0ebfd; border-radius: 12px;
-    padding: 14px 16px; font-size: 14px;
-  }
-  .tag { display: inline-block; border-radius: 999px; padding: 5px 14px; font-size: 12.5px; }
-  .tag.warn { background: #fef3c7; color: #92400e; }
-  .tag.err  { background: #fee2e2; color: #b91c1c; }
-  .meta { color: #9ca3af; font-size: 12px; margin-top: 10px; display: flex; gap: 12px; }
-  .empty { text-align: center; color: #9ca3af; padding: 30px 0; }
+{% endblock %}
 
-  /* ---------- رندر مارک‌داون (RTL) ---------- */
-  .md { line-height: 2; overflow-x: auto; }
-  .md > :first-child { margin-top: 0; }
-  .md > :last-child { margin-bottom: 0; }
-  .md h1, .md h2, .md h3, .md h4 { margin: 16px 0 8px; color: #111827; }
-  .md h1 { font-size: 18px; } .md h2 { font-size: 16.5px; } .md h3 { font-size: 15px; }
-  .md p { margin: 8px 0; }
-  .md ul, .md ol { margin: 8px 0; padding-inline-start: 24px; }
-  .md li { margin: 5px 0; }
-  .md strong { color: #6d28d9; }
-  .md table {
-    border-collapse: collapse; margin: 14px 0; direction: rtl;
-    font-size: 13.5px; min-width: 55%;
-  }
-  .md th, .md td { border: 1px solid #e4e0f0; padding: 9px 14px; text-align: right; vertical-align: top; }
-  .md th { background: #f5f3ff; color: #6d28d9; font-weight: 700; white-space: nowrap; }
-  .md tr:nth-child(even) td { background: #fbfaff; }
-  .md pre {
-    direction: ltr; text-align: left; background: #1e293b; color: #e2e8f0;
-    padding: 14px 16px; border-radius: 12px; overflow-x: auto;
-    font-size: 13px; line-height: 1.8; margin: 12px 0;
-  }
-  .md code { font-family: Consolas, Monaco, "Courier New", monospace; }
-  .md :not(pre) > code {
-    direction: ltr; unicode-bidi: embed;
-    background: #f1f5f9; color: #7c3aed; padding: 2px 7px;
-    border-radius: 6px; font-size: 13px;
-  }
-  .md blockquote {
-    border-inline-start: 4px solid #a855f7; margin: 10px 0;
-    padding: 8px 14px; background: #faf5ff; border-radius: 8px; color: #4b5563;
-  }
-  .md hr { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
-  .md a { color: #7c3aed; }
-</style>
-</head>
-<body>
+{% block content %}
+<div class="container-x qa-page">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-6" data-reveal>
+    <div>
+      <span class="section-eyebrow">دستیار هوشمند</span>
+      <h1 class="section-title mt-3">سؤال درسی بپرس</h1>
+      <p class="section-subtitle mt-2">فقط سؤال‌های آموزشی؛ پاسخ مرتب با جدول و نمونه کد.</p>
+    </div>
+    <span class="qa-quota fa-num">سهمیه امروز: {{ remaining }} از {{ limit }}</span>
+  </div>
 
-<div class="topbar">
-  <a class="back" href="/" title="صفحه اصلی"><i class="fa-solid fa-arrow-right"></i></a>
-  <h1><i class="fa-solid fa-robot"></i> پرسش‌ها — دستیار هوشمند</h1>
-  <span class="quota">سهمیه امروز: {{ remaining }} از {{ limit }}</span>
-</div>
-
-<div class="wrap">
-
-  {% for m in messages %}
-    <div class="alert {{ m.tags }}">{{ m }}</div>
-  {% endfor %}
-
-  <div class="card">
+  <div class="qa-card" data-reveal>
     <form method="post" id="ask-form">
       {% csrf_token %}
-      <textarea name="question" maxlength="{{ max_length }}"
-        placeholder="سوال درسی‌ات را بنویس... مثلا: تفاوت لیست و تاپل در پایتون چیست؟"
+      <textarea name="question" class="textarea" maxlength="{{ max_length }}"
+        placeholder="مثلاً: تفاوت لیست و تاپل در پایتون چیست؟"
         {% if remaining == 0 %}disabled{% endif %}></textarea>
-      <div class="form-row">
-        <select name="course">
-          <option value="">— بدون دوره‌ی خاص —</option>
+      <div class="flex flex-wrap gap-3 mt-3 items-center">
+        <select name="course" class="select !w-auto">
+          <option value="">بدون دورهٔ خاص</option>
           {% for c in courses %}
             <option value="{{ c.id }}">{{ c.title }}</option>
           {% endfor %}
         </select>
-        <button type="submit" class="primary" id="ask-btn"
-          {% if remaining == 0 %}disabled{% endif %}>
-          <i class="fa-solid fa-paper-plane"></i> بپرس
+        <button type="submit" class="btn btn-primary" id="ask-btn" {% if remaining == 0 %}disabled{% endif %}>
+          <i data-lucide="send" class="w-4 h-4"></i> بپرس
         </button>
       </div>
-      <div class="hint">
-        <i class="fa-solid fa-circle-info"></i>
-        دستیار فقط به سوال‌های درسی و آموزشی پاسخ می‌دهد. دریافت پاسخ ممکن است چند ثانیه طول بکشد.
-      </div>
+      <p class="help-text mt-3">دریافت پاسخ ممکن است چند ثانیه طول بکشد.</p>
     </form>
   </div>
 
-  <h2 class="section"><i class="fa-solid fa-clock-rotate-left"></i> سوال‌های قبلی تو</h2>
-
+  <h2 class="font-extrabold mb-3 mt-8">سؤال‌های قبلی تو</h2>
   {% if history %}
     {% for q in history %}
-      <div class="card qa-item">
-        <div class="q"><i class="fa-solid fa-circle-question"></i><span>{{ q.question }}</span></div>
+      <div class="qa-card">
+        <p class="font-bold mb-3">{{ q.question }}</p>
         {% if q.status == "answered" %}
-          <div class="a md" data-md>{{ q.answer }}</div>
+          <div class="md" data-md>{{ q.answer }}</div>
         {% elif q.status == "rejected" %}
-          <span class="tag warn">خارج از محدوده‌ی آموزشی</span>
+          <span class="badge badge-gold">خارج از محدودهٔ آموزشی</span>
         {% else %}
-          <span class="tag err">خطا در دریافت پاسخ (سهمیه مصرف نشد)</span>
+          <span class="badge badge-rose">خطا در دریافت پاسخ</span>
         {% endif %}
-        <div class="meta">
-          <span><i class="fa-regular fa-clock"></i> {{ q.created_at|date:"Y/m/d H:i" }}</span>
-          {% if q.course %}<span><i class="fa-solid fa-book"></i> {{ q.course.title }}</span>{% endif %}
-        </div>
+        <div class="text-xs text-slate-500 mt-3 fa-num">{{ q.created_at|date:"Y/m/d H:i" }}{% if q.course %} · {{ q.course.title }}{% endif %}</div>
       </div>
     {% endfor %}
   {% else %}
-    <div class="empty">هنوز سوالی نپرسیدی... اولین سوالت را از فرم بالا بپرس!</div>
+    <div class="empty-state"><h3>هنوز سؤالی نپرسیدی</h3><p>اولین سؤال را از فرم بالا بپرس.</p></div>
   {% endif %}
-
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 (function () {
-  // رندر مارک‌داون پاسخ‌ها (جدول، کد، بولد و...)
   if (window.marked && window.DOMPurify) {
     marked.setOptions({ gfm: true, breaks: true });
     document.querySelectorAll("[data-md]").forEach(function (el) {
@@ -181,17 +70,14 @@
       el.innerHTML = DOMPurify.sanitize(marked.parse(raw));
     });
   }
-
   var form = document.getElementById("ask-form");
   var btn = document.getElementById("ask-btn");
   if (form && btn) {
     form.addEventListener("submit", function () {
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال دریافت پاسخ...';
+      btn.innerHTML = 'در حال دریافت پاسخ…';
     });
   }
 })();
 </script>
-
-</body>
-</html>
+{% endblock %}
