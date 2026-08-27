@@ -5,283 +5,136 @@
 
 {% block content %}
 
-<svg width="0" height="0" aria-hidden="true">
-  <defs>
-    <linearGradient id="nvGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#d946ef"/>
-    </linearGradient>
-  </defs>
-</svg>
+<section class="hero">
+  <div class="container-x hero-grid">
+    <div data-reveal>
+      <span class="hero-badge"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> دستیار هوشمند حالا داخل کلاس‌هاست</span>
+      <h1 class="hero-title">درس ببین، تمرین کن، <span class="grad-text">آزمون بده</span> — همه در یک مسیر.</h1>
+      <p class="hero-sub">مکتب‌پلاس هر دوره را یک کلاس کامل می‌کند: جلسه‌های مرتب، آزمون زمان‌دار با تصحیح خودکار، چت‌روم با استاد و هم‌کلاسی‌ها، و دستیاری که همان لحظه جواب سؤالت را می‌دهد.</p>
 
-{# ================= HERO ================= #}
-<section class="relative overflow-hidden">
-  <div class="nv-aurora"></div>
-  <div class="container-x relative grid lg:grid-cols-12 gap-12 items-center pt-14 pb-24">
-
-    <div class="lg:col-span-7" data-reveal>
-      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs text-slate-300 mb-6">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        جدید: دستیار هوشمند به مکتب‌پلاس اضافه شد
-        <a href="{% url 'qa:ask' %}" class="text-violet-300 hover:text-violet-200 font-medium">امتحان کن ←</a>
-      </div>
-
-      <h1 class="text-4xl md:text-6xl font-black leading-[1.25] tracking-tight">
-        درس، تمرین، آزمون، رفع اشکال —
-        <span class="grad-text block mt-2">همه در یک مسیر.</span>
-      </h1>
-
-      <p class="mt-6 text-slate-400 text-base md:text-lg leading-8 max-w-xl">
-        هر دوره یک کلاس کامل است: جلسه‌های مرتب، آزمون زمان‌دار با نمره‌ی لحظه‌ای،
-        چت‌روم زنده با استاد و هم‌کلاسی‌ها، و دستیاری که همان لحظه جواب سوالت را می‌دهد.
-        نه پراکندگی، نه سردرگمی.
-      </p>
-
-      {% if all_categories %}
-      <div class="mt-4 text-sm text-slate-500">
-        امروز چی یاد می‌گیری؟
-        <span class="text-violet-300 font-bold nv-caret" data-type='[{% for cat in all_categories|slice:":6" %}"{{ cat.name }}"{% if not forloop.last %},{% endif %}{% endfor %}]'></span>
-      </div>
-      {% endif %}
-
-      <form action="{% url 'courses:search' %}" method="get" class="mt-8 max-w-lg">
-        <div class="flex items-center gap-2 glass-strong rounded-2xl p-2 pr-4 focus-within:ring-2 focus-within:ring-violet-500/40 transition">
-          <i data-lucide="search" class="w-5 h-5 text-slate-400 shrink-0"></i>
-          <input type="text" name="q" placeholder="مثلاً: پایتون، ریاضی دهم، طراحی وب…" class="bg-transparent outline-none flex-1 text-sm placeholder:text-slate-500">
-          <button class="btn btn-primary btn-sm shrink-0" data-magnet>جستجو</button>
+      <form action="{% url 'courses:search' %}" method="get" class="hero-search" role="search">
+        <div class="hero-search-box">
+          <i data-lucide="search" class="w-5 h-5"></i>
+          <input type="text" name="q" placeholder="چی دوست داری یاد بگیری؟ مثلاً پایتون، ریاضی دهم…">
+          <button type="submit" class="btn btn-primary btn-sm">جستجو</button>
         </div>
       </form>
 
-      <div class="mt-8 flex flex-wrap items-center gap-3">
-        <a href="{% url 'courses:course_list' %}" class="btn btn-primary btn-lg" data-magnet>
-          مشاهده‌ی دوره‌ها <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        </a>
+      <div class="hero-ctas">
+        <a href="{% url 'courses:course_list' %}" class="btn btn-primary btn-lg">دیدن دوره‌ها <i data-lucide="arrow-left" class="w-4 h-4"></i></a>
         {% if user.is_authenticated %}
-        <a href="{% url 'accounts:dashboard' %}" class="btn btn-ghost btn-lg">ادامه‌ی یادگیری</a>
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-ghost btn-lg">ادامهٔ یادگیری</a>
         {% else %}
-        <a href="{% url 'accounts:student_signup' %}" class="btn btn-gold btn-lg" data-magnet>ساخت حساب رایگان</a>
+        <a href="{% url 'accounts:student_signup' %}" class="btn btn-gold btn-lg">شروع رایگان</a>
         {% endif %}
       </div>
 
-      <div class="mt-8 flex flex-wrap gap-x-6 gap-y-2">
-        <span class="nv-tick"><i data-lucide="check-circle-2" class="w-4 h-4"></i> بدون نصب برنامه، مستقیم از مرورگر</span>
-        <span class="nv-tick"><i data-lucide="check-circle-2" class="w-4 h-4"></i> رفع اشکال داخل خود کلاس</span>
-        <span class="nv-tick"><i data-lucide="check-circle-2" class="w-4 h-4"></i> شروع با دوره‌های رایگان</span>
-      </div>
+      <ul class="hero-points">
+        <li><i data-lucide="check-circle-2"></i> بدون نصب برنامه، مستقیم از مرورگر</li>
+        <li><i data-lucide="check-circle-2"></i> تصحیح آزمون همان لحظه</li>
+        <li><i data-lucide="check-circle-2"></i> شروع با دوره‌های رایگان</li>
+      </ul>
     </div>
 
-    {# ---- موکاپ کلاس زنده ---- #}
-    <div class="lg:col-span-5 relative hidden md:block" data-reveal>
-      <div class="nv-window nv-float" data-tilt>
-        <div class="nv-winbar">
-          <span class="nv-dot bg-rose-400"></span><span class="nv-dot bg-amber-400"></span><span class="nv-dot bg-emerald-400"></span>
-          <span class="text-xs text-slate-400 mr-2 flex items-center gap-1.5"><i data-lucide="messages-square" class="w-3.5 h-3.5"></i> چت کلاس · جنگو پیشرفته</span>
-          <span class="mr-auto text-[10px] text-emerald-300 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> آنلاین</span>
-        </div>
-        <div class="p-5 space-y-3 nv-chat" data-chat-demo>
-          <div class="nv-bub is-announce" style="--d:.2s">
-            <span class="nv-who">📢 استاد · اعلان</span>
-            جلسه‌ی ۱۳ اضافه شد. تمرین کوئری‌ها را تا شنبه بفرستید.
-          </div>
-          <div class="nv-bub mr-auto" style="--d:.9s">
-            <span class="nv-who">سارا · دانشجو</span>
-            فرق select_related و prefetch_related دقیقاً چی بود؟ 🤔
-          </div>
-          <div class="nv-bub is-ai" style="--d:1.7s">
-            <span class="nv-who">✨ دستیار هوشمند</span>
-            اولی با JOIN در یک کوئری، دومی با کوئری جدا برای رابطه‌های چندتایی. جدول مقایسه را برایت مرتب کردم 👇
-          </div>
-        </div>
-      </div>
-
-      <div class="absolute -bottom-8 -right-6 glass-strong rounded-2xl p-4 flex items-center gap-3 shadow-glow nv-float nv-delay w-56">
-        <svg viewBox="0 0 36 36" class="nv-ring shrink-0" style="--ring:80">
-          <path class="nv-track" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"/>
-          <path class="nv-fill" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"/>
-        </svg>
-        <div>
-          <div class="text-xs text-slate-400">آزمون جلسه‌ی ۱۲</div>
-          <div class="font-extrabold text-lg fa-num">۱۶ از ۲۰</div>
-          <div class="text-[10px] text-emerald-300">کارنامه همان لحظه صادر شد</div>
-        </div>
-      </div>
-
-      <div class="absolute -top-6 -left-4 glass rounded-2xl px-4 py-3 text-xs flex items-center gap-2 nv-float">
-        <i data-lucide="bell-ring" class="w-4 h-4 text-gold-300"></i>
-        اعلان جدید: نمره‌ات ثبت شد
-      </div>
+    {% if featured_courses %}
+    {% with course=featured_courses.0 %}
+    <div class="hero-visual" data-reveal>
+      <div class="hero-card">{% include "courses/_course_card.html" %}</div>
+      {% if course.rating_avg %}
+      <span class="hero-chip-float fa-num"><i data-lucide="star" class="w-4 h-4"></i> {{ course.rating_avg|floatformat:1 }} از ۵ · رضایت دانشجوها</span>
+      {% endif %}
     </div>
+    {% endwith %}
+    {% endif %}
   </div>
 </section>
 
-{# ================= مارکی دسته‌بندی‌ها ================= #}
-{% if all_categories %}
-<section class="py-4 border-y border-white/5 bg-white/[.02]">
-  <div class="nv-marquee">
-    <div class="nv-marquee-track">
-      {% for cat in all_categories %}
-      <a href="{% url 'courses:category_detail' cat.slug %}" class="nv-chip"><i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-3.5 h-3.5 text-violet-300"></i> {{ cat.name }}</a>
-      {% endfor %}
-      {% for cat in all_categories %}
-      <a href="{% url 'courses:category_detail' cat.slug %}" class="nv-chip"><i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-3.5 h-3.5 text-violet-300"></i> {{ cat.name }}</a>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
-
-{# ================= BENTO: امکانات واقعی ================= #}
-<section class="container-x py-24">
-  <div class="max-w-2xl mb-12" data-reveal>
-    <div class="section-eyebrow">بدون اغراق</div>
-    <h2 class="section-title">چیزهایی که واقعاً ازشون استفاده می‌کنی</h2>
-    <p class="text-slate-400 mt-3 leading-7">لیست ویژگی نمی‌چینیم؛ این‌ها ابزارهایی هستند که از جلسه‌ی اول تا آزمون آخر هر روز باهاشون کار می‌کنی.</p>
-  </div>
-
-  <div class="nv-bento" data-stagger>
-    <div class="nv-cell nv-span2" data-item>
-      <div class="flex flex-wrap items-start gap-6">
-        <div class="flex-1 min-w-[220px]">
-          <div class="nv-cell-icon"><i data-lucide="bot" class="w-5 h-5 text-violet-300"></i></div>
-          <h3 class="font-extrabold text-lg mb-2">دستیار هوشمند، وسط درس خوندن</h3>
-          <p class="text-sm text-slate-400 leading-7">ساعت ۲ نصفه‌شب به مشکل خوردی؟ سوالت را بپرس و جواب مرتب با جدول و نمونه‌کد بگیر — فقط در محدوده‌ی مطالب درسی، نه حرف اضافه.</p>
-          <a href="{% url 'qa:ask' %}" class="btn btn-primary btn-sm mt-4" data-magnet>همین الان بپرس <i data-lucide="sparkles" class="w-3.5 h-3.5"></i></a>
-        </div>
-        <div class="flex-1 min-w-[220px] bg-black/30 border border-white/10 rounded-xl p-4 text-xs leading-7">
-          <div class="text-slate-500 mb-1">سوال تو:</div>
-          <div class="text-slate-200 mb-3">مشتق زنجیره‌ای را با یک مثال توضیح بده</div>
-          <div class="text-slate-500 mb-1">دستیار:</div>
-          <div class="text-violet-200 nv-caret" data-type='["اگر y = f(g(x)) باشد، آن‌وقت y′ = f′(g(x)) × g′(x) …"]'></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="nv-cell" data-item>
-      <div class="nv-cell-icon"><i data-lucide="messages-square" class="w-5 h-5 text-fuchsia-300"></i></div>
-      <h3 class="font-extrabold mb-2">چت‌روم زنده‌ی هر دوره</h3>
-      <p class="text-sm text-slate-400 leading-7">همان‌جا که درس می‌خوانی سوال بپرس. اعلان‌های استاد از پیام‌ها جدا مشخص می‌شوند تا چیز مهمی را از دست ندهی.</p>
-    </div>
-
-    <div class="nv-cell" data-item>
-      <div class="nv-cell-icon"><i data-lucide="timer" class="w-5 h-5 text-gold-300"></i></div>
-      <h3 class="font-extrabold mb-2">آزمون زمان‌دار با نمره‌ی لحظه‌ای</h3>
-      <p class="text-sm text-slate-400 leading-7">تایمر واقعی، تصحیح خودکار و کارنامه همان لحظه. نتیجه‌ات را می‌بینی و می‌فهمی کجا ضعف داری.</p>
-    </div>
-
-    <div class="nv-cell" data-item>
-      <div class="nv-cell-icon"><i data-lucide="list-video" class="w-5 h-5 text-sky-300"></i></div>
-      <h3 class="font-extrabold mb-2">درس‌های ساخت‌یافته</h3>
-      <p class="text-sm text-slate-400 leading-7">سرفصل به سرفصل، جلسه به جلسه. همیشه معلوم است کجای مسیر هستی و قدم بعدی چیست.</p>
-    </div>
-
-    <div class="nv-cell" data-item>
-      <div class="nv-cell-icon"><i data-lucide="bell-ring" class="w-5 h-5 text-emerald-300"></i></div>
-      <h3 class="font-extrabold mb-2">اعلان‌های به‌موقع</h3>
-      <p class="text-sm text-slate-400 leading-7">جلسه‌ی جدید، نمره‌ی ثبت‌شده یا پیام استاد — هر اتفاق مهمی در پنل اعلان‌هات منتظرت است.</p>
-    </div>
-
-    <div class="nv-cell" data-item>
-      <div class="nv-cell-icon"><i data-lucide="presentation" class="w-5 h-5 text-rose-300"></i></div>
-      <h3 class="font-extrabold mb-2">پنل کامل برای استادها</h3>
-      <p class="text-sm text-slate-400 leading-7">ساخت دوره، طراحی سوال و آزمون و دیدن نتایج دانشجوها — همه از یک پنل مدیریت ساده.</p>
-    </div>
-  </div>
-</section>
-
-{# ================= دوره‌های منتخب ================= #}
 {% if featured_courses %}
-<section class="container-x py-8 pb-24">
-  <div class="flex items-end justify-between flex-wrap gap-4 mb-10" data-reveal>
+<section class="container-x section-block">
+  <div class="section-head" data-reveal>
     <div>
-      <div class="section-eyebrow">تازه‌های مکتب</div>
-      <h2 class="section-title">دوره‌های منتشرشده</h2>
+      <span class="section-eyebrow">دوره‌ها</span>
+      <h2 class="section-title">تازه‌ترین دوره‌های منتشرشده</h2>
     </div>
-    <a href="{% url 'courses:course_list' %}" class="btn btn-ghost btn-sm">همه‌ی دوره‌ها <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i></a>
+    <a href="{% url 'courses:course_list' %}" class="section-link">همهٔ دوره‌ها <i data-lucide="arrow-left" class="w-4 h-4"></i></a>
   </div>
-
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" data-stagger>
     {% for course in featured_courses %}
-    <a href="{% url 'courses:course_detail' course.slug %}" class="course-card lift" data-item>
-      <div class="card-thumb">
-        {% if course.thumbnail %}
-          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy" class="w-full h-full object-cover">
-        {% else %}
-          <div class="w-full h-full grid place-items-center bg-gradient-to-br from-violet-550/30 to-fuchsia-500/20">
-            <i data-lucide="book-open" class="w-10 h-10 text-violet-300/60"></i>
-          </div>
-        {% endif %}
-        {% if course.category %}<span class="badge badge-violet absolute top-3 right-3">{{ course.category.name }}</span>{% endif %}
-        {% if course.is_free %}<span class="badge badge-green absolute top-3 left-3">رایگان</span>
-        {% elif course.discount_percent %}<span class="badge badge-rose absolute top-3 left-3 fa-num">٪{{ course.discount_percent }} تخفیف</span>{% endif %}
-      </div>
-      <div class="card-body">
-        <h3 class="card-title">{{ course.title }}</h3>
-        <p class="text-xs text-slate-400 leading-6 line-clamp-2">{{ course.short_description|truncatechars:90 }}</p>
-        <div class="card-meta mt-3">
-          {% if course.get_level_display %}<span class="flex items-center gap-1"><i data-lucide="signal" class="w-3.5 h-3.5"></i> {{ course.get_level_display }}</span>{% endif %}
-          <span class="flex items-center gap-1 fa-num"><i data-lucide="users" class="w-3.5 h-3.5"></i> {{ course.enroll_count|default:0 }} دانشجو</span>
-          {% if course.rating_avg %}<span class="flex items-center gap-1 text-gold-300 fa-num"><i data-lucide="star" class="w-3.5 h-3.5"></i> {{ course.rating_avg|floatformat:1 }}</span>{% endif %}
-        </div>
-      </div>
-      <div class="card-footer">
-        <span class="text-xs text-slate-400 flex items-center gap-1.5">
-          <i data-lucide="user-round" class="w-3.5 h-3.5"></i>
-          {{ course.teachers.first.get_full_name|default:course.teachers.first.username|default:'مدرس مکتب‌پلاس' }}
-        </span>
-        <span class="price-tag">
-          {% if course.is_free or not course.price %}
-            <span class="price-free">رایگان</span>
-          {% else %}
-            <span class="price-current fa-num">{{ course.price|floatformat:0 }} تومان</span>
-          {% endif %}
-        </span>
-      </div>
-    </a>
+      {% include "courses/_course_card.html" %}
     {% endfor %}
   </div>
 </section>
 {% endif %}
 
-{# ================= مسیر شروع ================= #}
-<section class="container-x py-24 border-t border-white/5">
-  <div class="text-center max-w-xl mx-auto mb-14" data-reveal>
-    <div class="section-eyebrow">مسیر شروع</div>
-    <h2 class="section-title">از صفر تا اولین نمره، سه قدم</h2>
+<section class="container-x section-block">
+  <div class="section-head-center" data-reveal>
+    <span class="section-eyebrow">چرا مکتب‌پلاس</span>
+    <h2 class="section-title">ابزارهایی که واقعاً به کارت می‌آیند</h2>
+    <p class="section-subtitle">لیست ویژگی نمی‌چینیم؛ این چهار ابزار را از جلسهٔ اول تا آزمون آخر هر روز استفاده می‌کنی.</p>
   </div>
-  <div class="nv-steps grid lg:grid-cols-3 gap-8" data-stagger>
-    <div class="text-center px-6" data-item>
-      <div class="nv-step-num mx-auto mb-5 fa-num">۱</div>
-      <h3 class="font-extrabold mb-2">حساب بساز</h3>
-      <p class="text-sm text-slate-400 leading-7">ثبت‌نام کمتر از یک دقیقه طول می‌کشد و برای شروع هیچ هزینه‌ای لازم نیست.</p>
+  <div class="feat-grid" data-stagger>
+    <div class="feat-card" data-item>
+      <span class="feat-ic"><i data-lucide="timer" class="w-5 h-5"></i></span>
+      <h3>آزمون زمان‌دار</h3>
+      <p>تایمر واقعی، تصحیح خودکار و کارنامهٔ لحظه‌ای. نتیجه را همان ثانیه می‌بینی و می‌فهمی کجا ضعف داری.</p>
     </div>
-    <div class="text-center px-6" data-item>
-      <div class="nv-step-num mx-auto mb-5 fa-num">۲</div>
-      <h3 class="font-extrabold mb-2">دوره‌ات را انتخاب کن</h3>
-      <p class="text-sm text-slate-400 leading-7">بین دسته‌بندی‌ها بگرد، سرفصل‌ها را ببین و با دوره‌های رایگان محک بزن.</p>
+    <div class="feat-card" data-item>
+      <span class="feat-ic"><i data-lucide="messages-square" class="w-5 h-5"></i></span>
+      <h3>چت‌روم هر دوره</h3>
+      <p>همان‌جا که درس می‌خوانی سؤال بپرس؛ اعلان‌های استاد از بقیهٔ پیام‌ها جدا دیده می‌شود تا چیز مهمی را از دست ندهی.</p>
     </div>
-    <div class="text-center px-6" data-item>
-      <div class="nv-step-num mx-auto mb-5 fa-num">۳</div>
-      <h3 class="font-extrabold mb-2">یاد بگیر، بپرس، آزمون بده</h3>
-      <p class="text-sm text-slate-400 leading-7">درس را ببین، توی چت کلاس یا از دستیار هوشمند سوال بپرس و با آزمون زمان‌دار خودت را محک بزن.</p>
+    <div class="feat-card" data-item>
+      <span class="feat-ic"><i data-lucide="bot" class="w-5 h-5"></i></span>
+      <h3>دستیار هوشمند</h3>
+      <p>ساعت ۲ شب به مشکل خوردی؟ بپرس و جواب مرتب بگیر — فقط در محدودهٔ مطالب درسی، نه حرف اضافه.</p>
+    </div>
+    <div class="feat-card" data-item>
+      <span class="feat-ic"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></span>
+      <h3>پیگیری پیشرفت</h3>
+      <p>درصد پیشرفت هر دوره همیشه جلوی چشمت است؛ می‌دانی کجای مسیر هستی و قدم بعدی چیست.</p>
     </div>
   </div>
 </section>
 
-{# ================= دسته‌بندی‌ها ================= #}
+<section class="container-x section-block">
+  <div class="section-head-center" data-reveal>
+    <span class="section-eyebrow">مسیر شروع</span>
+    <h2 class="section-title">از صفر تا اولین نمره، سه قدم</h2>
+  </div>
+  <div class="steps" data-stagger>
+    <div class="step" data-item>
+      <div class="step-num fa-num">۱</div>
+      <h3>حساب بساز</h3>
+      <p>ثبت‌نام کمتر از یک دقیقه طول می‌کشد و برای شروع هیچ هزینه‌ای لازم نیست.</p>
+    </div>
+    <div class="step" data-item>
+      <div class="step-num fa-num">۲</div>
+      <h3>دوره‌ات را انتخاب کن</h3>
+      <p>بین دسته‌بندی‌ها بگرد، سرفصل‌ها را ببین و با دوره‌های رایگان محک بزن.</p>
+    </div>
+    <div class="step" data-item>
+      <div class="step-num fa-num">۳</div>
+      <h3>یاد بگیر، بپرس، آزمون بده</h3>
+      <p>درس را ببین، در چت کلاس یا از دستیار هوشمند سؤال بپرس و با آزمون زمان‌دار خودت را محک بزن.</p>
+    </div>
+  </div>
+</section>
+
 {% if all_categories %}
-<section class="container-x py-8 pb-24">
-  <div class="flex items-end justify-between flex-wrap gap-4 mb-10" data-reveal>
+<section class="container-x section-block">
+  <div class="section-head" data-reveal>
     <div>
-      <div class="section-eyebrow">موضوعات</div>
+      <span class="section-eyebrow">موضوعات</span>
       <h2 class="section-title">از کجا شروع می‌کنی؟</h2>
     </div>
   </div>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4" data-stagger>
+  <div class="cat-grid" data-stagger>
     {% for cat in all_categories|slice:':8' %}
-    <a href="{% url 'courses:category_detail' cat.slug %}" class="nv-cell !p-5 flex items-center gap-3" data-item>
-      <span class="nv-cell-icon !mb-0 !w-11 !h-11 shrink-0"><i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-5 h-5 text-violet-300"></i></span>
-      <span class="min-w-0">
-        <span class="block font-bold text-sm truncate">{{ cat.name }}</span>
-        <span class="block text-[11px] text-slate-500 fa-num">{{ cat.total_courses_count }} دوره</span>
+    <a href="{% url 'courses:category_detail' cat.slug %}" class="cat-card" data-item>
+      <span class="cat-ic"><i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-5 h-5"></i></span>
+      <span class="cat-tx">
+        <b>{{ cat.name }}</b>
+        <span class="fa-num">{{ cat.total_courses_count }} دوره</span>
       </span>
     </a>
     {% endfor %}
@@ -289,25 +142,23 @@
 </section>
 {% endif %}
 
-{# ================= CTA ================= #}
-<section class="container-x pb-24">
-  <div class="relative overflow-hidden rounded-3xl border border-white/10 p-10 md:p-16 text-center" data-reveal>
-    <div class="nv-aurora !opacity-70"></div>
-    <div class="relative">
+<section class="container-x section-block">
+  <div class="cta-band" data-reveal>
+    <div>
       {% if user.is_authenticated %}
-        <h2 class="text-3xl md:text-4xl font-black mb-4">ادامه از همان‌جا که ماندی.</h2>
-        <p class="text-slate-300 max-w-lg mx-auto leading-8 mb-8">دوره‌هایت منتظرند؛ 15 دقیقه امروز، از یک ساعت شب امتحان باارزش‌تر است.</p>
-        <div class="flex flex-wrap justify-center gap-3">
-          <a href="{% url 'courses:my_courses' %}" class="btn btn-primary btn-lg" data-magnet>دوره‌های من</a>
-          <a href="{% url 'qa:ask' %}" class="btn btn-ghost btn-lg">یک سوال از دستیار بپرس</a>
-        </div>
+      <h2>ادامه از همان‌جا که ماندی.</h2>
+      <p>دوره‌هایت منتظرند؛ ۱۵ دقیقهٔ امروز از یک ساعت شبِ امتحان باارزش‌تر است.</p>
+      <div class="cta-actions">
+        <a href="{% url 'courses:my_courses' %}" class="btn btn-white btn-lg">دوره‌های من</a>
+        <a href="{% url 'qa:ask' %}" class="btn btn-outline-w btn-lg">یک سؤال از دستیار بپرس</a>
+      </div>
       {% else %}
-        <h2 class="text-3xl md:text-4xl font-black mb-4">اولین جلسه را همین امروز ببین.</h2>
-        <p class="text-slate-300 max-w-lg mx-auto leading-8 mb-8">ساخت حساب یک دقیقه طول می‌کشد، دوره‌های رایگان هم داریم — بهانه‌ای نمی‌ماند.</p>
-        <div class="flex flex-wrap justify-center gap-3">
-          <a href="{% url 'accounts:student_signup' %}" class="btn btn-gold btn-lg" data-magnet>ساخت حساب رایگان</a>
-          <a href="{% url 'courses:course_list' %}" class="btn btn-ghost btn-lg">اول دوره‌ها را ببینم</a>
-        </div>
+      <h2>اولین جلسه را همین امروز ببین.</h2>
+      <p>ساخت حساب یک دقیقه طول می‌کشد؛ دوره‌های رایگان هم داریم — بهانه‌ای نمی‌ماند.</p>
+      <div class="cta-actions">
+        <a href="{% url 'accounts:student_signup' %}" class="btn btn-white btn-lg">ساخت حساب رایگان</a>
+        <a href="{% url 'courses:course_list' %}" class="btn btn-outline-w btn-lg">اول دوره‌ها را ببینم</a>
+      </div>
       {% endif %}
     </div>
   </div>
