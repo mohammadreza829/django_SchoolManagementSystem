@@ -5,21 +5,19 @@
   <div class="container-x">
     <div class="auth-grid">
       <div class="auth-side relative overflow-hidden p-10 hidden lg:flex flex-col justify-between">
-        <div class="orb w-72 h-72 bg-violet-500/40 -top-20 -right-20"></div>
-        <div class="orb w-72 h-72 bg-fuchsia-500/40 -bottom-20 -left-20"></div>
         <div class="relative">
           <div class="flex items-center gap-2 mb-6">
-            <span class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 grid place-items-center"><i data-lucide="graduation-cap" class="w-6 h-6"></i></span>
-            <span class="text-xl font-extrabold grad-text">مکتب‌پلاس</span>
+            <span class="w-12 h-12 rounded-2xl bg-white/15 grid place-items-center"><i data-lucide="graduation-cap" class="w-6 h-6"></i></span>
+            <span class="text-xl font-extrabold">مکتب‌پلاس</span>
           </div>
-          <h2 class="text-3xl font-extrabold leading-snug mb-3">خوش‌برگشتی!</h2>
-          <p class="text-slate-300 leading-9">دوباره وارد دنیای یادگیری بشو.</p>
+          <h2 class="text-3xl font-extrabold leading-snug mb-3">خوش برگشتی</h2>
+          <p class="leading-9 opacity-90">از همان جلسه‌ای که ماندی ادامه بده — درس، آزمون و چت کلاس منتظرند.</p>
         </div>
       </div>
       <div class="p-8 lg:p-12" data-reveal>
         <div class="section-eyebrow mb-4 inline-flex"><i data-lucide="log-in" class="w-3.5 h-3.5"></i> ورود</div>
         <h1 class="text-3xl font-extrabold mb-2">به <span class="grad-text">مکتب‌پلاس</span> خوش برگشتی</h1>
-        <p class="text-slate-400 text-sm mb-7">نام کاربری و گذرواژه‌ات رو وارد کن.</p>
+        <p class="text-slate-500 text-sm mb-7">نام کاربری و گذرواژه‌ات را وارد کن.</p>
         <form method="post" x-data="{ showPass: false }" class="space-y-4">
           {% csrf_token %}
           {% if form.non_field_errors %}<div class="toast toast-error"><i data-lucide="alert-circle" class="w-4 h-4"></i><span>{{ form.non_field_errors|first }}</span></div>{% endif %}
@@ -32,14 +30,11 @@
             <label class="label required">گذرواژه</label>
             <div class="input-group"><i data-lucide="lock" class="input-icon w-4 h-4"></i>
               <input name="password" :type="showPass ? 'text' : 'password'" required class="input pl-12" autocomplete="current-password">
-              <button type="button" @click="showPass = !showPass" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"><i :data-lucide="showPass ? 'eye-off' : 'eye'" class="w-4 h-4"></i></button>
+              <button type="button" @click="showPass = !showPass" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><i :data-lucide="showPass ? 'eye-off' : 'eye'" class="w-4 h-4"></i></button>
             </div>
           </div>
-          <div class="flex items-center justify-between text-xs">
-            <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" name="remember" class="w-4 h-4 accent-violet-500"> مرا به خاطر بسپار</label>
-          </div>
           <button class="btn btn-primary w-full btn-lg"><i data-lucide="log-in" class="w-5 h-5"></i> ورود</button>
-          <div class="text-center text-sm text-slate-400 pt-3">حساب نداری؟ <a href="{% url 'accounts:student_signup' %}" class="text-violet-300 font-bold">ثبت‌نام</a></div>
+          <div class="text-center text-sm text-slate-500 pt-3">حساب نداری؟ <a href="{% url 'accounts:student_signup' %}" class="text-violet-600 font-bold">ثبت‌نام</a></div>
         </form>
       </div>
     </div>
