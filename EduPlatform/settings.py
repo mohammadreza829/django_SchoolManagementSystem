@@ -42,7 +42,7 @@ def env_list(name, default=""):
 
 
 # ==================== امنیت و محیط اجرا ====================
-DEBUG = env_bool("DJANGO_DEBUG", True)
+DEBUG = env_bool("DJANGO_DEBUG", False)
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
