@@ -1,0 +1,55 @@
+# ============================================================
+#  دو سرویس کنار هم: وب (جنگو) و دیتابیس (پستگرس)
+#  اجرا:  docker compose up --build
+#  توقف: Ctrl+C سپس  docker compose down
+# ============================================================
+services:
+  # ---------- دیتابیس ----------
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: eduplatform
+      POSTGRES_USER: eduplatform_admin
+      POSTGRES_PASSWORD: local-docker-password
+    volumes:
+      # داده‌ها بیرون کانتینر می‌مانند تا با هر ری‌استارت پاک نشوند
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # تا پستگرس واقعاً آماده نشود، سرویس وب صبر می‌کند
+      test: ["CMD-SHELL", "pg_isready -U eduplatform_admin -d eduplatform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------- وب ----------
+  web:
+    build: .
+    # پیش از اجرای gunicorn: اعمال مایگریشن‌ها و جمع‌آوری استاتیک
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn EduPlatform.wsgi:application --bind 0.0.0.0:8000"
+    environment:
+      DJANGO_SECRET_KEY: local-docker-secret-not-for-production
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost"
+      DJANGO_DB_ENGINE: postgresql
+      DJANGO_DB_NAME: eduplatform
+      DJANGO_DB_USER: eduplatform_admin
+      DJANGO_DB_PASSWORD: local-docker-password
+      # نکتهٔ کلیدی: میزبان دیتابیس نام سرویس است (db)، نه localhost
+      DJANGO_DB_HOST: db
+      DJANGO_DB_PORT: "5432"
+    ports:
+      # پورت 8000 کامپیوتر تو به پورت 8000 کانتینر وصل می‌شود
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # فایل‌های آپلودی کاربر بیرون کانتینر می‌مانند
+      - media_volume:/app/media
+
+volumes:
+  postgres_data:
+  media_volume:

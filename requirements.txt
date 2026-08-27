@@ -14,3 +14,9 @@ Pillow>=11.0
 
 # برای فراخوانی API هوش مصنوعی (EduPlatform/ai_settings.py)
 requests>=2.32
+
+# سرور WSGI برای اجرای واقعی (runserver فقط برای توسعه است)
+gunicorn>=23.0
+
+# سرو فایل‌های استاتیک در محیط واقعی بدون nginx
+whitenoise>=6.7
