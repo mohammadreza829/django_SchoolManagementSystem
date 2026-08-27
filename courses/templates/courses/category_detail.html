@@ -2,31 +2,24 @@
 {% block title %}{{ category.name }} | مکتب‌پلاس{% endblock %}
 {% block content %}
 <section class="py-10"><div class="container-x">
-  <div class="glass-strong rounded-3xl p-8 lg:p-12 mb-10 relative overflow-hidden" data-reveal>
-    <div class="orb w-72 h-72 bg-violet-500/40 -top-20 -right-20"></div>
-    <div class="orb w-72 h-72 bg-fuchsia-500/40 -bottom-20 -left-20"></div>
-    <div class="relative">
-      <div class="section-eyebrow mb-3"><i data-lucide="layers" class="w-3.5 h-3.5"></i> دسته‌بندی</div>
-      <h1 class="text-3xl lg:text-5xl font-extrabold mb-3">دوره‌های <span class="grad-text">{{ category.name }}</span></h1>
-      <p class="text-slate-300 max-w-xl">{{ courses|length }} دوره در این دسته‌بندی جمع‌آوری شده تا بهترین مسیر یادگیری‌ات رو پیدا کنی.</p>
-    </div>
+  <div class="cat-hero mb-10" data-reveal>
+    <div class="section-eyebrow mb-3"><i data-lucide="layers" class="w-3.5 h-3.5"></i> دسته‌بندی</div>
+    <h1>دوره‌های <span class="grad-text">{{ category.name }}</span></h1>
+    <p>{{ courses|length }} دوره در این دسته‌بندی جمع شده تا مسیر یادگیری‌ات روشن باشد.</p>
   </div>
   {% if category.subcategories.all %}<div class="flex flex-wrap gap-2 mb-8" data-reveal>{% for sub in category.subcategories.all %}
-    <a href="{% url 'courses:category_detail' sub.slug %}" class="badge badge-slate hover:bg-violet-500/20 transition">{{ sub.name }}</a>
+    <a href="{% url 'courses:category_detail' sub.slug %}" class="badge badge-slate">{{ sub.name }}</a>
   {% endfor %}</div>{% endif %}
-  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>{% for course in courses %}
-    <a data-item href="{{ course.get_absolute_url }}" class="course-card group">
-      <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}</div>
-      <div class="card-body">
-        <h3 class="card-title group-hover:text-violet-300">{{ course.title }}</h3>
-        <p class="text-sm text-slate-400 line-clamp-2 leading-7">{{ course.short_description }}</p>
-        <div class="card-meta mt-auto">
-          <span><i data-lucide="clock" class="w-3.5 h-3.5"></i> {{ course.duration_hours }} س</span>
-          <span><i data-lucide="video" class="w-3.5 h-3.5"></i> {{ course.total_lessons }} ج</span>
-        </div>
-      </div>
-      <div class="card-footer"><span class="text-xs text-slate-400 truncate">{{ course.get_teachers_names }}</span><div class="price-tag">{% if course.is_free %}<span class="price-free">رایگان</span>{% else %}<span class="price-current">{{ course.final_price|floatformat:0 }}</span>{% endif %}</div></div>
-    </a>
-    {% empty %}<div class="col-span-full glass rounded-2xl p-14 text-center text-slate-400">دوره‌ای در این دسته وجود نداره.</div>{% endfor %}</div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
+    {% for course in courses %}
+      {% include "courses/_course_card.html" %}
+    {% empty %}
+    <div class="col-span-full empty-state">
+      <div class="es-ic"><i data-lucide="book-open" class="w-8 h-8"></i></div>
+      <h3>دوره‌ای در این دسته نیست</h3>
+      <p>به‌زودی دوره‌های این موضوع اضافه می‌شوند.</p>
+    </div>
+    {% endfor %}
+  </div>
 </div></section>
 {% endblock %}

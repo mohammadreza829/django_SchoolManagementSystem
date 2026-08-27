@@ -13,16 +13,17 @@
       <button class="btn btn-primary !py-2 !px-5">جستجو</button>
     </div>
   </form>
-  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>{% for course in courses %}
-    <a data-item href="{{ course.get_absolute_url }}" class="course-card">
-      <div class="card-thumb">{% if course.thumbnail %}<img src="{{ course.thumbnail.url }}">{% else %}<div class="placeholder"><i data-lucide="book-open-text" class="w-14 h-14"></i></div>{% endif %}</div>
-      <div class="card-body"><h3 class="card-title">{{ course.title }}</h3><p class="text-sm text-slate-400 line-clamp-2 leading-7">{{ course.short_description }}</p></div>
-    </a>
-    {% empty %}<div class="col-span-full glass rounded-2xl p-14 text-center">
-      <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-white/5 grid place-items-center"><i data-lucide="search-x" class="w-10 h-10 text-slate-500"></i></div>
-      <h3 class="text-lg font-bold mb-2">چیزی پیدا نشد</h3>
-      <p class="text-slate-400 text-sm mb-5">با کلمات دیگه جستجو کن یا همه‌ی دوره‌ها رو ببین.</p>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-stagger>
+    {% for course in courses %}
+      {% include "courses/_course_card.html" %}
+    {% empty %}
+    <div class="col-span-full empty-state">
+      <div class="es-ic"><i data-lucide="search-x" class="w-8 h-8"></i></div>
+      <h3>چیزی پیدا نشد</h3>
+      <p>با کلمات دیگر جستجو کن یا همهٔ دوره‌ها را ببین.</p>
       <a href="{% url 'courses:course_list' %}" class="btn btn-primary">مرور دوره‌ها</a>
-    </div>{% endfor %}</div>
+    </div>
+    {% endfor %}
+  </div>
 </div></section>
 {% endblock %}

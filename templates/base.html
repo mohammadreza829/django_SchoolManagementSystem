@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}مکتب‌پلاس · پلتفرم آموزش آنلاین{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}مکتب‌پلاس — دوره‌های آنلاین با آزمون زمان‌دار، چت‌روم هر دوره و دستیار هوشمند.{% endblock %}">
-    <meta name="theme-color" content="#0b0a23">
+    <meta name="theme-color" content="#4f46e5">
     {% block extra_head %}{% endblock %}
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,6 +40,7 @@
     </script>
     <link rel="stylesheet" href="{% static 'css/maktab.css' %}">
     <link rel="stylesheet" href="{% static 'css/nova.css' %}">
+    <link rel="stylesheet" href="{% static 'css/redesign.css' %}">
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -94,10 +95,10 @@
         </nav>
 
         <form action="{% url 'courses:search' %}" method="get" class="hidden md:flex flex-1 max-w-md mr-auto">
-          <div class="flex items-center w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-2 transition">
-            <i data-lucide="search" class="w-4 h-4 text-slate-400 ml-2"></i>
-            <input type="text" name="q" placeholder="دنبال چی می‌گردی؟" class="bg-transparent outline-none flex-1 text-sm placeholder:text-slate-500">
-            <kbd class="text-[10px] text-slate-400 bg-white/10 px-1.5 rounded">⌘ K</kbd>
+          <div class="nav-search">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <input type="text" name="q" placeholder="دنبال چی می‌گردی؟" aria-label="جستجوی دوره">
+            <kbd>⌘ K</kbd>
           </div>
         </form>
 
@@ -150,7 +151,7 @@
         </div>
       </div>
 
-      <div x-show="open" x-transition x-cloak class="lg:hidden border-t border-white/10 bg-ink-1/95 backdrop-blur-xl">
+      <div x-show="open" x-transition x-cloak class="lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-xl">
         <nav class="container-x py-4 grid gap-1">
           <a href="{% url 'home' %}" class="menu-item"><i data-lucide="home" class="w-4 h-4"></i> خانه</a>
           <a href="{% url 'courses:course_list' %}" class="menu-item"><i data-lucide="library" class="w-4 h-4"></i> دوره‌ها</a>
@@ -196,46 +197,55 @@
     </a>
     {% endif %}
 
-    <footer class="relative mt-24 border-t border-white/10">
-      <div class="container-x py-14 grid lg:grid-cols-4 gap-10">
-        <div class="lg:col-span-2">
-          <div class="flex items-center gap-2 mb-4">
+    <footer class="site-footer">
+      <div class="container-x sf-grid">
+        <div class="sf-brand">
+          <div class="sf-logo">
             <span class="w-10 h-10 rounded-2xl brand-badge grid place-items-center text-white"><i data-lucide="graduation-cap" class="w-5 h-5"></i></span>
-            <span class="text-xl font-extrabold grad-text">مکتب‌پلاس</span>
+            <span class="sf-title">مکتب‌پلاس</span>
           </div>
-          <p class="text-sm text-slate-400 leading-7 max-w-md">دوره، آزمون، چت کلاس و دستیار هوشمند — هر چیز�� که برای یک ترم کامل یادگیری لازم داری، در یک جا.</p>
-          <div class="flex gap-2 mt-5">
-            <a class="icon-btn" href="#" title="اینستاگرام"><i data-lucide="instagram" class="w-4 h-4"></i></a>
-            <a class="icon-btn" href="#" title="تلگرام"><i data-lucide="send" class="w-4 h-4"></i></a>
-            <a class="icon-btn" href="#" title="گیت‌هاب"><i data-lucide="github" class="w-4 h-4"></i></a>
-            <a class="icon-btn" href="#" title="یوتیوب"><i data-lucide="youtube" class="w-4 h-4"></i></a>
-          </div>
-        </div>
-        <div>
-          <h4 class="font-bold mb-4 text-sm">یادگیری</h4>
-          <div class="flex flex-col gap-2 text-sm text-slate-400">
-            <a href="{% url 'courses:course_list' %}" class="hover:text-white transition">همه‌ی دوره‌ها</a>
-            <a href="{% url 'quiz:quiz_list' %}" class="hover:text-white transition">آزمون‌ها</a>
-            <a href="{% url 'qa:ask' %}" class="hover:text-white transition">دستیار هوشمند</a>
-            {% if user.is_authenticated %}<a href="{% url 'courses:my_courses' %}" class="hover:text-white transition">دوره‌های من</a>{% endif %}
+          <p>دوره، آزمون، چت کلاس و دستیار هوشمند — هر چیزی که برای یک ترم کامل یادگیری لازم داری، در یک جا.</p>
+          <div class="sf-social">
+            <a href="#" title="اینستاگرام" aria-label="اینستاگرام"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+            <a href="#" title="تلگرام" aria-label="تلگرام"><i data-lucide="send" class="w-4 h-4"></i></a>
+            <a href="https://github.com/mohammadreza829/django_SchoolManagementSystem" title="گیت‌هاب" aria-label="گیت‌هاب" target="_blank" rel="noopener noreferrer"><i data-lucide="github" class="w-4 h-4"></i></a>
+            <a href="#" title="یوتیوب" aria-label="یوتیوب"><i data-lucide="youtube" class="w-4 h-4"></i></a>
           </div>
         </div>
-        <div>
-          <h4 class="font-bold mb-4 text-sm">حساب کاربری</h4>
-          <div class="flex flex-col gap-2 text-sm text-slate-400">
-            {% if user.is_authenticated %}
-              <a href="{% url 'accounts:dashboard' %}" class="hover:text-white transition">داشبورد</a>
-              <a href="{% url 'accounts:profile' %}" class="hover:text-white transition">پروفایل</a>
-              <a href="{% url 'accounts:notifications' %}" class="hover:text-white transition">اعلان‌ها</a>
-            {% else %}
-              <a href="{% url 'accounts:login' %}" class="hover:text-white transition">ورود</a>
-              <a href="{% url 'accounts:student_signup' %}" class="hover:text-white transition">ساخت حساب رایگان</a>
+        <div class="sf-col">
+          <h4>یادگیری</h4>
+          <a href="{% url 'courses:course_list' %}">همهٔ دوره‌ها</a>
+          <a href="{% url 'quiz:quiz_list' %}">آزمون‌ها</a>
+          <a href="{% url 'qa:ask' %}">دستیار هوشمند</a>
+          {% if user.is_authenticated %}<a href="{% url 'courses:my_courses' %}">دوره‌های من</a>{% endif %}
+        </div>
+        <div class="sf-col">
+          <h4>حساب کاربری</h4>
+          {% if user.is_authenticated %}
+            <a href="{% url 'accounts:dashboard' %}">داشبورد</a>
+            <a href="{% url 'accounts:profile' %}">پروفایل</a>
+            <a href="{% url 'accounts:notifications' %}">اعلان‌ها</a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}">ورود</a>
+            <a href="{% url 'accounts:student_signup' %}">ساخت حساب رایگان</a>
+          {% endif %}
+        </div>
+        <div class="sf-col">
+          <h4>دسترسی سریع</h4>
+          <a href="{% url 'home' %}">خانه</a>
+          <a href="{% url 'courses:search' %}">جستجو</a>
+          {% if user.is_authenticated %}
+            {% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
+            <a href="{% url 'panel:dashboard' %}">پنل مدیریت</a>
             {% endif %}
-          </div>
+          {% endif %}
         </div>
       </div>
-      <div class="border-t border-white/5">
-        <div class="container-x py-5 text-center text-xs text-slate-500">© 2026 مکتب‌پلاس · ساخته‌شده با ❤️</div>
+      <div class="sf-bottom">
+        <div class="container-x sf-bottom-in">
+          <span>© 2026 مکتب‌پلاس · همه حقوق محفوظ است</span>
+          <span>ساخته‌شده برای یادگیری واقعی، نه ویترین</span>
+        </div>
       </div>
     </footer>
 

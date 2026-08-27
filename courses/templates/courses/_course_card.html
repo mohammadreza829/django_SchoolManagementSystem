@@ -1,0 +1,40 @@
+<a href="{{ course.get_absolute_url }}" class="cc-card" data-item>
+  <div class="cc-media">
+    {% if course.thumbnail %}
+      <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
+    {% else %}
+      <span class="cc-placeholder" aria-hidden="true"><i data-lucide="book-open"></i></span>
+    {% endif %}
+    <div class="cc-chips">
+      {% if course.category %}<span class="cc-chip cc-chip-cat">{{ course.category.name }}</span>{% endif %}
+      {% if course.is_free %}<span class="cc-chip cc-chip-free">رایگان</span>
+      {% elif course.discount_percent %}<span class="cc-chip cc-chip-off fa-num">٪{{ course.discount_percent }} تخفیف</span>{% endif %}
+    </div>
+    {% if course.rating_avg %}
+    <span class="cc-rating fa-num"><i data-lucide="star"></i> {{ course.rating_avg|floatformat:1 }}{% if course.rating_count %} <em>({{ course.rating_count }})</em>{% endif %}</span>
+    {% endif %}
+  </div>
+  <div class="cc-body">
+    <h3 class="cc-title">{{ course.title }}</h3>
+    {% if course.short_description %}<p class="cc-desc">{{ course.short_description }}</p>{% endif %}
+    <div class="cc-meta">
+      {% if course.duration_hours %}<span class="fa-num"><i data-lucide="clock"></i> {{ course.duration_hours }} ساعت</span>{% endif %}
+      {% if course.total_lessons %}<span class="fa-num"><i data-lucide="video"></i> {{ course.total_lessons }} جلسه</span>{% endif %}
+      {% if course.get_level_display %}<span>{{ course.get_level_display }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="cc-foot">
+    <span class="cc-teacher">
+      <i data-lucide="user-round"></i>
+      <span class="cc-teacher-name">{{ course.get_teachers_names|default:"مدرس مکتب‌پلاس" }}</span>
+    </span>
+    <span class="cc-price">
+      {% if course.is_free %}
+        <span class="cc-free">رایگان</span>
+      {% else %}
+        {% if course.discount_percent %}<span class="cc-old fa-num">{{ course.price|floatformat:0 }}</span>{% endif %}
+        <span class="cc-now fa-num">{{ course.final_price|floatformat:0 }} <small>تومان</small></span>
+      {% endif %}
+    </span>
+  </div>
+</a>
