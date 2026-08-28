@@ -1,0 +1,62 @@
+name: One-time mobile navigation layer fix
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-mobile-nav-layer.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-mobile-nav:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Fix mobile navigation viewport and stacking
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          base = Path("templates/base.html")
+          text = base.read_text(encoding="utf-8")
+          old = ':class="scrolled && \'is-scrolled\'"'
+          new = ':class="{ \'is-scrolled\': scrolled, \'nav-open\': open }"'
+          if old not in text:
+              raise SystemExit("Expected header class binding was not found")
+          base.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          css = Path("static/css/mobile.css")
+          styles = css.read_text(encoding="utf-8")
+          marker = "/* Mobile navigation viewport fix */"
+          if marker not in styles:
+              styles += """
+
+          /* Mobile navigation viewport fix */
+          @media (max-width: 1023.98px) {
+            .site-nav.nav-open {
+              z-index: 100 !important;
+              backdrop-filter: none !important;
+              -webkit-backdrop-filter: none !important;
+              background: transparent !important;
+              border-bottom-color: transparent !important;
+              box-shadow: none !important;
+            }
+            .site-nav.nav-open .mnav-overlay,
+            .site-nav.nav-open .mnav {
+              height: 100dvh;
+              min-height: 100vh;
+            }
+          }
+          """
+          css.write_text(styles, encoding="utf-8")
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add templates/base.html static/css/mobile.css
+          git commit -m "fix(ui): make mobile navigation cover the viewport"
+          git push origin main
