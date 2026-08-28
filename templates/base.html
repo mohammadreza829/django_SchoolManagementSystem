@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="{% static 'css/nova.css' %}">
     <link rel="stylesheet" href="{% static 'css/redesign.css' %}">
     <link rel="stylesheet" href="{% static 'css/unify.css' %}">
-    <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=20260828d">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=20260828e">
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -65,13 +65,18 @@
          x-effect="document.documentElement.classList.toggle('nav-locked', open); document.body.classList.toggle('nav-locked', open)">
     <header :class="{ 'is-scrolled': scrolled, 'nav-open': open }"
             class="site-nav fixed top-0 inset-x-0 z-40">
-      <div class="container-x flex items-center gap-4 py-3.5">
-        <a href="{% url 'home' %}" class="flex items-center gap-2 group shrink-0">
-          <span class="w-10 h-10 rounded-2xl brand-badge grid place-items-center text-white shadow-glow group-hover:scale-105 transition">
-            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-          </span>
-          <span class="site-brand-name text-lg font-extrabold tracking-tight grad-text">مکتب‌پلاس</span>
-        </a>
+      <div class="container-x mh-bar flex items-center py-3.5">
+        <div class="mh-end flex items-center gap-2 shrink-0">
+          <button @click="open = true" class="icon-btn lg:hidden mh-menu-btn" :aria-expanded="open" aria-controls="mobile-nav" aria-label="باز کردن منو">
+            <i data-lucide="menu" class="w-4 h-4"></i>
+          </button>
+          <a href="{% url 'home' %}" class="flex items-center gap-2 group shrink-0">
+            <span class="w-10 h-10 rounded-2xl brand-badge grid place-items-center text-white shadow-glow group-hover:scale-105 transition">
+              <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+            </span>
+            <span class="site-brand-name text-lg font-extrabold tracking-tight grad-text">مکتب‌پلاس</span>
+          </a>
+        </div>
 
         <nav class="hidden lg:flex items-center gap-1 mr-4" x-data="{ catOpen: false }">
           <a href="{% url 'home' %}" class="nav-link">خانه</a>
@@ -108,16 +113,15 @@
           </div>
         </form>
 
-        <form action="{% url 'courses:search' %}" method="get" class="mh-search md:hidden">
-          <i data-lucide="search" class="w-4 h-4"></i>
-          <input type="text" name="q" placeholder="جستجوی دوره..." aria-label="جستجوی دوره">
+        <form action="{% url 'courses:search' %}" method="get" class="mh-search md:hidden" role="search">
+          <button type="submit" class="mh-search-go" aria-label="جستجو">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </button>
+          <input type="text" name="q" placeholder="جستجو..." aria-label="جستجوی دوره" autocomplete="off">
         </form>
 
         <div class="mh-actions flex items-center gap-1.5">
           {% if user.is_authenticated %}
-            <a href="{% url 'qa:ask' %}" class="icon-btn lg:hidden" title="دستیار هوشمند" aria-label="دستیار هوشمند">
-              <i data-lucide="bot" class="w-4 h-4"></i>
-            </a>
             <a href="{% url 'accounts:notifications' %}" class="icon-btn relative" title="اعلان‌ها">
               <i data-lucide="bell" class="w-4 h-4"></i>
               {% if unread_notifications_count %}
@@ -163,9 +167,6 @@
             <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">ورود</a>
             <a href="{% url 'accounts:student_signup' %}" class="btn btn-primary btn-sm nav-cta-signup">ثبت‌نام</a>
           {% endif %}
-          <button @click="open = true" class="icon-btn lg:hidden" :aria-expanded="open" aria-controls="mobile-nav" aria-label="باز کردن منو">
-            <i data-lucide="menu" class="w-4 h-4"></i>
-          </button>
         </div>
       </div>
     </header>
