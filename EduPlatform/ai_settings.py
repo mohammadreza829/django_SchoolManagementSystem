@@ -1,12 +1,8 @@
 """
-تنظیمات دستیار هوش مصنوعی (بخش پرسش‌ها) — پیکربندی‌شده برای DeepSeek.
+تنظیمات دستیار هوش مصنوعی (بخش پرسش‌ها).
 
-طرز استفاده: این فایل را کنار settings.py بگذار و آخر settings.py فقط یک خط اضافه کن:
-
-    from .ai_settings import *
-
-مقادیر از متغیرهای محیطی یا فایل .env کنار manage.py خوانده می‌شوند.
-کلید API را داخل کد نگذار؛ فقط در .env (که در .gitignore است) نگه‌داری کن.
+پیش‌فرض: درگاه TabiAI (tabitoken.com) با رابط سازگار با OpenAI.
+کلید API را داخل کد نگذار؛ فقط در .env یا متغیرهای محیطی PythonAnywhere.
 """
 
 import os
@@ -36,8 +32,8 @@ def _load_dotenv():
 _load_dotenv()
 
 # ============ تنظیمات دستیار هوش مصنوعی ============
-AI_API_BASE_URL = os.environ.get("AI_API_BASE_URL", "https://api.deepseek.com/v1")
+AI_API_BASE_URL = os.environ.get("AI_API_BASE_URL", "https://tabitoken.com/v1")
 AI_API_KEY = os.environ.get("AI_API_KEY", "")
-AI_MODEL = os.environ.get("AI_MODEL", "deepseek-chat")
+AI_MODEL = os.environ.get("AI_MODEL", "gpt-4o-mini")
 AI_TIMEOUT_SECONDS = int(os.environ.get("AI_TIMEOUT_SECONDS", "60"))
 AI_DAILY_LIMIT = int(os.environ.get("AI_DAILY_LIMIT", "10"))

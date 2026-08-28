@@ -1,13 +1,13 @@
 """
 سرویس اتصال به API هوش مصنوعی (سازگار با OpenAI Chat Completions).
 
-با هر سرویسی که رابط سازگار با OpenAI داشته باشد کار می‌کند:
-DeepSeek ، OpenAI ، OpenRouter ، AvalAI ، Groq و...
+پیش‌فرض پروژه: درگاه TabiAI روی tabitoken.com
+با هر سرویس سازگار با OpenAI هم کار می‌کند (DeepSeek، OpenAI، OpenRouter و...).
 
 تنظیمات (در EduPlatform/ai_settings.py از متغیرهای محیطی/.env خوانده می‌شوند):
-  AI_API_BASE_URL   مثلا https://api.deepseek.com/v1
-  AI_API_KEY        کلید API (اجباری)
-  AI_MODEL          مثلا deepseek-chat
+  AI_API_BASE_URL   مثلا https://tabitoken.com/v1
+  AI_API_KEY        کلید API (اجباری — فقط در .env)
+  AI_MODEL          مثلا gpt-4o-mini
   AI_TIMEOUT_SECONDS
 
 از کتابخانه‌ی استاندارد (urllib) استفاده شده تا وابستگی جدیدی لازم نباشد.
@@ -51,8 +51,8 @@ def ask_ai(question, course_title=None):
     if not api_key:
         raise AiServiceError("کلید API تنظیم نشده است (AI_API_KEY در فایل .env).")
 
-    base_url = getattr(settings, "AI_API_BASE_URL", "https://api.deepseek.com/v1").rstrip("/")
-    model = getattr(settings, "AI_MODEL", "deepseek-chat")
+    base_url = getattr(settings, "AI_API_BASE_URL", "https://tabitoken.com/v1").rstrip("/")
+    model = getattr(settings, "AI_MODEL", "gpt-4o-mini")
     timeout = getattr(settings, "AI_TIMEOUT_SECONDS", 60)
 
     user_content = question.strip()
