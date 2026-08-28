@@ -5,30 +5,26 @@
 
   <nav class="text-xs text-slate-500 mb-4 flex items-center gap-2 flex-wrap">
     <a href="{% url 'courses:course_list' %}" class="hover:text-violet-600">دوره‌ها</a><i data-lucide="chevron-left" class="w-3 h-3"></i>
-    <a href="{{ course.get_absolute_url }}" class="hover:text-violet-600 max-w-[45vw] sm:max-w-none truncate">{{ course.title }}</a><i data-lucide="chevron-left" class="w-3 h-3"></i>
+    <a href="{{ course.get_absolute_url }}" class="hover:text-violet-600 truncate max-w-[45vw] sm:max-w-none">{{ course.title }}</a><i data-lucide="chevron-left" class="w-3 h-3"></i>
     <span class="text-slate-700 truncate max-w-[45vw] sm:max-w-none">{{ lesson.title }}</span>
   </nav>
 
-  {# ✅ فیکس موبایل: سرفصل‌ها روی گوشی به یک تاگل جمع‌وجور تبدیل می‌شود
-     تا بالای پلیر یک ستون بلند و بی‌ریخت نباشد. #}
+  {# روی موبایل سرفصل‌ها یک تاگل جمع‌وجور می‌شود تا بالای پلیر ستون بلند نباشد #}
   <div x-data="{ toc: false }" class="lg:hidden mb-4">
     <button @click="toc = !toc" class="w-full glass rounded-2xl px-4 py-3 flex items-center gap-2.5 text-sm font-bold">
       <i data-lucide="list" class="w-4 h-4 text-violet-500"></i>
       <span class="flex-1 text-right">سرفصل‌های دوره</span>
-      <span class="badge badge-slate text-[10px] fa-num">{{ lessons|length }}</span>
       <i data-lucide="chevron-down" class="w-4 h-4 transition" :class="toc && 'rotate-180'"></i>
     </button>
     <div x-show="toc" x-cloak x-transition class="glass rounded-2xl p-2 mt-2 space-y-1 max-h-80 overflow-y-auto">
       {% for l in lessons %}
         {% if has_access or l.is_free_preview %}
-        <a href="{% url 'courses:lesson_detail' course.slug l.slug %}"
-           class="lesson-item {% if l.id == lesson.id %}active{% endif %} flex items-center gap-2 p-2.5 rounded-xl text-sm">
+        <a href="{% url 'courses:lesson_detail' course.slug l.slug %}" class="lesson-item {% if l.id == lesson.id %}active{% endif %} flex items-center gap-2 p-2.5 rounded-xl text-sm">
           <span class="lesson-num fa-num">{{ forloop.counter }}</span>
           <span class="flex-1 truncate">{{ l.title }}</span>
-          {% if l.id in completed_lesson_ids %}<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0"></i>{% endif %}
         </a>
         {% else %}
-        <span class="lesson-item flex items-center gap-2 p-2.5 rounded-xl text-sm opacity-60 cursor-not-allowed">
+        <span class="lesson-item flex items-center gap-2 p-2.5 rounded-xl text-sm opacity-60">
           <span class="lesson-num fa-num">{{ forloop.counter }}</span>
           <span class="flex-1 truncate">{{ l.title }}</span>
           <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -49,9 +45,9 @@
         {% elif lesson.content_type == 'article' %}
           <div class="glass rounded-2xl p-4 sm:p-6 lg:p-10 leading-8 sm:leading-9 break-words">{{ lesson.article_content|safe }}</div>
         {% else %}
-          <div class="glass rounded-2xl p-6 grid place-items-center text-slate-500 gap-2">
+          <div class="glass rounded-2xl p-6 grid place-items-center gap-2 text-slate-500">
             <i data-lucide="file-text" class="w-10 h-10"></i>
-            <span class="text-sm">محتوای این جلسه به‌صورت فایل ضمیمه ارائه شده است.</span>
+            <span class="text-sm text-center">محتوای این جلسه به‌صورت فایل ضمیمه ارائه شده است.</span>
           </div>
         {% endif %}
       </div>
@@ -62,17 +58,14 @@
         <span class="flex items-center gap-1.5 fa-num"><i data-lucide="clock" class="w-4 h-4"></i> {{ lesson.duration_minutes }} دقیقه</span>
         <span class="flex items-center gap-1.5 fa-num"><i data-lucide="eye" class="w-4 h-4"></i> {{ lesson.view_count }} بازدید</span>
         {% if lesson.is_free_preview %}<span class="badge badge-green">پیش‌نمایش رایگان</span>{% endif %}
-        {% if progress.is_completed %}<span class="badge badge-green"><i data-lucide="check" class="w-3 h-3"></i> تکمیل شده</span>{% endif %}
+        {% if progress.is_completed %}<span class="badge badge-green">تکمیل شده</span>{% endif %}
       </div>
 
-      {# دعوت به خرید برای کاربری که فقط پیش‌نمایش می‌بیند #}
       {% if not has_access %}
       <div class="rounded-2xl bg-violet-50 border border-violet-200 p-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
         <i data-lucide="lock" class="w-5 h-5 text-violet-600 shrink-0"></i>
         <p class="text-sm text-violet-900 leading-6 flex-1">این جلسه پیش‌نمایش رایگان است؛ برای دسترسی به همهٔ جلسه‌ها در دوره ثبت‌نام کن.</p>
-        <a href="{{ course.get_absolute_url }}" class="btn btn-primary btn-sm w-full sm:w-auto shrink-0">
-          <i data-lucide="sparkles" class="w-4 h-4"></i> مشاهدهٔ دوره
-        </a>
+        <a href="{{ course.get_absolute_url }}" class="btn btn-primary btn-sm w-full sm:w-auto shrink-0">مشاهدهٔ دوره</a>
       </div>
       {% endif %}
 
@@ -81,21 +74,19 @@
         <form method="post" action="{% url 'courses:mark_lesson_complete' lesson.id %}" class="w-full sm:w-auto">{% csrf_token %}
           <button class="btn {% if progress.is_completed %}btn-ghost{% else %}btn-primary{% endif %} w-full sm:w-auto">
             <i data-lucide="check-circle" class="w-4 h-4"></i>
-            {% if progress.is_completed %}تکمیل شده — جلسهٔ بعدی{% else %}علامت‌گذاری به‌عنوان تکمیل{% endif %}
+            {% if progress.is_completed %}جلسهٔ بعدی{% else %}علامت‌گذاری به‌عنوان تکمیل{% endif %}
           </button>
         </form>
-        {% if course.id %}
         <a href="{% url 'chat:room' course.id %}" class="btn btn-ghost w-full sm:w-auto">
           <i data-lucide="messages-square" class="w-4 h-4"></i> چت کلاس
         </a>
-        {% endif %}
       </div>
       {% endif %}
 
-      {# ✅ فیکس: جلسهٔ قبلی/بعدی در view محاسبه می‌شد ولی در تمپلیت استفاده نمی‌شد #}
+      {# جلسهٔ قبلی/بعدی — در view محاسبه می‌شد اما در تمپلیت استفاده نمی‌شد #}
       <div class="grid grid-cols-2 gap-2.5 mb-8">
         {% if prev_lesson %}
-        <a href="{% url 'courses:lesson_detail' course.slug prev_lesson.slug %}" class="glass rounded-2xl p-3 flex items-center gap-2 min-w-0 hover:border-violet-300 transition">
+        <a href="{% url 'courses:lesson_detail' course.slug prev_lesson.slug %}" class="glass rounded-2xl p-3 flex items-center gap-2 min-w-0">
           <i data-lucide="chevron-right" class="w-4 h-4 text-violet-500 shrink-0"></i>
           <span class="min-w-0">
             <span class="block text-[10px] text-slate-400">جلسهٔ قبلی</span>
@@ -104,7 +95,7 @@
         </a>
         {% else %}<span></span>{% endif %}
         {% if next_lesson %}
-        <a href="{% url 'courses:lesson_detail' course.slug next_lesson.slug %}" class="glass rounded-2xl p-3 flex items-center gap-2 min-w-0 text-left hover:border-violet-300 transition">
+        <a href="{% url 'courses:lesson_detail' course.slug next_lesson.slug %}" class="glass rounded-2xl p-3 flex items-center gap-2 min-w-0">
           <span class="min-w-0 flex-1">
             <span class="block text-[10px] text-slate-400">جلسهٔ بعدی</span>
             <span class="block text-xs font-bold truncate">{{ next_lesson.title }}</span>
@@ -119,7 +110,7 @@
         <h2 class="text-lg font-bold mb-3">فایل‌های ضمیمه</h2>
         <div class="space-y-2">
           {% for a in attachments %}
-          <a href="{% url 'courses:download_attachment' a.id %}" class="glass rounded-2xl p-3 flex items-center gap-3 text-sm hover:border-violet-300 transition">
+          <a href="{% url 'courses:download_attachment' a.id %}" class="glass rounded-2xl p-3 flex items-center gap-3 text-sm">
             <i data-lucide="paperclip" class="w-4 h-4 text-violet-500 shrink-0"></i>
             <span class="flex-1 min-w-0 truncate">{{ a.title|default:a.file.name }}</span>
             <i data-lucide="download" class="w-4 h-4 text-slate-400 shrink-0"></i>
@@ -132,24 +123,58 @@
       <div class="mt-8">
         <h2 class="text-lg sm:text-xl font-bold mb-4">دیدگاه‌ها</h2>
 
-        {# ✅ فیکس باگ: نام فیلد فرم قبلاً content بود ولی view مقدار comment را می‌خواند؛
-           نتیجه این بود که هر دیدگاهی با خطای «متن نطر نمی‌تواند خالی باشد» رد می‌شد. #}
-        {% if user.is_authenticated and has_access or user.is_authenticated and lesson.is_free_preview %}
+        {# فیکس باگ: نام فیلد قبلاً content بود ولی view مقدار comment را می‌خواند #}
+        {% if user.is_authenticated %}
         <form method="post" action="{% url 'courses:add_comment' lesson.id %}" class="glass rounded-2xl p-3.5 sm:p-4 mb-5">{% csrf_token %}
           <textarea name="comment" class="textarea" rows="3" required placeholder="دیدگاهت را بنویس…"></textarea>
           <div class="flex justify-end mt-3">
             <button class="btn btn-primary btn-sm w-full sm:w-auto"><i data-lucide="send" class="w-4 h-4"></i> ارسال دیدگاه</button>
           </div>
         </form>
-        {% elif not user.is_authenticated %}
-        <p class="text-sm text-slate-500 mb-5">
-          برای ثبت دیدگاه <a href="{% url 'accounts:login' %}" class="text-violet-600 font-bold hover:underline">وارد حسابت</a> شو.
-        </p>
+        {% else %}
+        <p class="text-sm text-slate-500 mb-5">برای ثبت دیدگاه <a href="{% url 'accounts:login' %}" class="text-violet-600 font-bold hover:underline">وارد حسابت</a> شو.</p>
         {% endif %}
 
-        {# ✅ فیکس: قبلاً از lesson.comments.all و c.content استفاده می‌شد؛
-           فیلد مدل text است و نطرات تأییدنشده هم نمایش داده می‌شدند. #}
+        {# فیکس: قبلاً lesson.comments.all و c.content بود؛ فیلد مدل text است #}
         <div class="space-y-3">
           {% for c in comments|slice:":20" %}
           <div class="comment">
-            <div class="flex items-center
+            <div class="flex items-center gap-2 mb-2">
+              {% if c.user.profile.avatar %}<img src="{{ c.user.profile.avatar.url }}" class="w-8 h-8 rounded-full object-cover" alt="">{% else %}<span class="avatar w-8 h-8 text-xs">{{ c.user.username|first|upper }}</span>{% endif %}
+              <span class="font-bold text-sm truncate">{{ c.user.get_full_name|default:c.user.username }}</span>
+              <span class="text-[11px] text-slate-500 mr-auto shrink-0">{{ c.created_at|timesince }} پیش</span>
+            </div>
+            <p class="text-sm text-slate-600 leading-7 break-words">{{ c.text|linebreaksbr }}</p>
+          </div>
+          {% empty %}
+          <p class="text-sm text-slate-500 text-center py-5">هنوز دیدگاهی ثبت نشده.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <aside class="hidden lg:block lg:sticky lg:top-24 self-start">
+      <div class="glass rounded-2xl p-4" data-reveal>
+        <h3 class="font-bold mb-3">سرفصل‌ها</h3>
+        <div class="space-y-1 lesson-rail max-h-[600px] overflow-y-auto">
+          {% for l in lessons %}
+            {% if has_access or l.is_free_preview %}
+            <a href="{% url 'courses:lesson_detail' course.slug l.slug %}" class="lesson-item {% if l.id == lesson.id %}active{% endif %} flex items-center gap-2 p-3 rounded-xl text-sm">
+              <span class="lesson-num fa-num">{{ forloop.counter }}</span>
+              <span class="flex-1 truncate">{{ l.title }}</span>
+              <span class="text-xs text-slate-500 fa-num shrink-0">{{ l.duration_minutes }}د</span>
+            </a>
+            {% else %}
+            <span class="lesson-item flex items-center gap-2 p-3 rounded-xl text-sm opacity-60">
+              <span class="lesson-num fa-num">{{ forloop.counter }}</span>
+              <span class="flex-1 truncate">{{ l.title }}</span>
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+            </span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+  </div>
+</div></section>
+{% endblock %}
