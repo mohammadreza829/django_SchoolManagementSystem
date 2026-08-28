@@ -401,3 +401,21 @@ body.nav-locked { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .mnav, .mnav-overlay, .mnav-chev { transition: none !important; }
 }
+
+
+/* Mobile navigation viewport fix */
+@media (max-width: 1023.98px) {
+  .site-nav.nav-open {
+    z-index: 100 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: transparent !important;
+    border-bottom-color: transparent !important;
+    box-shadow: none !important;
+  }
+  .site-nav.nav-open .mnav-overlay,
+  .site-nav.nav-open .mnav {
+    height: 100dvh;
+    min-height: 100vh;
+  }
+}
