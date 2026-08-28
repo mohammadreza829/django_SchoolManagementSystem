@@ -15,68 +15,89 @@ html { -webkit-text-size-adjust: 100%; }
 body { overflow-x: hidden; }
 img, svg, video, iframe, canvas { max-width: 100%; }
 
-/* شکستن کلمات بلند (URL، اسم فایل) که باعث سرریز افقی می‌شوند */
 @media (max-width: 767.98px) {
   p, h1, h2, h3, h4, li, td, th, .card-title, .cc-title { overflow-wrap: anywhere; }
 }
 
-/* جدول‌های عریض روی موبایل اسکرول‌شونده شوند، نه سرریز */
 @media (max-width: 767.98px) {
   table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
-/* ---------- container ---------- */
 @media (max-width: 767.98px) {
   .container-x { padding-inline: 1.05rem !important; }
 }
 
-/* ---------- هدر ---------- */
 @media (max-width: 1023.98px) {
   .site-nav .container-x {
     gap: .55rem !important;
     padding-top: .65rem !important;
     padding-bottom: .65rem !important;
   }
-  /* دکمه‌های ورود/ثبت‌نام روی موبایل جمع‌وجورتر */
   .site-nav .btn-sm { padding-inline: .8rem !important; font-size: .78rem !important; }
 }
 @media (max-width: 380px) {
-  /* روی گوشی‌های خیلی باریک، دکمه‌ی ثبت‌نام جا نمی‌شود؛ در منو هست */
   .site-nav .nav-cta-signup { display: none !important; }
 }
 
-/* ارتفاع واقعی هدر روی موبایل کمتر از pt-20 است */
 @media (max-width: 1023.98px) { main { padding-top: 4.6rem !important; } }
 @media (max-width: 640px) { main { padding-top: 4.35rem !important; } }
 
-/* وقتی منوی موبایل باز است بدنه اسکرول نشود */
-body.nav-locked { overflow: hidden; }
+html.nav-locked,
+body.nav-locked {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
 
-/* ============================================================
-   منوی کشویی موبایل (side sheet)
-   ============================================================ */
 .mnav-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 45;
-  background: rgba(15, 23, 42, .55);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  z-index: 80;
+  margin: 0;
+  background: rgba(15, 23, 42, .62);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 .mnav {
-  position: fixed;
+  position: fixed !important;
   top: 0;
+  right: 0;
   bottom: 0;
-  inset-inline-end: 0;
-  z-index: 50;
-  width: min(20.5rem, 86vw);
+  left: auto;
+  z-index: 85;
+  width: min(22rem, 100vw);
+  max-width: 100%;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
   display: flex;
   flex-direction: column;
   background: #0f172a;
   color: #e2e8f0;
-  border-inline-start: 1px solid rgba(255, 255, 255, .08);
-  box-shadow: -24px 0 60px -20px rgba(2, 6, 23, .6);
+  border: 0;
+  box-shadow: -24px 0 60px -20px rgba(2, 6, 23, .65);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: contain;
+}
+
+.mnav-anim { transition: transform .28s cubic-bezier(.22, 1, .36, 1); }
+.mnav-off { transform: translate3d(100%, 0, 0); }
+.mnav-on { transform: translate3d(0, 0, 0); }
+
+@media (max-width: 639.98px) {
+  .mnav {
+    width: 100vw;
+    max-width: none;
+    box-shadow: none;
+  }
 }
 
 .mnav-head {
@@ -127,9 +148,16 @@ body.nav-locked { overflow: hidden; }
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding: 1rem 0 1.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .25) transparent;
+}
+.mnav-body::-webkit-scrollbar { width: 6px; }
+.mnav-body::-webkit-scrollbar-track { background: transparent; }
+.mnav-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, .22);
+  border-radius: 99px;
 }
 
-/* کادر جست‌وجوی داخل منو — روی گوشی تنها راه دسترسی به جست‌وجو */
 .mnav-search { padding: 0 1.1rem 1rem; }
 .mnav-search-box {
   display: flex;
@@ -183,7 +211,6 @@ body.nav-locked { overflow: hidden; }
   border: 0;
   text-align: start;
   text-decoration: none;
-  /* هدف لمسی استاندارد */
   min-height: 44px;
 }
 .mnav-item:hover,
@@ -252,6 +279,7 @@ body.nav-locked { overflow: hidden; }
   border-radius: 1rem;
   background: rgba(255, 255, 255, .05);
   border: 1px solid rgba(255, 255, 255, .09);
+  text-decoration: none;
 }
 .mnav-user img,
 .mnav-user .mnav-avatar {
@@ -309,9 +337,6 @@ body.nav-locked { overflow: hidden; }
   border: 1px solid rgba(255, 255, 255, .14);
 }
 
-/* ============================================================
-   توست‌ها (پیام‌های جنگو)
-   ============================================================ */
 .nv-toasts {
   position: fixed;
   top: 4.9rem;
@@ -331,30 +356,21 @@ body.nav-locked { overflow: hidden; }
   }
 }
 
-/* ============================================================
-   گوی دستیار: با نوار خرید و لبه‌ی امن گوشی تداخل نکند
-   ============================================================ */
 @media (max-width: 1023.98px) {
   .nv-fab { bottom: calc(1rem + env(safe-area-inset-bottom)); }
   body:has(.nv-buybar) .nv-fab { bottom: calc(5.4rem + env(safe-area-inset-bottom)); }
 }
 
-/* نوار خرید چسبان: احترام به لبه‌ی امن + جا نشدن متن */
 @media (max-width: 1023.98px) {
   .nv-buybar {
     padding: .7rem .9rem calc(.7rem + env(safe-area-inset-bottom));
     gap: .7rem;
   }
   .nv-buybar .btn { padding-inline: .95rem; font-size: .82rem; }
-  /* فوتر و انتهای صفحه زیر نوار خرید پنهان نشود */
   body:has(.nv-buybar) .site-footer { padding-bottom: 4.5rem; }
 }
 
-/* ============================================================
-   صفحهٔ دوره روی موبایل و تبلت
-   ============================================================ */
 @media (max-width: 1023.98px) {
-  /* منوی پرش چسبان: زیر هدر بچسبد، نه زیرش پنهان شود */
   .nv-subnav {
     top: 4.5rem;
     width: 100%;
@@ -379,43 +395,15 @@ body.nav-locked { overflow: hidden; }
   .nv-rate label { font-size: 1.65rem; }
 }
 
-/* ============================================================
-   صفحهٔ جلسه روی موبایل
-   ============================================================ */
 @media (max-width: 1023.98px) {
-  /* سرفصل‌ها روی موبایل نباید ۶۰۰px ارتفاع بگیرد */
   .lesson-rail { max-height: 22rem !important; }
 }
 
-/* ============================================================
-   فوتر روی موبایل
-   ============================================================ */
 @media (max-width: 639.98px) {
   .sf-grid { gap: 1.75rem; padding: 2.5rem 0 1.75rem; }
   .sf-bottom-in { flex-direction: column; align-items: flex-start; text-align: start; }
 }
 
-/* ============================================================
-   احترام به تنظیم کاهش حرکت
-   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .mnav, .mnav-overlay, .mnav-chev { transition: none !important; }
-}
-
-
-/* Mobile navigation viewport fix */
-@media (max-width: 1023.98px) {
-  .site-nav.nav-open {
-    z-index: 100 !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: transparent !important;
-    border-bottom-color: transparent !important;
-    box-shadow: none !important;
-  }
-  .site-nav.nav-open .mnav-overlay,
-  .site-nav.nav-open .mnav {
-    height: 100dvh;
-    min-height: 100vh;
-  }
+  .mnav, .mnav-overlay, .mnav-chev, .mnav-anim { transition: none !important; }
 }
