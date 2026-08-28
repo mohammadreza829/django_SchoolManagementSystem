@@ -1,0 +1,403 @@
+/* ============================================================
+   MOBILE — لایهٔ ریسپانسیو موبایل و تبلت
+   ------------------------------------------------------------
+   این فایل «آخرین» فایل استایل است و بعد از unify.css لود می‌شود.
+   قاعده‌ی کار: چیزی در دسکتاپ (>=1024px) تغییر نمی‌کند؛ همه‌ی
+   قواعد یا داخل media query موبایل/تبلت هستند یا مربوط به
+   کلاس‌های تازه‌ای (.mnav*) که فقط در منوی موبایل استفاده می‌شوند.
+   ============================================================ */
+
+/* ---------- Alpine: جلوگیری از پرش عناصر قبل از init ---------- */
+[x-cloak] { display: none !important; }
+
+/* ---------- پایه: هیچ‌وقت اسکرول افقی نداشته باشیم ---------- */
+html { -webkit-text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+img, svg, video, iframe, canvas { max-width: 100%; }
+
+/* شکستن کلمات بلند (URL، اسم فایل) که باعث سرریز افقی می‌شوند */
+@media (max-width: 767.98px) {
+  p, h1, h2, h3, h4, li, td, th, .card-title, .cc-title { overflow-wrap: anywhere; }
+}
+
+/* جدول‌های عریض روی موبایل اسکرول‌شونده شوند، نه سرریز */
+@media (max-width: 767.98px) {
+  table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* ---------- container ---------- */
+@media (max-width: 767.98px) {
+  .container-x { padding-inline: 1.05rem !important; }
+}
+
+/* ---------- هدر ---------- */
+@media (max-width: 1023.98px) {
+  .site-nav .container-x {
+    gap: .55rem !important;
+    padding-top: .65rem !important;
+    padding-bottom: .65rem !important;
+  }
+  /* دکمه‌های ورود/ثبت‌نام روی موبایل جمع‌وجورتر */
+  .site-nav .btn-sm { padding-inline: .8rem !important; font-size: .78rem !important; }
+}
+@media (max-width: 380px) {
+  /* روی گوشی‌های خیلی باریک، دکمه‌ی ثبت‌نام جا نمی‌شود؛ در منو هست */
+  .site-nav .nav-cta-signup { display: none !important; }
+}
+
+/* ارتفاع واقعی هدر روی موبایل کمتر از pt-20 است */
+@media (max-width: 1023.98px) { main { padding-top: 4.6rem !important; } }
+@media (max-width: 640px) { main { padding-top: 4.35rem !important; } }
+
+/* وقتی منوی موبایل باز است بدنه اسکرول نشود */
+body.nav-locked { overflow: hidden; }
+
+/* ============================================================
+   منوی کشویی موبایل (side sheet)
+   ============================================================ */
+.mnav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(15, 23, 42, .55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.mnav {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  inset-inline-end: 0;
+  z-index: 50;
+  width: min(20.5rem, 86vw);
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-inline-start: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: -24px 0 60px -20px rgba(2, 6, 23, .6);
+}
+
+.mnav-head {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  flex-shrink: 0;
+}
+.mnav-brand {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-weight: 900;
+  font-size: 1.02rem;
+  color: #fff;
+  text-decoration: none;
+}
+.mnav-brand span.mnav-logo {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: .85rem;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  flex-shrink: 0;
+}
+.mnav-close {
+  margin-inline-start: auto;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: .75rem;
+  display: grid;
+  place-items: center;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .1);
+  flex-shrink: 0;
+}
+.mnav-close:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+
+.mnav-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 1rem 0 1.6rem;
+}
+
+/* کادر جست‌وجوی داخل منو — روی گوشی تنها راه دسترسی به جست‌وجو */
+.mnav-search { padding: 0 1.1rem 1rem; }
+.mnav-search-box {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255, 255, 255, .12);
+}
+.mnav-search-box:focus-within {
+  border-color: rgba(129, 140, 248, .7);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, .22);
+}
+.mnav-search-box svg,
+.mnav-search-box > i { width: 1.05rem; height: 1.05rem; color: #94a3b8; flex-shrink: 0; }
+.mnav-search-box input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font: inherit;
+  font-size: .9rem;
+  color: #fff;
+}
+.mnav-search-box input::placeholder { color: #94a3b8; }
+
+.mnav-label {
+  display: block;
+  padding: .55rem 1.35rem .4rem;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  color: #64748b;
+  text-transform: none;
+}
+
+.mnav-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  width: 100%;
+  padding: .78rem 1.35rem;
+  font-size: .9rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  background: transparent;
+  border: 0;
+  text-align: start;
+  text-decoration: none;
+  /* هدف لمسی استاندارد */
+  min-height: 44px;
+}
+.mnav-item:hover,
+.mnav-item:focus-visible {
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+}
+.mnav-item svg,
+.mnav-item > i {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #818cf8;
+  flex-shrink: 0;
+}
+.mnav-item .mnav-grow { flex: 1; min-width: 0; }
+.mnav-item.is-admin { color: #a5b4fc; }
+.mnav-item.is-admin svg, .mnav-item.is-admin > i { color: #a5b4fc; }
+.mnav-item.is-danger { color: #fda4af; }
+.mnav-item.is-danger svg, .mnav-item.is-danger > i { color: #fda4af; }
+
+.mnav-count {
+  font-size: .68rem;
+  font-weight: 800;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 999px;
+  padding: .1rem .5rem;
+  flex-shrink: 0;
+}
+.mnav-count.is-alert {
+  color: #fff;
+  background: #e11d48;
+  border-color: transparent;
+}
+
+.mnav-chev { transition: transform .22s ease; margin-inline-start: auto; }
+.mnav-chev.is-open { transform: rotate(180deg); }
+
+.mnav-sub {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .6rem 1.35rem .6rem 2.6rem;
+  padding-inline-start: 2.75rem;
+  font-size: .84rem;
+  color: #94a3b8;
+  text-decoration: none;
+  min-height: 40px;
+}
+.mnav-sub:hover { background: rgba(255, 255, 255, .05); color: #fff; }
+.mnav-sub svg, .mnav-sub > i { width: 1rem; height: 1rem; color: #6366f1; flex-shrink: 0; }
+
+.mnav-sep {
+  height: 1px;
+  margin: .75rem 1.35rem;
+  background: rgba(255, 255, 255, .09);
+}
+
+.mnav-user {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin: 0 1.1rem 1rem;
+  padding: .8rem .9rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .09);
+}
+.mnav-user img,
+.mnav-user .mnav-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  font-size: .82rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  flex-shrink: 0;
+}
+.mnav-user-tx { min-width: 0; }
+.mnav-user-tx b {
+  display: block;
+  font-size: .88rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mnav-user-tx span {
+  display: block;
+  font-size: .72rem;
+  color: #94a3b8;
+  margin-top: .1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mnav-cta { display: grid; gap: .6rem; padding: .5rem 1.1rem 0; }
+.mnav-cta a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  height: 46px;
+  border-radius: .9rem;
+  font-size: .9rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.mnav-cta .mnav-cta-primary {
+  color: #fff;
+  background: linear-gradient(180deg, #4f46e5, #4338ca);
+  box-shadow: 0 10px 24px -12px rgba(79, 70, 229, .7);
+}
+.mnav-cta .mnav-cta-ghost {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .14);
+}
+
+/* ============================================================
+   توست‌ها (پیام‌های جنگو)
+   ============================================================ */
+.nv-toasts {
+  position: fixed;
+  top: 4.9rem;
+  inset-inline: .8rem;
+  z-index: 75;
+  display: grid;
+  gap: .5rem;
+}
+@media (min-width: 768px) {
+  .nv-toasts {
+    inset-inline: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 6rem;
+    width: 92%;
+    max-width: 28rem;
+  }
+}
+
+/* ============================================================
+   گوی دستیار: با نوار خرید و لبه‌ی امن گوشی تداخل نکند
+   ============================================================ */
+@media (max-width: 1023.98px) {
+  .nv-fab { bottom: calc(1rem + env(safe-area-inset-bottom)); }
+  body:has(.nv-buybar) .nv-fab { bottom: calc(5.4rem + env(safe-area-inset-bottom)); }
+}
+
+/* نوار خرید چسبان: احترام به لبه‌ی امن + جا نشدن متن */
+@media (max-width: 1023.98px) {
+  .nv-buybar {
+    padding: .7rem .9rem calc(.7rem + env(safe-area-inset-bottom));
+    gap: .7rem;
+  }
+  .nv-buybar .btn { padding-inline: .95rem; font-size: .82rem; }
+  /* فوتر و انتهای صفحه زیر نوار خرید پنهان نشود */
+  body:has(.nv-buybar) .site-footer { padding-bottom: 4.5rem; }
+}
+
+/* ============================================================
+   صفحهٔ دوره روی موبایل و تبلت
+   ============================================================ */
+@media (max-width: 1023.98px) {
+  /* منوی پرش چسبان: زیر هدر بچسبد، نه زیرش پنهان شود */
+  .nv-subnav {
+    top: 4.5rem;
+    width: 100%;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+  .nv-subnav::-webkit-scrollbar { display: none; }
+  .nv-subnav a { padding: .5rem .85rem; font-size: .78rem; }
+
+  section[id] { scroll-margin-top: 5.5rem; }
+}
+
+@media (max-width: 767.98px) {
+  .nv-panel { border-radius: 1.15rem; }
+  .nv-lesson { padding: .85rem .9rem; gap: .7rem; border-radius: .95rem; }
+  .nv-lesson:hover { transform: none; }
+  .nv-lesson-num { width: 2rem; height: 2rem; font-size: .78rem; }
+  .nv-stat-chip { padding: .45rem .8rem; font-size: .74rem; }
+  .nv-stat-chip:hover { transform: none; }
+  .nv-score-big { font-size: 2.6rem; }
+  .nv-price { font-size: 1.7rem; }
+  .nv-rate label { font-size: 1.65rem; }
+}
+
+/* ============================================================
+   صفحهٔ جلسه روی موبایل
+   ============================================================ */
+@media (max-width: 1023.98px) {
+  /* سرفصل‌ها روی موبایل نباید ۶۰۰px ارتفاع بگیرد */
+  .lesson-rail { max-height: 22rem !important; }
+}
+
+/* ============================================================
+   فوتر روی موبایل
+   ============================================================ */
+@media (max-width: 639.98px) {
+  .sf-grid { gap: 1.75rem; padding: 2.5rem 0 1.75rem; }
+  .sf-bottom-in { flex-direction: column; align-items: flex-start; text-align: start; }
+}
+
+/* ============================================================
+   احترام به تنظیم کاهش حرکت
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .mnav, .mnav-overlay, .mnav-chev { transition: none !important; }
+}
