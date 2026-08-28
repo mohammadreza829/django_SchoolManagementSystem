@@ -14,6 +14,8 @@ from django.db.models import Count, F, Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from Enrollment.models import Enrollment
+
 from .models import (
     Category,
     Course,
@@ -25,12 +27,24 @@ from .policies import can_rate_course, has_course_access as _has_course_access
 from .services import (
     CourseServiceError,
     add_lesson_comment,
+    confirm_enrollment_payment,
     enroll_student,
     mark_lesson_completed,
     set_course_rating,
 )
 
 COURSES_PER_PAGE = 9
+
+
+def _get_enrollment(user, course):
+    """ثبت‌نام غیرلغوشدهٔ کاربر در دوره را برمی‌گرداند (یا None)."""
+    if not user.is_authenticated:
+        return None
+    return (
+        Enrollment.objects.filter(student=user, course=course)
+        .exclude(status="cancelled")
+        .first()
+    )
 
 
 def course_list(request):
@@ -106,9 +120,11 @@ def course_detail(request, slug):
     # بررسی اینکه کاربر فعلی به محتوای دوره دسترسی دارد یا نه
     is_enrolled = False
     lesson_progress = {}
+    enrollment = None
 
     if request.user.is_authenticated:
         is_enrolled = _has_course_access(request.user, course)
+        enrollment = _get_enrollment(request.user, course)
 
         # اگر دسترسی دارد، پیشرفت هر جلسه را یک‌جا بگیر (بدون کوئری در حلقه)
         if is_enrolled:
@@ -118,6 +134,10 @@ def course_detail(request, slug):
             lesson_progress = {
                 progress.lesson_id: progress for progress in progresses
             }
+
+    # ✅ فیکس: وقتی ثبت‌نام انجام شده ولی پرداخت pending است، دوره باز نمی‌شد
+    # و هیچ راهی به کاربر نشان داده نمی‌شد. این پرچم دکمهٔ «تکمیل پرداخت» را فعال می‌کند.
+    payment_pending = bool(enrollment and enrollment.payment_status == "pending")
 
     # جلسات پیش‌نمایش رایگان
     free_lessons = lessons.filter(is_free_preview=True)
@@ -135,6 +155,8 @@ def course_detail(request, slug):
         "lessons": lessons,
         "free_lessons": free_lessons,
         "is_enrolled": is_enrolled,
+        "enrollment": enrollment,
+        "payment_pending": payment_pending,
         "lesson_progress": lesson_progress,
         "related_courses": related_courses,
         "ratings": ratings,
@@ -150,7 +172,8 @@ def lesson_detail(request, course_slug, lesson_slug):
     lesson = get_object_or_404(Lesson, course=course, slug=lesson_slug)
 
     # بررسی دسترسی کاربر
-    if not lesson.is_free_preview and not _has_course_access(request.user, course):
+    has_access = _has_course_access(request.user, course)
+    if not lesson.is_free_preview and not has_access:
         return redirect("courses:course_detail", slug=course_slug)
 
     # ✅ فیکس: جلسهٔ قبلی/بعدی با کوئری روی order محاسبه می‌شود.
@@ -164,6 +187,7 @@ def lesson_detail(request, course_slug, lesson_slug):
 
     # گرفتن یا ساخت پیشرفت کاربر
     progress = None
+    completed_lesson_ids = []
     if request.user.is_authenticated:
         progress, created = LessonProgress.objects.get_or_create(
             lesson=lesson,
@@ -176,6 +200,13 @@ def lesson_detail(request, course_slug, lesson_slug):
                 watch_count=F("watch_count") + 1
             )
             progress.refresh_from_db(fields=["watch_count"])
+
+        # ✅ بهبود: جلسات تکمیل‌شده در یک کوئری تا سایدبار بتواند تیک نشان دهد
+        completed_lesson_ids = list(
+            LessonProgress.objects.filter(
+                lesson__course=course, user=request.user, is_completed=True
+            ).values_list("lesson_id", flat=True)
+        )
 
     # افزایش تعداد بازدید جلسه (با F برای جلوگیری از race condition)
     Lesson.objects.filter(pk=lesson.pk).update(view_count=F("view_count") + 1)
@@ -192,6 +223,9 @@ def lesson_detail(request, course_slug, lesson_slug):
     context = {
         "course": course,
         "lesson": lesson,
+        "lessons": course.lessons.all().order_by("order"),
+        "has_access": has_access,
+        "completed_lesson_ids": completed_lesson_ids,
         "prev_lesson": prev_lesson,
         "next_lesson": next_lesson,
         "progress": progress,
@@ -216,11 +250,50 @@ def enroll_course(request, course_slug):
         if result.access_granted:
             messages.success(request, "ثبت‌نام انجام شد و دسترسی دوره فعال است ✅")
         else:
+            # ✅ فیکس: قبلاً کاربر فقط یک پیام می‌دید و دوره برایش باز نمی‌شد؛
+            # اکنون به صفحهٔ تأیید پرداخت هدایت می‌شود تا دسترسی کامل شود.
             messages.info(
                 request,
-                "ثبت‌نام اولیه انجام شد؛ دسترسی دورهٔ پولی پس از پرداخت فعال می‌شود.",
+                "ثبت‌نام اولیه انجام شد؛ برای باز شدن کامل دوره پرداخت را تأیید کن.",
             )
+            return redirect("courses:checkout", course_slug=course_slug)
     return redirect("courses:course_detail", slug=course_slug)
+
+
+@login_required
+def checkout(request, course_slug):
+    """صفحهٔ تأیید پرداخت دورهٔ پولی و باز کردن دسترسی کامل.
+
+تا زمان اتصال درگاه واقعی، این صفحه نقش تأییدیهٔ پرداخت را دارد.
+"""
+    course = get_object_or_404(Course, slug=course_slug, status="published")
+    enrollment = _get_enrollment(request.user, course)
+
+    if enrollment is None:
+        messages.info(request, "اول در این دوره ثبت‌نام کن.")
+        return redirect("courses:course_detail", slug=course_slug)
+
+    if enrollment.payment_status in ("free", "paid"):
+        messages.info(request, "دسترسی این دوره از قبل فعال است.")
+        return redirect("courses:course_detail", slug=course_slug)
+
+    if request.method == "POST":
+        try:
+            confirm_enrollment_payment(student=request.user, course=course)
+        except CourseServiceError as exc:
+            messages.error(request, str(exc))
+            return redirect("courses:checkout", course_slug=course_slug)
+        messages.success(request, "پرداخت تأیید شد و دوره کامل باز شد ✅")
+        return redirect("courses:course_detail", slug=course_slug)
+
+    first_lesson = course.lessons.all().order_by("order").first()
+    context = {
+        "course": course,
+        "enrollment": enrollment,
+        "first_lesson": first_lesson,
+        "total_lessons_count": course.lessons.count(),
+    }
+    return render(request, "courses/checkout.html", context)
 
 
 @login_required
@@ -289,6 +362,8 @@ def add_comment(request, lesson_id):
         )
     except CourseServiceError as exc:
         messages.error(request, str(exc))
+    else:
+        messages.success(request, "دیدگاهت ثبت شد.")
     return redirect(
         "courses:lesson_detail",
         course_slug=course.slug,
@@ -315,7 +390,7 @@ def download_attachment(request, attachment_id):
         download_count=F("download_count") + 1
     )
 
-    # ✅ فیکس: استریم فایل به جای خواندن کامل در حافظه
+    # ✅ فیکس: استریم فایل به جای خواندن کامل در حافطه
     # (قبلاً فایل‌های حجیم مثل ویدیو/PDF کل RAM سرور را اشغال می‌کردند)
     file_name = os.path.basename(attachment.file.name)
     return FileResponse(
