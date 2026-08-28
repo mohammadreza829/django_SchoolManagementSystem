@@ -3,7 +3,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}مکتب‌پلاس · پلتفرم آموزش آنلاین{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}مکتب‌پلاس — دوره‌های آنلاین با آزمون زمان‌دار، چت‌روم هر دوره و دستیار هوشمند.{% endblock %}">
     <meta name="theme-color" content="#4f46e5">
@@ -37,6 +37,7 @@
     <link rel="stylesheet" href="{% static 'css/nova.css' %}">
     <link rel="stylesheet" href="{% static 'css/redesign.css' %}">
     <link rel="stylesheet" href="{% static 'css/unify.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -51,8 +52,16 @@
         <div class="mesh-grain"></div>
     </div>
 
+    {# ============================================================
+       هدر — در دسکتاپ منوی افقی، در موبایل/تبلت شیت کشویی
+       open فقط منوی موبایل را کنترل می‌کند و با کلیک روی لینک،
+       کلیک روی پوشش، کلید Escape و بزرگ‌شدن صفحه بسته می‌شود.
+       ============================================================ #}
     <header x-data="{ scrolled: false, open: false, menu: false }"
             @scroll.window="scrolled = window.scrollY > 20"
+            @keydown.escape.window="open = false; menu = false"
+            @resize.window="if (window.innerWidth >= 1024) open = false"
+            x-effect="document.body.classList.toggle('nav-locked', open)"
             :class="scrolled && 'is-scrolled'"
             class="site-nav fixed top-0 inset-x-0 z-40">
       <div class="container-x flex items-center gap-4 py-3.5">
@@ -86,9 +95,9 @@
           {% if user.is_authenticated %}
           <a href="{% url 'quiz:quiz_list' %}" class="nav-link">آزمون‌ها</a>
           {% endif %}
-          {% if user.is_authenticated and user.is_superuser or user.is_authenticated and user.role == 'admin' or user.is_authenticated and user.role == 'teacher' %}
+          {% if user.is_authenticated %}{% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
           <a href="{% url 'panel:dashboard' %}" class="nav-link flex items-center gap-1 !text-violet-300"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> پنل مدیریت</a>
-          {% endif %}
+          {% endif %}{% endif %}
         </nav>
 
         <form action="{% url 'courses:search' %}" method="get" class="hidden md:flex flex-1 max-w-md mr-auto">
@@ -98,22 +107,23 @@
           </div>
         </form>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 mr-auto md:mr-0">
           {% if user.is_authenticated %}
-            <a href="{% url 'accounts:notifications' %}" class="icon-btn relative" title="اعلان‌ها">
+            <a href="{% url 'accounts:notifications' %}" class="icon-btn relative hidden sm:grid" title="اعلان‌ها">
               <i data-lucide="bell" class="w-4 h-4"></i>
               {% if unread_notifications_count %}
                 <span class="notif-badge" aria-label="اعلان‌های خوانده‌نشده">{{ unread_notifications_count }}</span>
               {% endif %}
             </a>
-            <div class="relative" @click.outside="menu = false">
+            {# منوی کاربر فقط در دسکتاپ؛ روی موبایل همه‌ی این لینک‌ها در شیت کشویی هستند #}
+            <div class="relative hidden lg:block" @click.outside="menu = false">
               <button @click="menu = !menu" class="flex items-center gap-2 p-1 pl-3 rounded-2xl hover:bg-white/5 transition">
                 {% if user.profile.avatar %}
-                  <img src="{{ user.profile.avatar.url }}" class="w-8 h-8 rounded-full object-cover ring-2 ring-violet-500/30">
+                  <img src="{{ user.profile.avatar.url }}" class="w-8 h-8 rounded-full object-cover ring-2 ring-violet-500/30" alt="">
                 {% else %}
                   <span class="avatar w-8 h-8 text-xs">{{ user.first_name|default:user.username|slice:':1' }}</span>
                 {% endif %}
-                <span class="hidden md:inline text-sm font-medium">{{ user.get_full_name|default:user.username }}</span>
+                <span class="hidden xl:inline text-sm font-medium">{{ user.get_full_name|default:user.username }}</span>
                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
               </button>
               <div x-show="menu" x-transition x-cloak class="absolute top-full left-0 mt-2 w-60 glass-strong rounded-2xl p-2 shadow-glow">
@@ -123,55 +133,162 @@
                 <a href="{% url 'quiz:quiz_list' %}" class="menu-item"><i data-lucide="clipboard-check" class="w-4 h-4"></i> آزمون‌ها</a>
                 <a href="{% url 'qa:ask' %}" class="menu-item"><i data-lucide="bot" class="w-4 h-4"></i> دستیار هوشمند</a>
                 {% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
-                <div class="my-1 h-px bg-white/10"></div>
-                <a href="{% url 'panel:dashboard' %}" class="menu-item !text-violet-300"><i data-lucide="shield-check" class="w-4 h-4"></i> پنل مدیریت</a>
+                <div class="my-1 h-px bg-slate-200"></div>
+                <a href="{% url 'panel:dashboard' %}" class="menu-item !text-indigo-600"><i data-lucide="shield-check" class="w-4 h-4"></i> پنل مدیریت</a>
                 <a href="{% url 'panel:course_list' %}" class="menu-item"><i data-lucide="book-open-check" class="w-4 h-4"></i> مدیریت دوره‌ها</a>
                 <a href="{% url 'panel:quiz_list' %}" class="menu-item"><i data-lucide="file-question" class="w-4 h-4"></i> مدیریت آزمون‌ها</a>
                 <a href="{% url 'panel:results' %}" class="menu-item"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> نتایج و نمرات</a>
-                {% if user.is_superuser %}<a href="/admin/" class="menu-item !text-gold-300"><i data-lucide="key-round" class="w-4 h-4"></i> پنل جنگو</a>{% endif %}
-                <div class="my-1 h-px bg-white/10"></div>
+                {% if user.is_superuser %}<a href="/admin/" class="menu-item !text-amber-600"><i data-lucide="key-round" class="w-4 h-4"></i> پنل جنگو</a>{% endif %}
+                <div class="my-1 h-px bg-slate-200"></div>
                 {% endif %}
                 <a href="{% url 'accounts:edit_profile' %}" class="menu-item"><i data-lucide="settings" class="w-4 h-4"></i> تنظیمات</a>
                 <a href="{% url 'accounts:change_password' %}" class="menu-item"><i data-lucide="key-round" class="w-4 h-4"></i> تغییر رمز عبور</a>
-                <div class="my-1 h-px bg-white/10"></div>
+                <div class="my-1 h-px bg-slate-200"></div>
                 <form method="post" action="{% url 'accounts:logout' %}">
                   {% csrf_token %}
-                  <button class="menu-item w-full !text-rose-300"><i data-lucide="log-out" class="w-4 h-4"></i> خروج</button>
+                  <button class="menu-item w-full !text-rose-600"><i data-lucide="log-out" class="w-4 h-4"></i> خروج</button>
                 </form>
               </div>
             </div>
           {% else %}
             <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">ورود</a>
-            <a href="{% url 'accounts:student_signup' %}" class="btn btn-primary btn-sm">ثبت‌نام</a>
+            <a href="{% url 'accounts:student_signup' %}" class="btn btn-primary btn-sm nav-cta-signup">ثبت‌نام</a>
           {% endif %}
-          <button @click="open = !open" class="icon-btn lg:hidden" title="منو"><i data-lucide="menu" class="w-4 h-4"></i></button>
+          <button @click="open = true" class="icon-btn lg:hidden" :aria-expanded="open" aria-controls="mobile-nav" aria-label="باز کردن منو">
+            <i data-lucide="menu" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
 
-      <div x-show="open" x-transition x-cloak class="lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-xl">
-        <nav class="container-x py-4 grid gap-1">
-          <a href="{% url 'home' %}" class="menu-item"><i data-lucide="home" class="w-4 h-4"></i> خانه</a>
-          <a href="{% url 'courses:course_list' %}" class="menu-item"><i data-lucide="library" class="w-4 h-4"></i> دوره‌ها</a>
+      {# ---------- پوشش تیره‌ی پشت منوی موبایل ---------- #}
+      <div x-show="open" x-cloak x-transition.opacity.duration.200ms
+           @click="open = false"
+           class="mnav-overlay lg:hidden" aria-hidden="true"></div>
+
+      {# ---------- شیت کشویی موبایل/تبلت ---------- #}
+      <aside id="mobile-nav"
+             x-show="open" x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full"
+             @click="if ($event.target.closest('a')) open = false"
+             class="mnav lg:hidden">
+
+        <div class="mnav-head">
+          <a href="{% url 'home' %}" class="mnav-brand">
+            <span class="mnav-logo"><i data-lucide="graduation-cap" class="w-4 h-4"></i></span>
+            مکتب‌پلاس
+          </a>
+          <button @click="open = false" class="mnav-close" aria-label="بستن منو">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="mnav-body">
+
           {% if user.is_authenticated %}
-          <a href="{% url 'quiz:quiz_list' %}" class="menu-item"><i data-lucide="clipboard-check" class="w-4 h-4"></i> آزمون‌ها</a>
-          <a href="{% url 'accounts:dashboard' %}" class="menu-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> داشبورد</a>
-          <a href="{% url 'accounts:change_password' %}" class="menu-item"><i data-lucide="key-round" class="w-4 h-4"></i> تغییر رمز عبور</a>
+          <a href="{% url 'accounts:profile' %}" class="mnav-user">
+            {% if user.profile.avatar %}
+              <img src="{{ user.profile.avatar.url }}" alt="">
+            {% else %}
+              <span class="mnav-avatar">{{ user.first_name|default:user.username|slice:':1' }}</span>
+            {% endif %}
+            <span class="mnav-user-tx">
+              <b>{{ user.get_full_name|default:user.username }}</b>
+              <span>{{ user.email|default:'مشاهدهٔ پروفایل' }}</span>
+            </span>
+          </a>
           {% endif %}
-          {% if user.is_authenticated %}{% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
-          <div class="my-1 h-px bg-white/10"></div>
-          <a href="{% url 'panel:dashboard' %}" class="menu-item !text-violet-300"><i data-lucide="shield-check" class="w-4 h-4"></i> پنل مدیریت</a>
-          <a href="{% url 'panel:course_list' %}" class="menu-item"><i data-lucide="book-open-check" class="w-4 h-4"></i> مدیریت دوره‌ها</a>
-          <a href="{% url 'panel:quiz_list' %}" class="menu-item"><i data-lucide="file-question" class="w-4 h-4"></i> مدیریت آزمون‌ها</a>
-          <a href="{% url 'panel:results' %}" class="menu-item"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> نتایج و نمرات</a>
-          {% if user.is_superuser %}<a href="/admin/" class="menu-item !text-gold-300"><i data-lucide="key-round" class="w-4 h-4"></i> پنل جنگو</a>{% endif %}
-          {% endif %}{% endif %}
-        </nav>
-      </div>
+
+          {# جست‌وجو — روی گوشی تنها راه دسترسی به جست‌وجوی دوره #}
+          <form action="{% url 'courses:search' %}" method="get" class="mnav-search">
+            <div class="mnav-search-box">
+              <i data-lucide="search" class="w-4 h-4"></i>
+              <input type="text" name="q" placeholder="دنبال چی می‌گردی؟" aria-label="جستجوی دوره">
+            </div>
+          </form>
+
+          <span class="mnav-label">دسترسی سریع</span>
+          <a href="{% url 'home' %}" class="mnav-item"><i data-lucide="home" class="w-4 h-4"></i> <span class="mnav-grow">خانه</span></a>
+          <a href="{% url 'courses:course_list' %}" class="mnav-item"><i data-lucide="library" class="w-4 h-4"></i> <span class="mnav-grow">همهٔ دوره‌ها</span></a>
+
+          {# دسته‌بندی‌ها — آکاردئون؛ قبلاً روی موبایل کلاً در دسترس نبود #}
+          {% if all_categories %}
+          <div x-data="{ cat: false }">
+            <button type="button" @click="cat = !cat" class="mnav-item" :aria-expanded="cat">
+              <i data-lucide="shapes" class="w-4 h-4"></i>
+              <span class="mnav-grow">دسته‌بندی‌ها</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 mnav-chev" :class="cat && 'is-open'"></i>
+            </button>
+            <div x-show="cat" x-cloak x-transition.opacity.duration.150ms>
+              {% for cat in all_categories|slice:':12' %}
+              <a href="{% url 'courses:category_detail' cat.slug %}" class="mnav-sub">
+                <i data-lucide="{{ cat.icon|default:'shapes' }}" class="w-4 h-4"></i>
+                <span class="mnav-grow">{{ cat.name }}</span>
+                <span class="mnav-count">{{ cat.total_courses_count }}</span>
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <a href="{% url 'qa:ask' %}" class="mnav-item"><i data-lucide="bot" class="w-4 h-4"></i> <span class="mnav-grow">دستیار هوشمند</span></a>
+
+          {% if user.is_authenticated %}
+            <div class="mnav-sep"></div>
+            <span class="mnav-label">حساب من</span>
+            <a href="{% url 'accounts:dashboard' %}" class="mnav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> <span class="mnav-grow">داشبورد</span></a>
+            <a href="{% url 'courses:my_courses' %}" class="mnav-item"><i data-lucide="book-marked" class="w-4 h-4"></i> <span class="mnav-grow">دوره‌های من</span></a>
+            <a href="{% url 'quiz:quiz_list' %}" class="mnav-item"><i data-lucide="clipboard-check" class="w-4 h-4"></i> <span class="mnav-grow">آزمون‌ها</span></a>
+            <a href="{% url 'accounts:notifications' %}" class="mnav-item">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span class="mnav-grow">اعلان‌ها</span>
+              {% if unread_notifications_count %}<span class="mnav-count is-alert">{{ unread_notifications_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'accounts:profile' %}" class="mnav-item"><i data-lucide="user" class="w-4 h-4"></i> <span class="mnav-grow">پروفایل</span></a>
+            <a href="{% url 'accounts:edit_profile' %}" class="mnav-item"><i data-lucide="settings" class="w-4 h-4"></i> <span class="mnav-grow">تنظیمات</span></a>
+            <a href="{% url 'accounts:change_password' %}" class="mnav-item"><i data-lucide="key-round" class="w-4 h-4"></i> <span class="mnav-grow">تغییر رمز عبور</span></a>
+
+            {% if user.is_superuser or user.role == 'admin' or user.role == 'teacher' %}
+            <div class="mnav-sep"></div>
+            <span class="mnav-label">مدیریت</span>
+            <a href="{% url 'panel:dashboard' %}" class="mnav-item is-admin"><i data-lucide="shield-check" class="w-4 h-4"></i> <span class="mnav-grow">پنل مدیریت</span></a>
+            <a href="{% url 'panel:course_list' %}" class="mnav-item"><i data-lucide="book-open-check" class="w-4 h-4"></i> <span class="mnav-grow">مدیریت دوره‌ها</span></a>
+            <a href="{% url 'panel:quiz_list' %}" class="mnav-item"><i data-lucide="file-question" class="w-4 h-4"></i> <span class="mnav-grow">مدیریت آزمون‌ها</span></a>
+            <a href="{% url 'panel:results' %}" class="mnav-item"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> <span class="mnav-grow">نتایج و نمرات</span></a>
+            {% if user.is_superuser %}<a href="/admin/" class="mnav-item"><i data-lucide="key-round" class="w-4 h-4"></i> <span class="mnav-grow">پنل جنگو</span></a>{% endif %}
+            {% endif %}
+
+            <div class="mnav-sep"></div>
+            <form method="post" action="{% url 'accounts:logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="mnav-item is-danger">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span class="mnav-grow">خروج از حساب</span>
+              </button>
+            </form>
+          {% else %}
+            <div class="mnav-sep"></div>
+            <div class="mnav-cta">
+              <a href="{% url 'accounts:student_signup' %}" class="mnav-cta-primary">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> ساخت حساب رایگان
+              </a>
+              <a href="{% url 'accounts:login' %}" class="mnav-cta-ghost">
+                <i data-lucide="log-in" class="w-4 h-4"></i> ورود به حساب
+              </a>
+            </div>
+          {% endif %}
+
+        </div>
+      </aside>
     </header>
 
     <main class="pt-20">
       {% if messages %}
-      <div class="fixed top-24 left-1/2 -translate-x-1/2 z-50 space-y-2 w-[92%] max-w-md">
+      <div class="nv-toasts">
         {% for message in messages %}
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" x-transition
              class="toast toast-{{ message.tags }}">
