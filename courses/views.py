@@ -1,6 +1,5 @@
-"""صفحات دوره و جلسه و عملیات ثبت‌نام، پیشرفت، امتیاز، نظر، دانلود و جست‌وجو را مدیریت می‌کند.
+"""صفحات دوره و جلسه و عملیات ثبت‌نام، پیشرفت، امتیاز، نطر، دانلود و جست‌وجو را مدیریت می‌کند.
 
-این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 قواعد کسب‌وکار در `services.py` و مجوزها در `policies.py` هستند؛ اینجا فقط
 ورودی HTTP، انتخاب داده برای تمپلیت و پیام کاربر مدیریت می‌شود.
 """
@@ -14,6 +13,8 @@ from django.db.models import Count, F, Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from Enrollment.models import Enrollment
+
 from .models import (
     Category,
     Course,
@@ -25,6 +26,7 @@ from .policies import can_rate_course, has_course_access as _has_course_access
 from .services import (
     CourseServiceError,
     add_lesson_comment,
+    confirm_enrollment_payment,
     enroll_student,
     mark_lesson_completed,
     set_course_rating,
@@ -33,25 +35,30 @@ from .services import (
 COURSES_PER_PAGE = 9
 
 
+def _get_enrollment(user, course):
+    """ثبت‌نام غیرلغوشدهٔ کاربر در دوره را برمی‌گرداند (یا None)."""
+    if not user.is_authenticated:
+        return None
+    return (
+        Enrollment.objects.filter(student=user, course=course)
+        .exclude(status="cancelled")
+        .first()
+    )
+
+
 def course_list(request):
-    """
-    صفحه لیست همه دوره‌ها
-    """
-    # گرفتن همه دوره‌های منتشر شده
+    """صفحه لیست همه دوره‌ها."""
     courses = Course.objects.filter(status="published")
 
-    # فیلتر بر اساس دسته‌بندی
     category_slug = request.GET.get("category")
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug)
         courses = courses.filter(category=category)
 
-    # فیلتر بر اساس سطح
     level = request.GET.get("level")
     if level:
         courses = courses.filter(level=level)
 
-    # جستجو
     search_query = request.GET.get("q")
     if search_query:
         courses = courses.filter(
@@ -61,19 +68,14 @@ def course_list(request):
             | Q(teachers__last_name__icontains=search_query)
         ).distinct()
 
-    # پیش‌بارگیری اساتید و دسته برای کاهش تعداد کوئری‌ها
     courses = courses.select_related("category").prefetch_related("teachers")
-
-    # دسته‌بندی‌ها برای نمایش در فیلتر
     categories = Category.objects.filter(is_active=True)
 
-    # ✅ فیکس: صفحه‌بندی واقعی + حفظ فیلترها در لینک صفحات
-    # (قبلاً Paginator وجود نداشت و بلوک صفحه‌بندی تمپلیت هیچ‌وقت رندر نمی‌شد)
+    # ✅ فیکس: صفحه‌بندی واقعی + حفط فیلترها در لینک صفحات
     courses = courses.order_by("-created_at")
     paginator = Paginator(courses, COURSES_PER_PAGE)
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    # پارامترهای فعلی (q, level, category) بدون page — برای لینک‌های صفحه‌بندی
     query_params = request.GET.copy()
     query_params.pop("page", None)
 
@@ -91,26 +93,22 @@ def course_list(request):
 
 
 def course_detail(request, slug):
-    """
-    صفحه جزئیات یک دوره
-    """
+    """صفحه جزئیات یک دوره."""
     course = get_object_or_404(Course, slug=slug, status="published")
 
-    # افزایش تعداد بازدید (با F برای جلوگیری از race condition)
     Course.objects.filter(pk=course.pk).update(view_count=F("view_count") + 1)
     course.refresh_from_db(fields=["view_count"])
 
-    # گرفتن همه جلسات دوره به ترتیب
     lessons = course.lessons.all().order_by("order")
 
-    # بررسی اینکه کاربر فعلی به محتوای دوره دسترسی دارد یا نه
     is_enrolled = False
     lesson_progress = {}
+    enrollment = None
 
     if request.user.is_authenticated:
         is_enrolled = _has_course_access(request.user, course)
+        enrollment = _get_enrollment(request.user, course)
 
-        # اگر دسترسی دارد، پیشرفت هر جلسه را یک‌جا بگیر (بدون کوئری در حلقه)
         if is_enrolled:
             progresses = LessonProgress.objects.filter(
                 lesson__course=course, user=request.user
@@ -119,15 +117,15 @@ def course_detail(request, slug):
                 progress.lesson_id: progress for progress in progresses
             }
 
-    # جلسات پیش‌نمایش رایگان
+    # ✅ فیکس: ثبت‌نام انجام شده ولی پرداخت pending مانده بود و دوره باز نمی‌شد.
+    payment_pending = bool(enrollment and enrollment.payment_status == "pending")
+
     free_lessons = lessons.filter(is_free_preview=True)
 
-    # دوره‌های مرتبط (همین دسته‌بندی)
     related_courses = Course.objects.filter(
         category=course.category, status="published"
     ).exclude(id=course.id)[:4]
 
-    # امتیازات دوره
     ratings = course.ratings.select_related("user").order_by("-created_at")
 
     context = {
@@ -135,6 +133,8 @@ def course_detail(request, slug):
         "lessons": lessons,
         "free_lessons": free_lessons,
         "is_enrolled": is_enrolled,
+        "enrollment": enrollment,
+        "payment_pending": payment_pending,
         "lesson_progress": lesson_progress,
         "related_courses": related_courses,
         "ratings": ratings,
@@ -143,18 +143,15 @@ def course_detail(request, slug):
 
 
 def lesson_detail(request, course_slug, lesson_slug):
-    """
-    صفحه تماشای جلسه آموزشی
-    """
+    """صفحه تماشای جلسه آموزشی."""
     course = get_object_or_404(Course, slug=course_slug)
     lesson = get_object_or_404(Lesson, course=course, slug=lesson_slug)
 
-    # بررسی دسترسی کاربر
-    if not lesson.is_free_preview and not _has_course_access(request.user, course):
+    has_access = _has_course_access(request.user, course)
+    if not lesson.is_free_preview and not has_access:
         return redirect("courses:course_detail", slug=course_slug)
 
     # ✅ فیکس: جلسهٔ قبلی/بعدی با کوئری روی order محاسبه می‌شود.
-    # (قبلاً list.index استفاده می‌شد که برای جلسهٔ حذف‌شده از لیست ValueError می‌داد)
     prev_lesson = (
         course.lessons.filter(order__lt=lesson.order).order_by("-order").first()
     )
@@ -162,29 +159,32 @@ def lesson_detail(request, course_slug, lesson_slug):
         course.lessons.filter(order__gt=lesson.order).order_by("order").first()
     )
 
-    # گرفتن یا ساخت پیشرفت کاربر
     progress = None
+    completed_lesson_ids = []
     if request.user.is_authenticated:
         progress, created = LessonProgress.objects.get_or_create(
             lesson=lesson,
             user=request.user,
             defaults={"watch_count": 1},
         )
-        # ✅ فیکس: watch_count در بازدیدهای بعدی هم بالا می‌رود (قبلاً فقط بار اول ۱ می‌شد)
+        # ✅ فیکس: watch_count در بازدیدهای بعدی هم بالا می‌رود.
         if not created:
             LessonProgress.objects.filter(pk=progress.pk).update(
                 watch_count=F("watch_count") + 1
             )
             progress.refresh_from_db(fields=["watch_count"])
 
-    # افزایش تعداد بازدید جلسه (با F برای جلوگیری از race condition)
+        completed_lesson_ids = list(
+            LessonProgress.objects.filter(
+                lesson__course=course, user=request.user, is_completed=True
+            ).values_list("lesson_id", flat=True)
+        )
+
     Lesson.objects.filter(pk=lesson.pk).update(view_count=F("view_count") + 1)
     lesson.refresh_from_db(fields=["view_count"])
 
-    # ضمیمه‌های جلسه
     attachments = lesson.attachments.all()
 
-    # نظرات جلسه
     comments = lesson.comments.filter(is_approved=True, parent=None).select_related(
         "user"
     )
@@ -192,6 +192,9 @@ def lesson_detail(request, course_slug, lesson_slug):
     context = {
         "course": course,
         "lesson": lesson,
+        "lessons": course.lessons.all().order_by("order"),
+        "has_access": has_access,
+        "completed_lesson_ids": completed_lesson_ids,
         "prev_lesson": prev_lesson,
         "next_lesson": next_lesson,
         "progress": progress,
@@ -208,6 +211,14 @@ def enroll_course(request, course_slug):
     if request.method != "POST":
         return redirect("courses:course_detail", slug=course_slug)
 
+    # ✅ فیکس: قبلاً اگر ثبت‌نام پولی در حالت pending مانده بود، کاربر با زدن
+    # دوبارهٔ دکمهٔ ثبت‌نام فقط خطای «قبلاً ثبت‌نام کرده‌اید» می‌گرفت و هیچ
+    # راهی برای باز کردن دوره نداشت. الان به تأیید پرداخت هدایت می‌شود.
+    existing = _get_enrollment(request.user, course)
+    if existing and existing.payment_status == "pending":
+        messages.info(request, "برای باز شدن کامل دوره، پرداخت را تأیید کن.")
+        return redirect("courses:checkout", course_slug=course_slug)
+
     try:
         result = enroll_student(student=request.user, course=course)
     except CourseServiceError as exc:
@@ -218,9 +229,41 @@ def enroll_course(request, course_slug):
         else:
             messages.info(
                 request,
-                "ثبت‌نام اولیه انجام شد؛ دسترسی دورهٔ پولی پس از پرداخت فعال می‌شود.",
+                "ثبت‌نام اولیه انجام شد؛ برای باز شدن کامل دوره پرداخت را تأیید کن.",
             )
+            return redirect("courses:checkout", course_slug=course_slug)
     return redirect("courses:course_detail", slug=course_slug)
+
+
+@login_required
+def checkout(request, course_slug):
+    """صفحهٔ تأیید پرداخت دورهٔ پولی و باز کردن دسترسی کامل."""
+    course = get_object_or_404(Course, slug=course_slug, status="published")
+    enrollment = _get_enrollment(request.user, course)
+
+    if enrollment is None:
+        messages.info(request, "اول در این دوره ثبت‌نام کن.")
+        return redirect("courses:course_detail", slug=course_slug)
+
+    if enrollment.payment_status in ("free", "paid"):
+        messages.info(request, "دسترسی این دوره از قبل فعال است.")
+        return redirect("courses:course_detail", slug=course_slug)
+
+    if request.method == "POST":
+        try:
+            confirm_enrollment_payment(student=request.user, course=course)
+        except CourseServiceError as exc:
+            messages.error(request, str(exc))
+            return redirect("courses:checkout", course_slug=course_slug)
+        messages.success(request, "پرداخت تأیید شد و دوره کامل باز شد ✅")
+        return redirect("courses:course_detail", slug=course_slug)
+
+    context = {
+        "course": course,
+        "enrollment": enrollment,
+        "total_lessons_count": course.lessons.count(),
+    }
+    return render(request, "courses/checkout.html", context)
 
 
 @login_required
@@ -272,7 +315,7 @@ def add_rating(request, course_slug):
 
 @login_required
 def add_comment(request, lesson_id):
-    """پس از کنترل دسترسی، ساخت نظر و شمارنده را به سرویس واگذار می‌کند."""
+    """پس از کنترل دسترسی، ساخت نطر و شمارنده را به سرویس واگذار می‌کند."""
     if request.method != "POST":
         return redirect("courses:course_list")
 
@@ -289,6 +332,8 @@ def add_comment(request, lesson_id):
         )
     except CourseServiceError as exc:
         messages.error(request, str(exc))
+    else:
+        messages.success(request, "دیدگاهت ثبت شد.")
     return redirect(
         "courses:lesson_detail",
         course_slug=course.slug,
@@ -298,25 +343,20 @@ def add_comment(request, lesson_id):
 
 @login_required
 def download_attachment(request, attachment_id):
-    """
-    دانلود فایل ضمیمه جلسه
-    """
+    """دانلود فایل ضمیمه جلسه."""
     attachment = get_object_or_404(
         LessonAttachment.objects.select_related("lesson__course"), id=attachment_id
     )
     course = attachment.lesson.course
 
-    # بررسی دسترسی
     if not attachment.is_free and not _has_course_access(request.user, course):
         return redirect("courses:course_detail", slug=course.slug)
 
-    # افزایش آمار دانلود (با F برای جلوگیری از race condition)
     LessonAttachment.objects.filter(pk=attachment.pk).update(
         download_count=F("download_count") + 1
     )
 
-    # ✅ فیکس: استریم فایل به جای خواندن کامل در حافظه
-    # (قبلاً فایل‌های حجیم مثل ویدیو/PDF کل RAM سرور را اشغال می‌کردند)
+    # ✅ فیکس: استریم فایل به جای خواندن کامل در حافطه.
     file_name = os.path.basename(attachment.file.name)
     return FileResponse(
         attachment.file.open("rb"), as_attachment=True, filename=file_name
@@ -324,11 +364,8 @@ def download_attachment(request, attachment_id):
 
 
 def category_detail(request, slug):
-    """
-    نمایش همه دوره‌های یک دسته‌بندی
-    """
+    """نمایش همه دوره‌های یک دسته‌بندی."""
     category = get_object_or_404(Category, slug=slug, is_active=True)
-    # دوره‌های خود دسته + دوره‌های همه‌ی زیردسته‌ها
     subcategory_ids = list(category.subcategories.values_list("id", flat=True))
     category_ids = [category.id] + subcategory_ids
     courses = (
@@ -337,12 +374,10 @@ def category_detail(request, slug):
         .prefetch_related("teachers")
     )
 
-    # فیلتر بر اساس سطح
     level = request.GET.get("level")
     if level:
         courses = courses.filter(level=level)
 
-    # مرتب‌سازی
     sort = request.GET.get("sort", "newest")
     sort_map = {
         "newest": "-created_at",
@@ -352,7 +387,6 @@ def category_detail(request, slug):
     }
     courses = courses.order_by(sort_map.get(sort, "-created_at"))
 
-    # ✅ فیکس: این صفحه هم صفحه‌بندی می‌شود تا دسته‌های پرحجم کل دیتابیس را رندر نکنند
     paginator = Paginator(courses, COURSES_PER_PAGE)
     page_obj = paginator.get_page(request.GET.get("page"))
 
@@ -372,9 +406,7 @@ def category_detail(request, slug):
 
 
 def search_courses(request):
-    """
-    صفحه جستجوی پیشرفته
-    """
+    """صفحه جستجوی پیشرفته."""
     query = request.GET.get("q", "").strip()
     courses = Course.objects.none()
 
@@ -395,8 +427,6 @@ def search_courses(request):
             .order_by("-created_at")
         )
 
-    # ✅ فیکس: صفحه‌بندی نتایج جست‌وجو + شمارش با paginator
-    # (قبلاً هم کل نتایج رندر می‌شد و هم count یک کوئری اضافه می‌زد)
     paginator = Paginator(courses, COURSES_PER_PAGE)
     page_obj = paginator.get_page(request.GET.get("page"))
 
@@ -417,9 +447,7 @@ def search_courses(request):
 @login_required
 def my_courses(request):
     """دوره‌هایی که کاربر در آن‌ها ثبت‌نام فعال دارد، همراه با درصد پیشرفت."""
-    # ✅ فیکس: حذف N+1 — قبلاً برای هر دوره دو کوئری جدا در حلقه زده می‌شد.
-    # اکنون همهٔ شمارش‌ها در یک کوئری با annotate انجام می‌شود و لغوشده‌ها هم
-    # دیگر در «دوره‌های من» نمایش داده نمی‌شوند.
+    # ✅ فیکس: حذف N+1 — شمارش‌ها در یک کوئری با annotate انجام می‌شود.
     courses = (
         Course.objects.filter(
             enrollments__student=request.user,
@@ -442,7 +470,6 @@ def my_courses(request):
         .order_by("-created_at")
     )
 
-    # محاسبهٔ درصد پیشرفت در پایتون؛ هیچ کوئری اضافه‌ای نمی‌زند.
     course_list_with_progress = list(courses)
     for course in course_list_with_progress:
         total = course.total_lessons_count

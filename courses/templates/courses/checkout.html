@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}تکمیل پرداخت | {{ course.title }}{% endblock %}
+{% block content %}
+<section class="py-8 lg:py-12">
+  <div class="container-x">
+
+    <nav class="text-xs text-slate-500 mb-5 flex items-center gap-2 flex-wrap">
+      <a href="{% url 'courses:course_list' %}" class="hover:text-violet-600">دوره‌ها</a>
+      <i data-lucide="chevron-left" class="w-3 h-3"></i>
+      <a href="{{ course.get_absolute_url }}" class="hover:text-violet-600">{{ course.title }}</a>
+      <i data-lucide="chevron-left" class="w-3 h-3"></i>
+      <span class="text-slate-700">تکمیل پرداخت</span>
+    </nav>
+
+    <div class="max-w-3xl mx-auto">
+
+      <div class="glass rounded-3xl p-5 sm:p-7" data-reveal>
+
+        <div class="flex items-start gap-3 mb-6">
+          <span class="w-11 h-11 rounded-2xl grid place-items-center bg-amber-100 text-amber-600 shrink-0">
+            <i data-lucide="wallet" class="w-5 h-5"></i>
+          </span>
+          <div class="min-w-0">
+            <h1 class="text-xl sm:text-2xl font-extrabold leading-8">تکمیل پرداخت و باز کردن دوره</h1>
+            <p class="text-sm text-slate-500 mt-1 leading-6">
+              ثبت‌نام تو ثبت شده است، اما وضعیت پرداخت هنوز «در انتطار» است؛ با تأیید پرداخت، همهٔ جلسه‌ها باز می‌شود.
+            </p>
+          </div>
+        </div>
+
+        {# کارت خلاصهٔ دوره — روی موبایل عمودی، روی دسکتاپ افقی #}
+        <div class="rounded-2xl border border-slate-200 bg-white/60 p-4 flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
+          {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}"
+               class="w-full sm:w-32 h-40 sm:h-20 rounded-xl object-cover shrink-0">
+          {% endif %}
+          <div class="min-w-0 flex-1">
+            <h2 class="font-bold leading-7">{{ course.title }}</h2>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-2">
+              {% if course.category %}
+              <span class="flex items-center gap-1"><i data-lucide="shapes" class="w-3.5 h-3.5"></i> {{ course.category.name }}</span>
+              {% endif %}
+              <span class="flex items-center gap-1 fa-num"><i data-lucide="play-circle" class="w-3.5 h-3.5"></i> {{ total_lessons_count }} جلسه</span>
+              <span class="flex items-center gap-1 fa-num"><i data-lucide="clock" class="w-3.5 h-3.5"></i> {{ course.duration_hours }} ساعت</span>
+            </div>
+          </div>
+        </div>
+
+        {# فاکتور #}
+        <div class="rounded-2xl border border-slate-200 divide-y divide-slate-100 mb-5">
+          <div class="flex items-center justify-between gap-3 p-3.5 text-sm">
+            <span class="text-slate-500">قیمت دوره</span>
+            <span class="fa-num {% if course.discount_percent %}line-through text-slate-400{% else %}font-bold{% endif %}">
+              {{ course.price|floatformat:0 }} تومان
+            </span>
+          </div>
+          {% if course.discount_percent %}
+          <div class="flex items-center justify-between gap-3 p-3.5 text-sm">
+            <span class="text-slate-500">تخفیف</span>
+            <span class="badge badge-green fa-num">{{ course.discount_percent }}%</span>
+          </div>
+          {% endif %}
+          <div class="flex items-center justify-between gap-3 p-3.5">
+            <span class="font-bold">مبلغ قابل پرداخت</span>
+            <span class="text-lg sm:text-xl font-extrabold text-violet-600 fa-num">
+              {{ course.final_price|floatformat:0 }} تومان
+            </span>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 flex items-start gap-2.5 text-xs text-amber-800 leading-6 mb-6">
+          <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+          <span>درگاه بانکی هنوز متصل نشده است؛ فعلاً با تأیید همین فرم، دسترسی دوره برایت فعال می‌شود.</span>
+        </div>
+
+        {# دکمه‌ها — روی موبایل تمام‌عرض و عمودی #}
+        <form method="post" action="{% url 'courses:checkout' course.slug %}"
+              x-data="{ sending: false }" @submit="sending = true"
+              class="flex flex-col sm:flex-row gap-2.5">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-lg w-full sm:flex-1"
+                  :disabled="sending" :class="sending && 'opacity-60 pointer-events-none'">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+            <span x-text="sending ? 'در حال تأیید…' : 'تأیید پرداخت و باز کردن دوره'"></span>
+          </button>
+          <a href="{{ course.get_absolute_url }}" class="btn btn-ghost btn-lg w-full sm:w-auto">
+            <i data-lucide="arrow-right" class="w-4 h-4"></i> بازگشت به دوره
+          </a>
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

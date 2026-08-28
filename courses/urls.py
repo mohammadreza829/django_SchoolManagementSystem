@@ -16,6 +16,10 @@ app_name = "courses"
 # ✅ فیکس: آدرس‌های ثابت (lesson/, download/) باید «قبل از» الگوهای slug بیایند.
 # قبلاً `download/<id>/` هیچ‌وقت اجرا نمی‌شد چون الگوی دوبخشیِ
 # `<course_slug>/<lesson_slug>/` آن را می‌بلعید و کاربر 404 می‌گرفت.
+#
+# ✅ فیکس: مسیر checkout هم دوبخشی است، پس باید پیش از الگوی
+# `<course_slug>/<lesson_slug>/` قرار بگیرد؛ وگرنه به‌عنوان «جلسه‌ای به نام checkout»
+# تفسیر می‌شود و 404 می‌دهد.
 urlpatterns = [
     path("", views.course_list, name="course_list"),
     path("search/", views.search_courses, name="search"),
@@ -26,6 +30,7 @@ urlpatterns = [
     path("category/<str:slug>/", views.category_detail, name="category_detail"),
     path("<str:slug>/", views.course_detail, name="course_detail"),
     path("<str:course_slug>/enroll/", views.enroll_course, name="enroll_course"),
+    path("<str:course_slug>/checkout/", views.checkout, name="checkout"),
     path("<str:course_slug>/rate/", views.add_rating, name="add_rating"),
     path("<str:course_slug>/<str:lesson_slug>/", views.lesson_detail, name="lesson_detail"),
 ]

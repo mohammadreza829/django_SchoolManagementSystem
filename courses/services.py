@@ -15,6 +15,10 @@ from Enrollment.models import Enrollment
 
 from .models import Course, CourseRating, LessonComment, LessonProgress
 
+# وضعیت‌های پرداخت که دسترسی کامل محتوا را می‌دهند.
+# همین مجموعه در policies.has_course_access ملاک دسترسی است.
+PAID_PAYMENT_STATUSES = ("free", "paid")
+
 
 class CourseServiceError(Exception):
     """خطای قابل نمایش مربوط به یکی از عملیات دامنهٔ دوره است."""
@@ -93,19 +97,55 @@ def enroll_student(*, student, course):
     except IntegrityError as exc:
         raise CourseServiceError("ثبت‌نام هم‌زمان تکراری شناسایی شد.") from exc
 
-    # تا زمان افزودن درگاه، دورهٔ پولی pending می‌ماند و محتوای آن باز نمی‌شود.
-    access_granted = enrollment.payment_status in ("free", "paid")
+    # دورهٔ پولی pending می‌ماند و با تأیید پرداخت در صفحهٔ checkout باز می‌شود.
+    access_granted = enrollment.payment_status in PAID_PAYMENT_STATUSES
     Notification.objects.create(
         user=student,
         title=f"ثبت‌نام در «{course.title}»",
         message=(
             "ثبت‌نام انجام شد و می‌توانی دوره را شروع کنی."
             if access_granted
-            else "ثبت‌نام اولیه انجام شد و دسترسی پس از پرداخت فعال می‌شود."
+            else "ثبت‌نام اولیه انجام شد؛ با تأیید پرداخت، دوره کامل باز می‌شود."
         ),
         link=course.get_absolute_url(),
     )
     return EnrollmentResult(enrollment, created, access_granted)
+
+
+def confirm_enrollment_payment(*, student, course):
+    """پرداخت ثبت‌نام در‌انتظار را تأیید و دسترسی کامل دوره را باز می‌کند.
+
+    تا زمان اتصال درگاه واقعی، این سرویس نقش «تأیید پرداخت» را بازی می‌کند؛
+    منطق آن idempotent است پس ارسال چندبارهٔ فرم مشکلی ایجاد نمی‌کند.
+    """
+    with transaction.atomic():
+        enrollment = (
+            Enrollment.objects.select_for_update()
+            .filter(student=student, course=course)
+            .exclude(status="cancelled")
+            .first()
+        )
+        if enrollment is None:
+            raise CourseServiceError("ثبت‌نام فعالی برای این دوره پیدا نشد.")
+
+        # قبلاً باز شده است — دوباره‌نویسی لازم نیست و اعلان تکراری نمی‌فرستیم.
+        if enrollment.payment_status in PAID_PAYMENT_STATUSES:
+            return enrollment
+
+        enrollment.payment_status = "paid"
+        enrollment.price_paid = course.final_price
+        enrollment.status = "active"
+        enrollment.save(
+            update_fields=("payment_status", "price_paid", "status")
+        )
+
+    Notification.objects.create(
+        user=student,
+        title=f"دسترسی «{course.title}» فعال شد",
+        message="پرداخت تأیید شد و همهٔ جلسه‌های دوره باز است.",
+        link=course.get_absolute_url(),
+    )
+    return enrollment
 
 
 def mark_lesson_completed(*, user, lesson):
@@ -131,7 +171,7 @@ def mark_lesson_completed(*, user, lesson):
 
 def add_lesson_comment(*, user, lesson, text):
     """نظر معتبر جلسه را ذخیره و شمارندهٔ نظرات تأییدشده را همگام می‌کند."""
-    normalized_text = text.strip()
+    normalized_text = (text or "").strip()
     if not normalized_text:
         raise CourseServiceError("متن نظر نمی‌تواند خالی باشد.")
 
