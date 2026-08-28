@@ -7,10 +7,8 @@
    کلاس‌های تازه‌ای (.mnav*) که فقط در منوی موبایل استفاده می‌شوند.
    ============================================================ */
 
-/* ---------- Alpine: جلوگیری از پرش عناصر قبل از init ---------- */
 [x-cloak] { display: none !important; }
 
-/* ---------- پایه: هیچ‌وقت اسکرول افقی نداشته باشیم ---------- */
 html { -webkit-text-size-adjust: 100%; }
 body { overflow-x: hidden; }
 img, svg, video, iframe, canvas { max-width: 100%; }
@@ -406,4 +404,54 @@ body.nav-locked {
 
 @media (prefers-reduced-motion: reduce) {
   .mnav, .mnav-overlay, .mnav-chev, .mnav-anim { transition: none !important; }
+}
+
+/* ---------- هدر موبایل: نام برند + جستجو + میانبرها ---------- */
+@media (max-width: 767.98px) {
+  .site-nav .container-x {
+    gap: .45rem !important;
+  }
+  .site-brand-name {
+    display: inline !important;
+    font-size: 1.02rem !important;
+    white-space: nowrap;
+  }
+  .mh-search {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    align-items: center;
+    gap: .45rem;
+    padding: 0 .85rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+  }
+  .mh-search svg,
+  .mh-search > i {
+    width: 1rem;
+    height: 1rem;
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+  .mh-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-size: .82rem;
+    color: #0f172a;
+  }
+  .mh-search input::placeholder { color: #94a3b8; }
+  .mh-actions .btn-sm {
+    padding-inline: .7rem !important;
+    height: 36px;
+  }
+}
+@media (min-width: 768px) {
+  .mh-search { display: none !important; }
 }

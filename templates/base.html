@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="{% static 'css/nova.css' %}">
     <link rel="stylesheet" href="{% static 'css/redesign.css' %}">
     <link rel="stylesheet" href="{% static 'css/unify.css' %}">
-    <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=20260828c">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=20260828d">
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -70,7 +70,7 @@
           <span class="w-10 h-10 rounded-2xl brand-badge grid place-items-center text-white shadow-glow group-hover:scale-105 transition">
             <i data-lucide="graduation-cap" class="w-5 h-5"></i>
           </span>
-          <span class="text-lg font-extrabold tracking-tight grad-text hidden sm:inline">مکتب‌پلاس</span>
+          <span class="site-brand-name text-lg font-extrabold tracking-tight grad-text">مکتب‌پلاس</span>
         </a>
 
         <nav class="hidden lg:flex items-center gap-1 mr-4" x-data="{ catOpen: false }">
@@ -101,16 +101,24 @@
           {% endif %}{% endif %}
         </nav>
 
-        <form action="{% url 'courses:search' %}" method="get" class="hidden md:flex flex-1 max-w-md mr-auto">
+        <form action="{% url 'courses:search' %}" method="get" class="hidden md:flex flex-1 max-w-md">
           <div class="nav-search">
             <i data-lucide="search" class="w-4 h-4"></i>
             <input type="text" name="q" placeholder="دنبال چی می‌گردی؟" aria-label="جستجوی دوره">
           </div>
         </form>
 
-        <div class="flex items-center gap-2 mr-auto md:mr-0">
+        <form action="{% url 'courses:search' %}" method="get" class="mh-search md:hidden">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <input type="text" name="q" placeholder="جستجوی دوره..." aria-label="جستجوی دوره">
+        </form>
+
+        <div class="mh-actions flex items-center gap-1.5">
           {% if user.is_authenticated %}
-            <a href="{% url 'accounts:notifications' %}" class="icon-btn relative hidden sm:grid" title="اعلان‌ها">
+            <a href="{% url 'qa:ask' %}" class="icon-btn lg:hidden" title="دستیار هوشمند" aria-label="دستیار هوشمند">
+              <i data-lucide="bot" class="w-4 h-4"></i>
+            </a>
+            <a href="{% url 'accounts:notifications' %}" class="icon-btn relative" title="اعلان‌ها">
               <i data-lucide="bell" class="w-4 h-4"></i>
               {% if unread_notifications_count %}
                 <span class="notif-badge" aria-label="اعلان‌های خوانده‌نشده">{{ unread_notifications_count }}</span>
