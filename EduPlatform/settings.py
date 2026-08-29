@@ -174,7 +174,6 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# WhiteNoise: فشرده‌سازی و سرو فایل‌های استاتیک در محیط واقعی بدون nginx.
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
