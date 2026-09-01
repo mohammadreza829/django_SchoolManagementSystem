@@ -26,7 +26,6 @@ from .policies import can_rate_course, has_course_access as _has_course_access
 from .services import (
     CourseServiceError,
     add_lesson_comment,
-    confirm_enrollment_payment,
     enroll_student,
     mark_lesson_completed,
     set_course_rating,
@@ -211,11 +210,11 @@ def enroll_course(request, course_slug):
     if request.method != "POST":
         return redirect("courses:course_detail", slug=course_slug)
 
-    # ✅ فیکس: قبلاً اگر ثبت‌نام پولی در حالت pending مانده بود، کاربر با زدن
-    # دوبارهٔ دکمهٔ ثبت‌نام فقط خطای «قبلاً ثبت‌نام کرده‌اید» می‌گرفت و هیچ
-    # راهی برای باز کردن دوره نداشت. الان به تأیید پرداخت هدایت می‌شود.
+    # ✅ فیکس: اگر ثبت‌نام پولی هنوز باز نشده (pending یا failed) بود، کاربر با
+    # زدن دوبارهٔ دکمهٔ ثبت‌نام فقط خطای «قبلاً ثبت‌نام کرده‌اید» می‌گرفت و راهی
+    # برای پرداخت/تلاش مجدد نداشت. الان به صفحهٔ پرداخت هدایت می‌شود.
     existing = _get_enrollment(request.user, course)
-    if existing and existing.payment_status == "pending":
+    if existing and existing.payment_status not in ("free", "paid"):
         messages.info(request, "برای باز شدن کامل دوره، پرداخت را تأیید کن.")
         return redirect("courses:checkout", course_slug=course_slug)
 
@@ -237,7 +236,11 @@ def enroll_course(request, course_slug):
 
 @login_required
 def checkout(request, course_slug):
-    """صفحهٔ تأیید پرداخت دورهٔ پولی و باز کردن دسترسی کامل."""
+    """صفحهٔ پرداخت دورهٔ پولی؛ کاربر را به درگاه زرین‌پال هدایت می‌کند.
+
+    خودِ تأیید پرداخت در اپ payments و پس از بازگشت از درگاه انجام می‌شود؛
+    این ویو فقط فاکتور را نشان می‌دهد و فرم به payments:start ارسال می‌شود.
+    """
     course = get_object_or_404(Course, slug=course_slug, status="published")
     enrollment = _get_enrollment(request.user, course)
 
@@ -247,15 +250,6 @@ def checkout(request, course_slug):
 
     if enrollment.payment_status in ("free", "paid"):
         messages.info(request, "دسترسی این دوره از قبل فعال است.")
-        return redirect("courses:course_detail", slug=course_slug)
-
-    if request.method == "POST":
-        try:
-            confirm_enrollment_payment(student=request.user, course=course)
-        except CourseServiceError as exc:
-            messages.error(request, str(exc))
-            return redirect("courses:checkout", course_slug=course_slug)
-        messages.success(request, "پرداخت تأیید شد و دوره کامل باز شد ✅")
         return redirect("courses:course_detail", slug=course_slug)
 
     context = {
