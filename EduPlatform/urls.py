@@ -1,4 +1,4 @@
-"""مسیرهای سطح پروژه را تعریف می‌کند و URLهای اپ‌های حساب، دوره، آزمون، پنل، چت و پرسش‌وپاسخ را به یکدیگر متصل می‌کند.
+"""مسیرهای سطح پروژه را تعریف می‌کند و URLهای اپ‌های حساب، دوره، آزمون، پنل، چت، پرسش‌وپاسخ و پرداخت را به یکدیگر متصل می‌کند.
 
 این فایل بخشی از پروژهٔ مدرسهٔ آنلاین است و مسئولیت‌های آن عمداً در همین دامنه نگه داشته شده‌اند.
 """
@@ -21,5 +21,6 @@ urlpatterns = [
     path('quiz/', include('quiz.urls')),  # این خط باید باشد
     path('panel/', include('panel.urls')),  # پنل مدیریت
     path('chat/', include('chat.urls')),    # چت دوره‌ها
-    path('qa/', include('qa.urls'))
+    path('qa/', include('qa.urls')),
+    path('payments/', include('payments.urls')),  # درگاه پرداخت زرین‌پال
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -19,6 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # `.env` را در os.environ بار می‌کند و بقیهٔ تنظیمات به آن متغیرها نیاز دارند.
 from .ai_settings import *  # noqa: E402,F401,F403
 
+# تنظیمات درگاه پرداخت زرین‌پال بعد از ai_settings ایمپورت می‌شود چون آن ماژول
+# فایل .env را در os.environ بار کرده و این تنظیمات به همان متغیرها نیاز دارند.
+from .payment_settings import *  # noqa: E402,F401,F403
+
 
 # ==================== کمکی‌های خواندن محیط ====================
 def env(name, default=""):
@@ -85,6 +89,7 @@ INSTALLED_APPS = [
     "panel",
     "chat",
     "qa",
+    "payments",
 ]
 
 MIDDLEWARE = [

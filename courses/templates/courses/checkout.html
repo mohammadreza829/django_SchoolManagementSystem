@@ -23,7 +23,7 @@
           <div class="min-w-0">
             <h1 class="text-xl sm:text-2xl font-extrabold leading-8">تکمیل پرداخت و باز کردن دوره</h1>
             <p class="text-sm text-slate-500 mt-1 leading-6">
-              ثبت‌نام تو ثبت شده است، اما وضعیت پرداخت هنوز «در انتطار» است؛ با تأیید پرداخت، همهٔ جلسه‌ها باز می‌شود.
+              ثبت‌نام تو ثبت شده است، اما وضعیت پرداخت هنوز «در انتطار» است؛ با پرداخت از طریق درگاه زرین‌پال، همهٔ جلسه‌ها باز می‌شود.
             </p>
           </div>
         </div>
@@ -70,18 +70,18 @@
 
         <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 flex items-start gap-2.5 text-xs text-amber-800 leading-6 mb-6">
           <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
-          <span>درگاه بانکی هنوز متصل نشده است؛ فعلاً با تأیید همین فرم، دسترسی دوره برایت فعال می‌شود.</span>
+          <span>پرداخت از طریق درگاه زرین‌پال در حالت تستی (Sandbox) انجام می‌شود؛ روی صفحهٔ درگاه، پرداخت آزمایشی را تأیید کن تا دوره باز شود.</span>
         </div>
 
         {# دکمه‌ها — روی موبایل تمام‌عرض و عمودی #}
-        <form method="post" action="{% url 'courses:checkout' course.slug %}"
+        <form method="post" action="{% url 'payments:start' course.slug %}"
               x-data="{ sending: false }" @submit="sending = true"
               class="flex flex-col sm:flex-row gap-2.5">
           {% csrf_token %}
           <button type="submit" class="btn btn-primary btn-lg w-full sm:flex-1"
                   :disabled="sending" :class="sending && 'opacity-60 pointer-events-none'">
             <i data-lucide="shield-check" class="w-5 h-5"></i>
-            <span x-text="sending ? 'در حال تأیید…' : 'تأیید پرداخت و باز کردن دوره'"></span>
+            <span x-text="sending ? 'در حال انتقال به درگاه…' : 'پرداخت با زرین‌پال'"></span>
           </button>
           <a href="{{ course.get_absolute_url }}" class="btn btn-ghost btn-lg w-full sm:w-auto">
             <i data-lucide="arrow-right" class="w-4 h-4"></i> بازگشت به دوره
